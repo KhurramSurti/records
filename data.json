@@ -1,0 +1,60 @@
+{
+  "team": {
+    "name": "Gold Hayat Cricket Team",
+    "players": [
+      {
+        "name": "Mehboob Yasin",
+        "sub": false
+      },
+      {
+        "name": "Fayyaz Muhammad",
+        "sub": false
+      },
+      {
+        "name": "Sami Khan",
+        "sub": false
+      },
+      {
+        "name": "Sher Muhammad",
+        "sub": false
+      },
+      {
+        "name": "Syed Zaheer",
+        "sub": false
+      },
+      {
+        "name": "Mudassir Hamdani",
+        "sub": false
+      },
+      {
+        "name": "Syed Mudassir",
+        "sub": false
+      },
+      {
+        "name": "Umer Sohail",
+        "sub": false
+      },
+      {
+        "name": "Umair Suzuki",
+        "sub": false
+      },
+      {
+        "name": "Yousuf Nini",
+        "sub": false
+      },
+      {
+        "name": "Rameez Altaf",
+        "sub": false
+      },
+      {
+        "name": "Khurram Surti",
+        "sub": false
+      },
+      {
+        "name": "Abdul Raziq",
+        "sub": false
+      }
+    ]
+  },
+  "matches": []
+}
