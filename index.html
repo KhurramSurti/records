@@ -414,6 +414,28 @@ async function sha256hex(str){ const buf=await crypto.subtle.digest("SHA-256", n
 function editHashSet(){ return !!(DATA&&DATA.config&&DATA.config.editHash); }
 function canEdit(){ return !editHashSet() || EDIT_UNLOCKED; }
 function applyRemoteConfig(rc){ if(!rc)return; DATA.config=DATA.config||{}; if(rc.editHash){ DATA.config.editHash=rc.editHash; } else { delete DATA.config.editHash; } }
+/* ---------- Result margin + target (cricket logic) ---------- */
+function matchMargin(m){
+  if(!m) return {label:"—",cls:"nr"};
+  if(m.result==="nr") return {label:"No result",cls:"nr"};
+  if(m.result==="draw") return {label:"Match drawn",cls:"nr"};
+  const our=int(m.ourTotal),opp=int(m.oppTotal),ourW=int(m.ourWickets),oppW=int(m.oppWickets);
+  if(our===opp){ return {label:"Match tied",cls:"tie"}; }
+  const weChased=(m.decision==="bowl"); // we bowled first => we batted second (chased)
+  if(our>opp){
+    if(weChased){ const w=Math.max(0,10-ourW); return {label:"Won by "+w+" wicket"+(w===1?"":"s"),cls:"win"}; }
+    const r=our-opp; return {label:"Won by "+r+" run"+(r===1?"":"s"),cls:"win"};
+  } else {
+    if(weChased){ const r=opp-our; return {label:"Lost by "+r+" run"+(r===1?"":"s"),cls:"loss"}; }
+    const w=Math.max(0,10-oppW); return {label:"Lost by "+w+" wicket"+(w===1?"":"s"),cls:"loss"};
+  }
+}
+function targetInfo(m){
+  const our=int(m.ourTotal),opp=int(m.oppTotal);
+  const weChased=(m.decision==="bowl");
+  const firstInnings=weChased?opp:our;
+  return {target:firstInnings+1, chaser: weChased?"Gold Hayat":(m.opponent||"Opponent")};
+}
 async function loadData(){
   const local = localStorage.getItem(LS_KEY);
   if(local){ try{ const j=JSON.parse(local); if(j&&j.matches) return normalize(j); }catch(e){} }
@@ -511,8 +533,8 @@ function bowlingAgg(ms){
   ms=ms||DATA.matches; const map={};
   ms.forEach(m=>(m.bowling||[]).forEach(raw=>{
     const k=raw.name; if(!k)return; const balls=oversToBalls(raw.overs);
-    const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
-    p.inns++;p.balls+=balls;p.runs+=int(raw.runs);p.wkts+=int(raw.wickets);p.wides+=int(raw.wides);p.noballs+=int(raw.noballs);p.dots+=int(raw.dots);
+    const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
+    p.inns++;p.balls+=balls;p.runs+=int(raw.runs);p.wkts+=int(raw.wickets);p.wides+=int(raw.wides);p.noballs+=int(raw.noballs);p.dots+=int(raw.dots);p.fours+=int(raw.fours);p.sixes+=int(raw.sixes);
     const w=int(raw.wickets),r=int(raw.runs);
     if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
     if(w>=5)p.fiveFer++;else if(w>=3)p.threeFer++;
@@ -746,8 +768,7 @@ function router(){
 
 /* ---------- Match row ---------- */
 function matchRow(m){
-  const badge={won:"win",lost:"loss",tie:"tie"}[m.result]||"nr";
-  const label={won:"Won",lost:"Lost",tie:"Tied"}[m.result]||"No result";
+  const mm=matchMargin(m); const badge=mm.cls; const label=mm.label;
   return `<div class="match-row" onclick="location.hash='#/match/${m.id}'">
     <div class="match-date tnum">${fmtDateW(m.date)}</div>
     <div class="match-vs"><div class="opp">vs ${esc(m.opponent)}</div><div class="meta">${esc(m.ground||"")}${m.venueType?' · <span class="chip'+(m.venueType==="away"?" red":"")+'">'+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+'</span>':""}${m.captain?' · <span class="chip cap">© '+esc(m.captain)+'</span>':""}</div></div>
@@ -829,8 +850,7 @@ function viewMatches(v){
 function viewScorecard(v,id){
   const m=DATA.matches.find(x=>x.id===id);
   if(!m){v.innerHTML=emptyBlock("Match not found");return;}
-  const badge={won:"win",lost:"loss",tie:"tie"}[m.result]||"nr";
-  const label={won:"Won",lost:"Lost",tie:"Tied"}[m.result]||"No result";
+  const mm=matchMargin(m); const badge=mm.cls; const label=mm.label;
   const bat=(m.batting||[]).map(inn);
   const bt=bat.reduce((a,b)=>({r:a.r+b.runs,b:a.b+b.balls,f:a.f+b.fours,s:a.s+b.sixes}),{r:0,b:0,f:0,s:0});
   const extras=int(m.ourTotal)-bt.r;
@@ -848,6 +868,7 @@ function viewScorecard(v,id){
       <div class="sb-title" style="font-size:28px">Gold Hayat vs ${esc(m.opponent)}</div>
       <div class="sb-sub">${m.captain?'<span class="chip cap">© Captain: '+esc(m.captain)+'</span> ':""}Toss: ${esc(m.toss||"—")}${m.decision?" · chose to "+esc(m.decision):""}${m.motm?' · <span class="star">★</span> MOTM: '+esc(m.motm):""}</div></div>
     <div style="text-align:right"><span class="badge ${badge}" style="font-size:12px">${label}</span>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Target ${tgt.target} · ${esc(tgt.chaser)} chasing</div>
       <div class="sb-stat" style="margin-top:10px"><div class="n tnum">${m.ourTotal}/${m.ourWickets}</div><div class="l">Gold Hayat (${esc(m.ourOvers||"")} ov)</div></div>
       <div class="sb-stat" style="margin-top:8px"><div class="n tnum" style="font-size:20px;color:var(--muted)">${m.oppTotal}/${m.oppWickets}</div><div class="l">${esc(m.opponent)} (${esc(m.oppOvers||"")} ov)</div></div></div>
   </div></div>
@@ -867,10 +888,10 @@ function viewScorecard(v,id){
 
   <div class="sc-section-title">Gold Hayat — Bowling</div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>Econ</th><th>Dots</th><th>Wd</th><th>Nb</th></tr></thead>
+    <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Econ</th><th>Dots</th><th>Wd</th><th>Nb</th></tr></thead>
     <tbody>${(m.bowling||[]).map(b=>{const balls=oversToBalls(b.overs);const e=balls?int(b.runs)/(balls/6):0;return `<tr>
       <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}</td>
-      <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
+      <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${int(b.fours)}</td><td class="tnum">${int(b.sixes)}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
   </table></div>
 
   ${(m.fielding&&m.fielding.length)?`<div class="sc-section-title">Gold Hayat — Fielding</div>
@@ -910,11 +931,11 @@ function viewBowling(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(13)}</tbody>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(15)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
@@ -1042,7 +1063,7 @@ function viewPlayer(v,name){
     <div class="card stat-card"><div class="k">Wickets</div><div class="v tnum">${w.wkts}</div><div class="sub">${w.inns} inns · BBI ${w.bbi}</div></div>
     <div class="card stat-card"><div class="k">Economy</div><div class="v tnum">${w.econ.toFixed(2)}</div><div class="sub">${w.overs} overs</div></div>
     <div class="card stat-card"><div class="k">Average</div><div class="v tnum">${w.avg==null?"—":w.avg.toFixed(1)}</div><div class="sub">SR ${w.sr==null?"—":w.sr.toFixed(1)}</div></div>
-    <div class="card stat-card"><div class="k">Runs conceded</div><div class="v tnum">${w.runs}</div><div class="sub">${w.dots} dots · ${w.threeFer} 3W</div></div>
+    <div class="card stat-card"><div class="k">Runs conceded</div><div class="v tnum">${w.runs}</div><div class="sub">${w.dots} dots · ${w.fours} fours · ${w.sixes} sixes conceded</div></div>
   </div>
   <div class="grid c2" style="margin-bottom:8px">
     ${playerChartBlock("bowl",pmatches,name)}
@@ -1056,8 +1077,8 @@ function viewPlayer(v,name){
       <thead><tr><th class="l">Format</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th></tr></thead>
       <tbody>${batByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="hi tnum">${r.p.runs}</td><td class="tnum">${r.p.hs}${r.p.hsNo?"*":""}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.sr.toFixed(0)}</td><td class="tnum dim">${r.p.fifties}</td><td class="tnum dim">${r.p.hundreds}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
     <div><div class="eyebrow">Bowling</div><div class="table-wrap table-scroll"><table>
-      <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th></tr></thead>
-      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td></tr>`).join("")||emptyRow(7)}</tbody></table></div></div>
+      <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th><th>4s</th><th>6s</th></tr></thead>
+      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td><td class="tnum">${r.p.fours}</td><td class="tnum">${r.p.sixes}</td></tr>`).join("")||emptyRow(9)}</tbody></table></div></div>
   </div>`:""}
 
   <div class="split-title">Match by match <span class="pill">${esc(ctx)}</span></div>
@@ -1231,7 +1252,8 @@ function viewAdd(v){
     <div class="field"><label>Opponent total <span class="autotag">auto</span></label><input type="number" id="f-opptotal" readonly placeholder="0"></div>
     <div class="field"><label>Opponent wickets <span class="autotag">auto</span></label><input type="number" id="f-oppwkts" readonly placeholder="0"></div>
     <div class="field"><label>Opponent overs <span class="autotag">auto</span></label><input id="f-oppovers" readonly placeholder="0"></div>
-    <div class="field"><label>Result <span class="autotag">auto</span></label><select id="f-result"><option value="won">Won</option><option value="lost">Lost</option><option value="tie">Tie</option><option value="nr">No result</option></select></div>
+    <div class="field"><label>Result <span class="autotag">auto</span></label><select id="f-result"><option value="won">Won</option><option value="lost">Lost</option><option value="tie">Tie</option><option value="draw">Draw (Test)</option><option value="nr">No result</option></select></div>
+    <div class="field"><label>Target <span class="autotag">auto</span></label><input id="f-target" readonly placeholder="—"></div>
     <div class="field"><label>Man of the match</label><input id="f-motm" placeholder="Our player"></div>
   </div></div>
   <div id="cards-order" style="display:flex;flex-direction:column">
@@ -1241,7 +1263,7 @@ function viewAdd(v){
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow()">+ Add batsman</button>
     <div class="total-line">Batting runs: <span id="bat-total" class="diff">0</span></div></div>
   <div class="form-section" id="sec-bowl"><h3>Bowling card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
-    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Dots</th><th>Wides</th><th>NoBalls</th><th>Econ</th><th></th></tr></thead>
+    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>4s</th><th>6s</th><th>Dots</th><th>Wides</th><th>NoBalls</th><th>Econ</th><th></th></tr></thead>
     <tbody id="bowl-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button></div>
   <div class="form-section" id="sec-field"><h3>Fielding — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
@@ -1296,6 +1318,8 @@ function addBowlRow(d){
     <td><input class="num" data-k="overs" oninput="recalcBowl('${id}')" placeholder="4"></td>
     <td><input class="num" type="number" data-k="runs" oninput="recalcBowl('${id}')" placeholder="0"></td>
     <td><input class="num" type="number" data-k="wickets" oninput="recalcSummary()" placeholder="0"></td>
+    <td><input class="num" type="number" data-k="fours" placeholder="0"></td>
+    <td><input class="num" type="number" data-k="sixes" placeholder="0"></td>
     <td><input class="num" type="number" data-k="dots" placeholder="0"></td>
     <td><input class="num" type="number" data-k="wides" placeholder="0"></td>
     <td><input class="num" type="number" data-k="noballs" placeholder="0"></td>
@@ -1303,7 +1327,7 @@ function addBowlRow(d){
     <td><button class="row-del" onclick="this.closest('tr').remove()">×</button></td>`;
   $("#bowl-rows").appendChild(tr);ensureDatalist();
   if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
-    set("name",d.name);set("overs",d.overs);set("runs",d.runs);set("wickets",d.wickets);set("dots",d.dots);set("wides",d.wides);set("noballs",d.noballs); recalcBowl(id); }
+    set("name",d.name);set("overs",d.overs);set("runs",d.runs);set("wickets",d.wickets);set("fours",d.fours);set("sixes",d.sixes);set("dots",d.dots);set("wides",d.wides);set("noballs",d.noballs); recalcBowl(id); }
 }
 function addFieldRow(d){
   const id="f"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
@@ -1352,7 +1376,15 @@ function recalcSummary(){
   const oppTotal=oppRuns+oppExtras;
   setVal("f-opptotal",oppTotal); setVal("f-oppwkts",oppWkts); setVal("f-oppovers",ballsToOvers(oppBalls));
   const rsel=$("#f-result");
-  if(rsel){ if(ourTotal>oppTotal) rsel.value="won"; else if(ourTotal<oppTotal) rsel.value="lost"; else if(ourTotal===oppTotal && (ourTotal>0||oppTotal>0)) rsel.value="tie"; }
+  const cur=rsel?rsel.value:"";
+  if(rsel && cur!=="nr" && cur!=="draw"){ if(ourTotal>oppTotal) rsel.value="won"; else if(ourTotal<oppTotal) rsel.value="lost"; else if(ourTotal===oppTotal && (ourTotal>0||oppTotal>0)) rsel.value="tie"; }
+  // target readout + margin preview
+  const weChased=((($("#f-decision")||{}).value)==="bowl");
+  const firstInnings=weChased?oppTotal:ourTotal;
+  const tgt=firstInnings+1;
+  const mrg=matchMargin({result:(rsel?rsel.value:""),ourTotal,oppTotal,ourWickets:wkts,oppWickets:oppWkts,decision:(($("#f-decision")||{}).value)});
+  const tEl=$("#f-target");
+  if(tEl){ tEl.value=(ourTotal||oppTotal)?((weChased?"We need ":(esc((($("#f-opp")||{}).value)||"Opp"))+" need ")+tgt+"  ·  "+mrg.label):"—"; }
 }
 function onDecisionOrder(){
   const dec=(($("#f-decision")||{}).value)||"bat";
@@ -1373,7 +1405,7 @@ function saveMatch(){
   const bowl=[];document.querySelectorAll("#bowl-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
     const name=gk("name").trim();if(!name)return;
-    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs"))});
+    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs"))});
   });
   const field=[];document.querySelectorAll("#field-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
@@ -1799,7 +1831,7 @@ window.liveStart=()=>{
 window.liveDiscard=()=>{ if(confirm("Discard this live match? Entered balls will be lost.")){ try{localStorage.removeItem(LS_LIVE);}catch(e){} LIVE=null; location.hash="#/live"; router(); } };
 
 function ensureBat(b,name){ if(!b.players[name]){ b.players[name]={dots:0,ones:0,twos:0,threes:0,fours:0,sixes:0,balls:0,out:false,dismissal:"notout"}; b.order.push(name); } }
-function ensureBowl(w,name){ if(!w.bowlers[name]){ w.bowlers[name]={balls:0,runs:0,wickets:0,dots:0,wides:0,noballs:0}; } }
+function ensureBowl(w,name){ if(!w.bowlers[name]){ w.bowlers[name]={balls:0,runs:0,wickets:0,fours:0,sixes:0,dots:0,wides:0,noballs:0}; } }
 function swapStrike(b){ const t=b.striker; b.striker=b.nonStriker; b.nonStriker=t; }
 function pushRecent(arr,sym){ arr.push(sym); if(arr.length>8)arr.shift(); }
 
@@ -1843,7 +1875,7 @@ window.onLiveRun=(r)=>{
     liveCommit();
   } else { const w=LIVE.bowl; if(w.needNew||w.pendingWicket||!w.currentBowler)return;
     liveSnap(); const bw=w.bowlers[w.currentBowler]; bw.balls++; bw.runs+=r; w.oppTotal+=r; w.legalBalls++;
-    if(r===0)bw.dots++; pushRecent(w.recent, r===0?"•":String(r));
+    if(r===0)bw.dots++; else if(r===4)bw.fours++; else if(r===6)bw.sixes++; pushRecent(w.recent, r===0?"•":String(r));
     if(w.legalBalls%6===0){ w.needNew=true; }
     liveCommit();
   }
@@ -1879,7 +1911,7 @@ window.liveEndInnings=()=>{
 function liveToMatch(){
   const b=LIVE.bat, w=LIVE.bowl;
   const batting=b.order.map((nm,i)=>{ const p=b.players[nm]; return {name:nm,dots:p.dots,ones:p.ones,twos:p.twos,threes:p.threes,fours:p.fours,sixes:p.sixes,dismissal:p.out?p.dismissal:"notout",position:i+1}; });
-  const bowling=Object.keys(w.bowlers).map(nm=>{ const p=w.bowlers[nm]; return {name:nm,overs:oversStr(p.balls),runs:p.runs,wickets:p.wickets,dots:p.dots,wides:p.wides,noballs:p.noballs}; });
+  const bowling=Object.keys(w.bowlers).map(nm=>{ const p=w.bowlers[nm]; return {name:nm,overs:oversStr(p.balls),runs:p.runs,wickets:p.wickets,fours:p.fours,sixes:p.sixes,dots:p.dots,wides:p.wides,noballs:p.noballs}; });
   const fielding=Object.keys(LIVE.field||{}).map(nm=>({name:nm,catches:LIVE.field[nm].catches,runouts:LIVE.field[nm].runouts,stumpings:LIVE.field[nm].stumpings}));
   const m=LIVE.meta;
   return { date:m.date,opponent:m.opponent,ground:m.ground,venueType:m.venueType,format:m.format,captain:m.captain,toss:m.toss,decision:m.decision,
