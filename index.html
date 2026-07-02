@@ -299,6 +299,8 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
 .xi-chip:hover{color:var(--cream);border-color:var(--line)}
 .xi-chip.on{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
 .xi-chip.on::before{content:"✓ ";font-weight:700}
+.autotag{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);padding:1px 6px;border-radius:10px;margin-left:6px;vertical-align:middle;font-weight:700}
+.form-grid input[readonly]{background:var(--bg-2);color:var(--gold);font-family:var(--mono);border-style:dashed;cursor:not-allowed}
 @media(max-width:900px){
   .lv-score{font-size:46px}.lv-score .w{font-size:24px}
   .lv-keys-runs .lv-key{width:calc(33.333% - 10px)}
@@ -1220,29 +1222,32 @@ function viewAdd(v){
     <div class="field"><label>Match at</label><select id="f-venuetype"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
     <div class="field"><label>Format</label><select id="f-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
     <div class="field"><label>Toss</label><select id="f-toss"><option>won</option><option>lost</option></select></div>
-    <div class="field"><label>Chose to</label><select id="f-decision"><option>bat</option><option>bowl</option></select></div>
-    <div class="field"><label>Our total</label><input type="number" id="f-ourtotal" placeholder="0"></div>
-    <div class="field"><label>Our wickets</label><input type="number" id="f-ourwkts" placeholder="0"></div>
-    <div class="field"><label>Our overs</label><input id="f-ourovers" placeholder="20"></div>
-    <div class="field"><label>Opponent total</label><input type="number" id="f-opptotal" placeholder="0"></div>
-    <div class="field"><label>Opponent wickets</label><input type="number" id="f-oppwkts" placeholder="0"></div>
-    <div class="field"><label>Opponent overs</label><input id="f-oppovers" placeholder="20"></div>
-    <div class="field"><label>Result</label><select id="f-result"><option value="won">Won</option><option value="lost">Lost</option><option value="tie">Tie</option><option value="nr">No result</option></select></div>
+    <div class="field"><label>We — first innings</label><select id="f-decision" onchange="onDecisionOrder()"><option value="bat">We batted first</option><option value="bowl">We bowled first</option></select></div>
+    <div class="field"><label>Extras (ours)</label><input type="number" id="f-extras" placeholder="0" oninput="recalcSummary()"></div>
+    <div class="field"><label>Our total <span class="autotag">auto</span></label><input type="number" id="f-ourtotal" readonly placeholder="0"></div>
+    <div class="field"><label>Our wickets <span class="autotag">auto</span></label><input type="number" id="f-ourwkts" readonly placeholder="0"></div>
+    <div class="field"><label>Our overs <span class="autotag">auto</span></label><input id="f-ourovers" readonly placeholder="0"></div>
+    <div class="field"><label>Opponent total <span class="autotag">auto</span></label><input type="number" id="f-opptotal" readonly placeholder="0"></div>
+    <div class="field"><label>Opponent wickets <span class="autotag">auto</span></label><input type="number" id="f-oppwkts" readonly placeholder="0"></div>
+    <div class="field"><label>Opponent overs <span class="autotag">auto</span></label><input id="f-oppovers" readonly placeholder="0"></div>
+    <div class="field"><label>Result <span class="autotag">auto</span></label><select id="f-result"><option value="won">Won</option><option value="lost">Lost</option><option value="tie">Tie</option><option value="nr">No result</option></select></div>
     <div class="field"><label>Man of the match</label><input id="f-motm" placeholder="Our player"></div>
   </div></div>
-  <div class="form-section"><h3>Batting card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
+  <div id="cards-order" style="display:flex;flex-direction:column">
+  <div class="form-section" id="sec-bat"><h3>Batting card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Batsman</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th class="l">How out</th><th class="l">Bowler/Fielder</th><th>R (B) SR</th><th></th></tr></thead>
     <tbody id="bat-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow()">+ Add batsman</button>
     <div class="total-line">Batting runs: <span id="bat-total" class="diff">0</span></div></div>
-  <div class="form-section"><h3>Bowling card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
+  <div class="form-section" id="sec-bowl"><h3>Bowling card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Bowler</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Dots</th><th>Wides</th><th>NoBalls</th><th>Econ</th><th></th></tr></thead>
     <tbody id="bowl-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button></div>
-  <div class="form-section"><h3>Fielding — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
+  <div class="form-section" id="sec-field"><h3>Fielding — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow()">+ Add fielder</button></div>
+  </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">
     <button class="btn primary" id="save-btn" onclick="saveMatch()">Save match</button>
     <button class="btn ghost" onclick="location.hash='#/add';router()">Reset form</button>
@@ -1259,7 +1264,9 @@ function viewAdd(v){
     const btn=$("#save-btn"), msg=$("#save-msg"), h=$("#add-head");
     if(EDIT_ID){ if(btn)btn.textContent="Update match"; if(h)h.textContent="Edit match"; if(msg)msg.textContent="Editing — Update will overwrite ONLY this match; everything else stays."; }
     else if(msg){ msg.textContent="Pre-filled from your schedule — add the scores and Save."; }
+    if(P.batting&&P.batting.length){ const sr=P.batting.reduce((a,b)=>a+(int(b.ones)+2*int(b.twos)+3*int(b.threes)+4*int(b.fours)+6*int(b.sixes)),0); const ex=int(P.ourTotal)-sr; setv("f-extras", ex>0?ex:0); }
   }
+  onDecisionOrder(); recalcSummary();
 }
 function playerListOptions(){return allPlayers().map(n=>`<option value="${esc(n)}">`).join("");}
 function ensureDatalist(){if(!$("#pl-all")){const dl=document.createElement("datalist");dl.id="pl-all";dl.innerHTML=playerListOptions();document.body.appendChild(dl);}}
@@ -1272,7 +1279,7 @@ function addBatRow(d){
     <td><input class="num" type="number" data-k="threes" oninput="recalcBat('${id}')" placeholder="0"></td>
     <td><input class="num" type="number" data-k="fours" oninput="recalcBat('${id}')" placeholder="0"></td>
     <td><input class="num" type="number" data-k="sixes" oninput="recalcBat('${id}')" placeholder="0"></td>
-    <td><select data-k="dismissal">${DISMISSALS.map(d=>`<option value="${d}">${d==="notout"?"not out":d}</option>`).join("")}</select></td>
+    <td><select data-k="dismissal" onchange="recalcSummary()">${DISMISSALS.map(d=>`<option value="${d}">${d==="notout"?"not out":d}</option>`).join("")}</select></td>
     <td><input data-k="who" placeholder="opp. bowler / fielder" style="min-width:130px"></td>
     <td class="calc" id="calc-${id}">0 (0)</td>
     <td><button class="row-del" onclick="this.closest('tr').remove();recalcBatTotal()">×</button></td>`;
@@ -1286,7 +1293,7 @@ function addBowlRow(d){
   tr.innerHTML=`<td><input class="name" list="pl-all" data-k="name" placeholder="Name"></td>
     <td><input class="num" data-k="overs" oninput="recalcBowl('${id}')" placeholder="4"></td>
     <td><input class="num" type="number" data-k="runs" oninput="recalcBowl('${id}')" placeholder="0"></td>
-    <td><input class="num" type="number" data-k="wickets" placeholder="0"></td>
+    <td><input class="num" type="number" data-k="wickets" oninput="recalcSummary()" placeholder="0"></td>
     <td><input class="num" type="number" data-k="dots" placeholder="0"></td>
     <td><input class="num" type="number" data-k="wides" placeholder="0"></td>
     <td><input class="num" type="number" data-k="noballs" placeholder="0"></td>
@@ -1300,7 +1307,7 @@ function addFieldRow(d){
   const id="f"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
   tr.innerHTML=`<td><input class="name" list="pl-all" data-k="name" placeholder="Name"></td>
     <td><input class="num" type="number" data-k="catches" placeholder="0"></td>
-    <td><input class="num" type="number" data-k="runouts" placeholder="0"></td>
+    <td><input class="num" type="number" data-k="runouts" oninput="recalcSummary()" placeholder="0"></td>
     <td><input class="num" type="number" data-k="stumpings" placeholder="0"></td>
     <td><button class="row-del" onclick="this.closest('tr').remove()">×</button></td>`;
   $("#field-rows").appendChild(tr);ensureDatalist();
@@ -1317,9 +1324,39 @@ function recalcBat(id){
 function recalcBatTotal(){
   let tot=0;document.querySelectorAll("#bat-rows tr").forEach(tr=>{const g=k=>int((tr.querySelector("[data-k='"+k+"']")||{}).value);tot+=g("ones")+2*g("twos")+3*g("threes")+4*g("fours")+6*g("sixes");});
   const el=$("#bat-total"); if(el)el.textContent=tot;
+  recalcSummary();
 }
-function recalcBowl(id){const balls=oversToBalls(rowVal(id,"overs")),runs=int(rowVal(id,"runs"));const c=$("#calc-"+id);if(c)c.textContent=balls?(runs/(balls/6)).toFixed(1):"—";}
+function recalcBowl(id){const balls=oversToBalls(rowVal(id,"overs")),runs=int(rowVal(id,"runs"));const c=$("#calc-"+id);if(c)c.textContent=balls?(runs/(balls/6)).toFixed(1):"—";recalcSummary();}
+function setVal(id,v){const el=$("#"+id); if(el)el.value=v;}
+function recalcSummary(){
+  let runs=0,balls=0,wkts=0;
+  document.querySelectorAll("#bat-rows tr").forEach(tr=>{ const g=k=>int((tr.querySelector("[data-k='"+k+"']")||{}).value);
+    const nm=((tr.querySelector("[data-k='name']")||{}).value||"").trim();
+    const o=g("ones"),t=g("twos"),th=g("threes"),f=g("fours"),s=g("sixes"),d=g("dots");
+    runs+=o+2*t+3*th+4*f+6*s; balls+=d+o+t+th+f+s;
+    const dis=(tr.querySelector("[data-k='dismissal']")||{}).value;
+    if(nm && dis && dis!=="notout") wkts++;
+  });
+  const extras=int(($("#f-extras")||{}).value);
+  const ourTotal=runs+extras;
+  setVal("f-ourtotal",ourTotal); setVal("f-ourwkts",wkts); setVal("f-ourovers",ballsToOvers(balls));
+  let oppRuns=0,oppWkts=0,oppBalls=0;
+  document.querySelectorAll("#bowl-rows tr").forEach(tr=>{ const g=k=>int((tr.querySelector("[data-k='"+k+"']")||{}).value);
+    oppRuns+=g("runs"); oppWkts+=g("wickets"); oppBalls+=oversToBalls((tr.querySelector("[data-k='overs']")||{}).value);
+  });
+  let runouts=0; document.querySelectorAll("#field-rows tr").forEach(tr=>{ runouts+=int((tr.querySelector("[data-k='runouts']")||{}).value); });
+  oppWkts+=runouts;
+  setVal("f-opptotal",oppRuns); setVal("f-oppwkts",oppWkts); setVal("f-oppovers",ballsToOvers(oppBalls));
+  const rsel=$("#f-result");
+  if(rsel){ if(ourTotal>oppRuns) rsel.value="won"; else if(ourTotal<oppRuns) rsel.value="lost"; else if(ourTotal===oppRuns && (ourTotal>0||oppRuns>0)) rsel.value="tie"; }
+}
+function onDecisionOrder(){
+  const dec=(($("#f-decision")||{}).value)||"bat";
+  const bat=$("#sec-bat"), bowl=$("#sec-bowl"), fld=$("#sec-field");
+  if(bat&&bowl&&fld){ if(dec==="bowl"){ bowl.style.order="1"; bat.style.order="2"; } else { bat.style.order="1"; bowl.style.order="2"; } fld.style.order="3"; }
+}
 function saveMatch(){
+  recalcSummary();
   const g=id=>($("#"+id)||{}).value||"";
   const bat=[];document.querySelectorAll("#bat-rows tr").forEach((tr,i)=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
@@ -1473,7 +1510,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
