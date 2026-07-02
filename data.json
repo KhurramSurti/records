@@ -56,6 +56,222 @@
       }
     ]
   },
-  "matches": [],
-  "fixtures": []
+  "matches": [
+    {
+      "id": "m1783027384947",
+      "date": "2026-06-28",
+      "opponent": "Mulla XI",
+      "captain": "Syed Zaheer",
+      "ground": "Uni Plaza",
+      "venueType": "home",
+      "format": "OD",
+      "toss": "lost",
+      "decision": "bowl",
+      "ourTotal": 80,
+      "ourWickets": 3,
+      "ourOvers": "7.5",
+      "oppTotal": 111,
+      "oppWickets": 5,
+      "oppOvers": "8.0",
+      "result": "lost",
+      "motm": "",
+      "batting": [
+        {
+          "name": "Sher Muhammad",
+          "dots": 1,
+          "ones": 0,
+          "twos": 5,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 1
+        },
+        {
+          "name": "Umer Sohail",
+          "dots": 6,
+          "ones": 5,
+          "twos": 6,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 3,
+          "dismissal": "notout",
+          "position": 2
+        },
+        {
+          "name": "Sami Khan",
+          "dots": 2,
+          "ones": 3,
+          "twos": 4,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 3
+        },
+        {
+          "name": "Syed Zaheer",
+          "dots": 3,
+          "ones": 2,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 4
+        },
+        {
+          "name": "Yousuf Nini",
+          "dots": 1,
+          "ones": 2,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dismissal": "notout",
+          "position": 5
+        }
+      ],
+      "bowling": [
+        {
+          "name": "Syed Zaheer",
+          "overs": "1",
+          "runs": 23,
+          "wickets": 0,
+          "fours": 0,
+          "sixes": 3,
+          "dots": 0,
+          "wides": 1,
+          "noballs": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 0,
+          "fours": 1,
+          "sixes": 0,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0
+        },
+        {
+          "name": "Syed Zaheer",
+          "overs": "1",
+          "runs": 9,
+          "wickets": 1,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 0,
+          "wides": 1,
+          "noballs": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 18,
+          "wickets": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 3,
+          "noballs": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 14,
+          "wickets": 1,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 1,
+          "noballs": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 1,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 0,
+          "wides": 2,
+          "noballs": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 13,
+          "wickets": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 0,
+          "wides": 2,
+          "noballs": 0
+        }
+      ],
+      "fielding": [
+        {
+          "name": "Fayyaz Muhammad",
+          "catches": 0,
+          "runouts": 1,
+          "stumpings": 0
+        },
+        {
+          "name": "Sami Khan",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Sami Khan",
+          "catches": 0,
+          "runouts": 1,
+          "stumpings": 0
+        }
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "fx1782959856935",
+      "date": "2026-07-05",
+      "opponent": "Young 11",
+      "venue": "Uni Plaza",
+      "venueType": "home",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1782959887918",
+      "date": "2026-07-12",
+      "opponent": "Fighter Team",
+      "venue": "Uni Plaza",
+      "venueType": "home",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1782959915942",
+      "date": "2026-07-19",
+      "opponent": "Faisal Team",
+      "venue": "Passport Office",
+      "venueType": "away",
+      "format": "OD",
+      "note": ""
+    }
+  ],
+  "config": {}
 }
