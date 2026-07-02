@@ -111,3 +111,24 @@ On each player profile, the batting and bowling charts have two views (toggle on
   The value sits above each bar; bowling shows "N wkts". If a Sunday had two matches
   (double-header), that day's totals are summed into one bar.
 Both views respect the selected format tab (T20 / OD / Test / T10).
+
+
+## Live scoring (ball-by-ball, offline, auto-saved)
+At the start you pick today's **Playing XI**: all 13 squad names show as tappable chips (all selected by default) — tap the 2 who are resting to drop them, so only the playing 11 appear in every batsman/bowler/fielder pick for that match. Add a **substitute/guest** by name at this stage or mid-match via the **＋ Sub / ＋ Add player** buttons; their stats record automatically.
+
+Start-match setup asks the **format** (T20 / OD / Test / T10); choosing it auto-fills the usual **overs** (OD = 8 for us, T20 = 20, T10 = 10) which you can change or type. Balls-left and overs are computed from that.
+
+New **Live scoring** tab. Set up the match, then tap each ball: 0/1/2/3/4/6, Wide, No-ball, Wicket, Undo.
+- We only score OUR team: our batting (per-batter shots → runs & balls) and our bowling (per-bowler overs, runs, wickets, dots, wides, no-balls). Opponent batters are never needed.
+- Strike rotation is automatic (odd runs and end of over). On a wicket you pick how out and the next batsman.
+- Bowling wickets can credit our fielder (catch/run-out/stumping) → feeds fielding stats.
+- Every tap auto-saves to this browser, so nothing is lost if the phone locks or the page reloads — reopen the Live tab to resume.
+- Tap **Finish & review** → it converts the whole innings into a normal scorecard (per-player runs, singles, dots, fours, sixes; bowlers' overs/runs/wickets), opens the Add-match form pre-filled so you can check it, then Save and Publish as usual.
+
+Note: live scoring still needs one person tapping each ball during the match. If no one can score live, the manual Add-match entry after the game works exactly as before.
+
+
+## Edit protection (view-only for others)
+In **Data & publish → Edit protection**, set an **edit password**. After you Publish, anyone who opens the shared link gets a **view-only** app: Dashboard, leaderboards, player/captain/venue/records pages and PDFs all work, but **Add match, Squad, Schedule editing, Data & publish and Live scoring are hidden**, and Edit/Delete buttons disappear. Tap **🔒 View only — unlock** in the sidebar and enter the password to edit; **🔓 tap to lock** puts it back to view-only. Your password is stored only as a one-way hash (never in plain text).
+
+This is a friendly lock for a shared link, not bank-grade security (the app runs in the browser). Your **permanent** record is protected separately: only a browser that has your **GitHub token** can actually save to GitHub — opening the app never writes anything by itself.
