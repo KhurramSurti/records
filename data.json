@@ -57,36 +57,5 @@
     ]
   },
   "matches": [],
-  "fixtures": [
-    {
-      "id": "fx1782959856935",
-      "date": "2026-07-05",
-      "opponent": "Young 11",
-      "venue": "Uni Plaza",
-      "venueType": "home",
-      "format": "OD",
-      "note": ""
-    },
-    {
-      "id": "fx1782959887918",
-      "date": "2026-07-12",
-      "opponent": "Fighter Team",
-      "venue": "Uni Plaza",
-      "venueType": "home",
-      "format": "OD",
-      "note": ""
-    },
-    {
-      "id": "fx1782959915942",
-      "date": "2026-07-19",
-      "opponent": "Faisal Team",
-      "venue": "Passport Office",
-      "venueType": "away",
-      "format": "OD",
-      "note": ""
-    }
-  ],
-  "config": {
-    "editHash": "55393322c156ac4446166bafd8dcb20f72ca90598e6d65f32441e1ff2db08996"
-  }
+  "fixtures": []
 }

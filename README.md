@@ -132,3 +132,8 @@ Note: live scoring still needs one person tapping each ball during the match. If
 In **Data & publish → Edit protection**, set an **edit password**. After you Publish, anyone who opens the shared link gets a **view-only** app: Dashboard, leaderboards, player/captain/venue/records pages and PDFs all work, but **Add match, Squad, Schedule editing, Data & publish and Live scoring are hidden**, and Edit/Delete buttons disappear. Tap **🔒 View only — unlock** in the sidebar and enter the password to edit; **🔓 tap to lock** puts it back to view-only. Your password is stored only as a one-way hash (never in plain text).
 
 This is a friendly lock for a shared link, not bank-grade security (the app runs in the browser). Your **permanent** record is protected separately: only a browser that has your **GitHub token** can actually save to GitHub — opening the app never writes anything by itself.
+
+
+## Add match — smarter entry
+- **We — first innings:** choose "We batted first" or "We bowled first". The cards reorder so the innings you did first is on top (bowled first → bowling card on top). No data is lost when you switch.
+- **Auto-filled match summary:** Our total / wickets / overs and Opponent total / wickets / overs and the Result now compute automatically from the cards as you type — no manual entry. Our total = batsmen runs + an optional **Extras (ours)** field; our wickets = batsmen who got out; our overs = balls faced. Opponent total/wickets/overs come from your bowling card (plus run-outs from fielding). Result is set by comparing the two totals (you can still override it, e.g. No result for rain).
