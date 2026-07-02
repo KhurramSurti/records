@@ -411,6 +411,7 @@ let EDIT_UNLOCKED=false;
 async function sha256hex(str){ const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(str))); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
 function editHashSet(){ return !!(DATA&&DATA.config&&DATA.config.editHash); }
 function canEdit(){ return !editHashSet() || EDIT_UNLOCKED; }
+function applyRemoteConfig(rc){ if(!rc)return; DATA.config=DATA.config||{}; if(rc.editHash){ DATA.config.editHash=rc.editHash; } else { delete DATA.config.editHash; } }
 async function loadData(){
   const local = localStorage.getItem(LS_KEY);
   if(local){ try{ const j=JSON.parse(local); if(j&&j.matches) return normalize(j); }catch(e){} }
@@ -1723,7 +1724,7 @@ function viewVenues(v){
 $("#menuBtn").addEventListener("click",()=>$("#drawer").classList.toggle("open"));
 $("#drawer").addEventListener("click",e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("open");});
 window.addEventListener("hashchange",router);
-(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const u=localStorage.getItem(LS_UNLOCK); if(u&&DATA.config&&u===DATA.config.editHash)EDIT_UNLOCKED=true;}catch(e){}paintBrand();applyTheme(currentTheme());renderNav();router();})();
+(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json",{cache:"no-store"});if(res.ok){const j=await res.json();applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();})();
 /* ============================================================ LIVE SCORING ============================================================
    Ball-by-ball, offline, auto-saved to this browser after every tap.
    We only score OUR team: our batting (per-batter shots) and our bowling
