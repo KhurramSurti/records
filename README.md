@@ -34,3 +34,29 @@ The team logo is built into the app, so nothing extra is needed for it to show.
 
 The app also keeps a working copy in your browser, and an amber banner reminds you
 whenever you have unsaved matches to publish.
+
+
+## Finding a specific match (e.g. "the 28 June game vs Mulla XI")
+Open **Matches** → use the **Opponent**, **Month**, or **Exact date** filter. Pick the date
+and that day's match appears; tap it for the full scorecard — who scored what, and which
+bowler conceded how much. Each match row also shows the weekday (Sun, Sat…).
+
+## Schedule (upcoming fixtures)
+**Schedule** tab: add upcoming matches with date, opponent, **venue**, Home/Away, format and a note.
+When the match is played, tap **Record result** — the Add-match form opens pre-filled with that
+fixture's date, opponent and venue. Recording a result removes it from the schedule automatically.
+
+## Venues
+Add-match now has a **Venue** field plus a **Match at**selector (Home / Away / Neutral).
+The **Venues** tab shows results by ground, and a head-to-head "by venue" table —
+i.e. how many times we've beaten each team at each venue.
+
+
+## Editing or deleting a match later (safe)
+Open any match's scorecard → **✎ Edit match** opens the form pre-filled with that match's
+exact data; change anything and press **Update match** — it overwrites ONLY that one match,
+every other match stays untouched. **🗑 Delete** removes just that single match (with a
+confirmation). Adding a new match always *appends*; it never wipes older data.
+
+Golden rule for total safety: after any add/edit/delete, go to **Data & publish → Download data.json**
+and commit it to GitHub (and keep a Dated backup). The copy on GitHub is your permanent record.
