@@ -60,3 +60,54 @@ confirmation). Adding a new match always *appends*; it never wipes older data.
 
 Golden rule for total safety: after any add/edit/delete, go to **Data & publish → Download data.json**
 and commit it to GitHub (and keep a Dated backup). The copy on GitHub is your permanent record.
+
+
+## One-click Publish (save straight to GitHub)
+So you don't have to download + upload every time, set up one-click publish once:
+1. Go to **Data & publish → One-click publish to GitHub**.
+2. Enter your GitHub **owner (username)**, **repository**, branch (**main**), path (**data.json**).
+3. Create a **fine-grained Personal Access Token** (GitHub → Settings → Developer settings →
+   Fine-grained tokens): give it access to only your repo, permission **Contents: Read and write**,
+   set an expiry. Paste it in and **Save publish settings**.
+4. Now just tap **Publish now** (or the **Publish now** button in the amber banner) — your data.json
+   is committed to GitHub automatically and the public site updates within ~1 minute.
+
+Notes: the token is stored only in your browser, never in the code or on the public site. Add a
+match → edit if needed → **Publish now**. Download data.json still works as a manual fallback.
+
+
+## Player profiles (cricinfo-style, by format)
+Open any player (Players tab or tap a name anywhere). Each profile now has:
+- **Format tabs** — All formats / T20 / OD / Test Match / T10. Pick one and the whole
+  profile (stats + charts + match log + vs-team) switches to that format.
+- **Separate Batting and Bowling cards** with key numbers (runs, avg, SR, HS, 50s/100s;
+  wickets, econ, avg, BBI, dots).
+- **Charts**: Runs-by-month and Wickets-by-month bar charts (see how form is trending),
+  a "How out" dismissal donut, and runs/wickets per-innings bars.
+- **Career by format** tables (batting & bowling) comparing all four formats at a glance.
+- **Match-by-match** log and **Against each team** split, filtered to the chosen format.
+
+
+## Team & Captain views (format-wise + charts)
+- **Dashboard (Team):** now has format tabs (All / T20 / OD / Test / T10). Everything —
+  results donut, totals chart, this-month leaders, most runs/wickets, recent matches —
+  switches to the chosen format. Button: **Team report PDF**.
+- **Captains:** the list has format tabs + a Win% comparison chart, and each captain's page
+  shows a **Results donut** and **Wins-by-month** chart, record vs each team, top scorer/bowler,
+  and matches led — all filterable by format.
+
+## Download PDF on every record (one click, landscape)
+A PDF button is on every record: match scorecard, player profile, captain, Team report,
+Captains list, Batting/Bowling/Fielding leaderboards, Venues and Records. Each opens a clean
+landscape sheet with the logo and team name; choose **Save as PDF** in the print dialog.
+Player and Captain PDFs follow the format tab you've selected.
+
+
+## Player charts: Monthly vs By-Sunday (batting & bowling)
+On each player profile, the batting and bowling charts have two views (toggle on the chart):
+- **Monthly** — one bar per month (Jul, Aug, Sep …) for a season/year comparison. Batting shows
+  runs, bowling shows wickets. Updates automatically as new months are added.
+- **By Sunday** — pick a month; one bar per Sunday of that month (e.g. 6 Jul, 13 Jul …).
+  The value sits above each bar; bowling shows "N wkts". If a Sunday had two matches
+  (double-header), that day's totals are summed into one bar.
+Both views respect the selected format tab (T20 / OD / Test / T10).
