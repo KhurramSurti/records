@@ -1227,6 +1227,7 @@ function viewAdd(v){
     <div class="field"><label>Our total <span class="autotag">auto</span></label><input type="number" id="f-ourtotal" readonly placeholder="0"></div>
     <div class="field"><label>Our wickets <span class="autotag">auto</span></label><input type="number" id="f-ourwkts" readonly placeholder="0"></div>
     <div class="field"><label>Our overs <span class="autotag">auto</span></label><input id="f-ourovers" readonly placeholder="0"></div>
+    <div class="field"><label>Extras (opp.)</label><input type="number" id="f-oppextras" placeholder="0" oninput="recalcSummary()"></div>
     <div class="field"><label>Opponent total <span class="autotag">auto</span></label><input type="number" id="f-opptotal" readonly placeholder="0"></div>
     <div class="field"><label>Opponent wickets <span class="autotag">auto</span></label><input type="number" id="f-oppwkts" readonly placeholder="0"></div>
     <div class="field"><label>Opponent overs <span class="autotag">auto</span></label><input id="f-oppovers" readonly placeholder="0"></div>
@@ -1265,6 +1266,7 @@ function viewAdd(v){
     if(EDIT_ID){ if(btn)btn.textContent="Update match"; if(h)h.textContent="Edit match"; if(msg)msg.textContent="Editing — Update will overwrite ONLY this match; everything else stays."; }
     else if(msg){ msg.textContent="Pre-filled from your schedule — add the scores and Save."; }
     if(P.batting&&P.batting.length){ const sr=P.batting.reduce((a,b)=>a+(int(b.ones)+2*int(b.twos)+3*int(b.threes)+4*int(b.fours)+6*int(b.sixes)),0); const ex=int(P.ourTotal)-sr; setv("f-extras", ex>0?ex:0); }
+    if(P.bowling&&P.bowling.length){ const br=P.bowling.reduce((a,b)=>a+int(b.runs),0); const ex=int(P.oppTotal)-br; setv("f-oppextras", ex>0?ex:0); }
   }
   onDecisionOrder(); recalcSummary();
 }
@@ -1346,9 +1348,11 @@ function recalcSummary(){
   });
   let runouts=0; document.querySelectorAll("#field-rows tr").forEach(tr=>{ runouts+=int((tr.querySelector("[data-k='runouts']")||{}).value); });
   oppWkts+=runouts;
-  setVal("f-opptotal",oppRuns); setVal("f-oppwkts",oppWkts); setVal("f-oppovers",ballsToOvers(oppBalls));
+  const oppExtras=int(($("#f-oppextras")||{}).value);
+  const oppTotal=oppRuns+oppExtras;
+  setVal("f-opptotal",oppTotal); setVal("f-oppwkts",oppWkts); setVal("f-oppovers",ballsToOvers(oppBalls));
   const rsel=$("#f-result");
-  if(rsel){ if(ourTotal>oppRuns) rsel.value="won"; else if(ourTotal<oppRuns) rsel.value="lost"; else if(ourTotal===oppRuns && (ourTotal>0||oppRuns>0)) rsel.value="tie"; }
+  if(rsel){ if(ourTotal>oppTotal) rsel.value="won"; else if(ourTotal<oppTotal) rsel.value="lost"; else if(ourTotal===oppTotal && (ourTotal>0||oppTotal>0)) rsel.value="tie"; }
 }
 function onDecisionOrder(){
   const dec=(($("#f-decision")||{}).value)||"bat";
