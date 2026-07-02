@@ -235,6 +235,75 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
 .minitab:hover{color:var(--cream)}
 .minitab.on{background:var(--gold-soft);color:var(--gold);border-color:var(--line)}
 .minitabs select{padding:5px 9px;font-size:12px;margin-left:2px}
+/* ---- Live scoring (LED scoreboard) ---- */
+.lv-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.lv-live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);margin-right:8px;box-shadow:0 0 10px var(--ball);animation:lvpulse 1.3s infinite}
+@keyframes lvpulse{0%,100%{opacity:1}50%{opacity:.3}}
+.lv-tag{font-family:var(--mono);font-weight:600;letter-spacing:.06em;color:var(--cream);text-transform:uppercase;font-size:13px}
+.lv-tag .dim{color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none}
+.lv-board{position:relative;overflow:hidden;border-radius:20px;padding:24px 26px;margin-bottom:18px;
+  background:radial-gradient(120% 140% at 85% -20%,rgba(232,184,75,.10),transparent 55%),linear-gradient(180deg,#0f1a14,#0a120d);
+  border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.04)}
+.lv-board::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px);opacity:.6}
+.lv-board::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+.lv-board-top{display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative}
+.lv-team{font-family:var(--mono);font-weight:600;font-size:15px;color:var(--cream);letter-spacing:.04em}
+.lv-badge{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);border:1px solid var(--line);padding:5px 11px;border-radius:20px}
+.lv-score{position:relative;font-family:var(--mono);font-weight:700;font-size:60px;line-height:1;color:var(--cream);margin-top:12px;text-shadow:0 0 26px rgba(232,184,75,.18)}
+.lv-score .w{color:var(--muted);font-size:30px}
+.lv-score .ov{font-size:20px;color:var(--muted);margin-left:12px;font-weight:500}
+.lv-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;position:relative}
+.chipm{font-family:var(--mono);font-size:12px;color:var(--cream);background:var(--bg-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 10px;letter-spacing:.02em}
+.chipm b{color:var(--gold)}
+.lv-strike{font-size:0;margin:16px -6px 0;position:relative}
+.lv-batcard{display:inline-block;box-sizing:border-box;vertical-align:top;width:calc(50% - 12px);margin:0 6px;background:rgba(255,255,255,.02);border:1px solid var(--line-soft);border-left:3px solid transparent;border-radius:12px;padding:12px 14px}
+.lv-batcard.on{border-left-color:var(--gold);background:rgba(232,184,75,.06)}
+.lv-batcard .nm{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.lv-batcard.on .nm{color:var(--gold);font-weight:600}
+.lv-batcard .rn{font-family:var(--mono);font-size:26px;color:var(--cream);margin-top:3px}
+.lv-batcard .rn small{font-size:14px;color:var(--muted)}
+.lv-batcard .sr{font-size:11px;color:var(--muted-2);margin-top:2px}
+.lv-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:16px;position:relative}
+.lv-timeline .lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-right:4px}
+.lv-bead{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:600;background:var(--bg-2);color:var(--text);border:1px solid var(--line-soft)}
+.lv-bead.bd{background:transparent;border-style:dashed;color:var(--muted-2)}
+.lv-bead.b4{color:var(--gold);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.lv-bead.b6{color:#1a1206;background:linear-gradient(135deg,var(--gold),var(--gold-2));border-color:transparent}
+.lv-bead.bw{background:rgba(200,54,43,.22);color:#ef8378;border-color:rgba(200,54,43,.5)}
+.lv-bead.bx{color:var(--sky);border-color:rgba(74,144,217,.5);background:rgba(74,144,217,.08)}
+/* keypad console */
+.lv-keypad{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:18px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.lv-keys-runs,.lv-keys-act{font-size:0;margin:0 -5px}
+.lv-keys-act{margin-top:6px}
+.lv-key{display:inline-block;box-sizing:border-box;vertical-align:top;text-align:center;margin:5px;width:calc(16.666% - 10px);min-height:74px;padding:14px 4px;border-radius:14px;
+  background:linear-gradient(180deg,var(--surface-2),#0c140f);border:1px solid var(--line-soft);color:var(--cream);cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 2px 6px -3px rgba(0,0,0,.6);transition:transform .1s,border-color .12s,box-shadow .12s}
+.lv-key:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 20px -12px rgba(232,184,75,.5)}
+.lv-key:active{transform:translateY(0)}
+.lv-key .k-n{display:block;font-family:var(--mono);font-size:24px;font-weight:700;line-height:1.05}
+.lv-key .k-l{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.lv-key.four .k-n,.lv-key.six .k-n{color:var(--gold)}
+.lv-key.four,.lv-key.six{border-color:rgba(232,184,75,.35)}
+.lv-key.act{width:calc(25% - 10px);min-height:0;padding:17px 6px;font-family:var(--mono);font-size:15px;font-weight:600}
+.lv-key.ext{color:var(--sky)}
+.lv-key.wkt{color:#ef8378;background:linear-gradient(180deg,rgba(200,54,43,.18),rgba(200,54,43,.06));border-color:rgba(200,54,43,.4)}
+.lv-key.wkt:hover{border-color:var(--ball);box-shadow:0 10px 20px -12px rgba(200,54,43,.6)}
+.lv-key.undo{color:var(--muted)}
+.lv-panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px}
+.lv-panel h4{margin:0 0 12px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold)}
+.lv-types{display:flex;gap:8px;flex-wrap:wrap}
+.lv-types .t{padding:10px 15px;border-radius:10px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--cream);font-size:13px;font-weight:600;cursor:pointer;transition:.12s}
+.lv-types .t:hover{border-color:var(--gold);transform:translateY(-1px)}
+.xi-chips{display:flex;flex-wrap:wrap;gap:8px}
+.xi-chip{padding:9px 15px;border-radius:22px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:.12s}
+.xi-chip:hover{color:var(--cream);border-color:var(--line)}
+.xi-chip.on{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
+.xi-chip.on::before{content:"✓ ";font-weight:700}
+@media(max-width:900px){
+  .lv-score{font-size:46px}.lv-score .w{font-size:24px}
+  .lv-keys-runs .lv-key{width:calc(33.333% - 10px)}
+  .lv-key.act{width:calc(50% - 10px)}
+}
 /* ---- Logo crest ---- */
 .crest{overflow:hidden}
 .crest.has-img{background:transparent;box-shadow:0 8px 20px -8px rgba(0,0,0,.55);border:1px solid var(--line)}
@@ -334,8 +403,14 @@ function normalize(d){
   if(!Array.isArray(d.team.players)) d.team.players=[];
   if(!Array.isArray(d.matches)) d.matches=[];
   if(!Array.isArray(d.fixtures)) d.fixtures=[];
+  if(!d.config||typeof d.config!=="object") d.config={};
   return d;
 }
+/* ---------- Edit lock (view-only for others) ---------- */
+let EDIT_UNLOCKED=false;
+async function sha256hex(str){ const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(str))); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+function editHashSet(){ return !!(DATA&&DATA.config&&DATA.config.editHash); }
+function canEdit(){ return !editHashSet() || EDIT_UNLOCKED; }
 async function loadData(){
   const local = localStorage.getItem(LS_KEY);
   if(local){ try{ const j=JSON.parse(local); if(j&&j.matches) return normalize(j); }catch(e){} }
@@ -563,6 +638,7 @@ const NAV=[
   {id:"dashboard",label:"Dashboard",section:"Overview",icon:"grid"},
   {id:"matches",label:"Matches",section:"Overview",icon:"cal"},
   {id:"schedule",label:"Schedule",section:"Overview",icon:"clock"},
+  {id:"live",label:"Live scoring",section:"Overview",icon:"live"},
   {id:"batting",label:"Batting",section:"Leaderboards",icon:"bat"},
   {id:"bowling",label:"Bowling",section:"Leaderboards",icon:"ball"},
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
@@ -586,13 +662,21 @@ const ICONS={
   plus:'<path d="M12 5v14M5 12h14"/>',
   cloud:'<path d="M17 18a4 4 0 000-8 6 6 0 00-11.5 2A3.5 3.5 0 006 18z"/><path d="M12 12v6M9 15l3-3 3 3"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  pin:'<path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>'
+  pin:'<path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  live:'<circle cx="12" cy="12" r="3.5"/><path d="M5.5 5.5a9 9 0 000 13M18.5 5.5a9 9 0 010 13M8 8a5 5 0 000 8M16 8a5 5 0 010 8"/>'
 };
 function icon(n){ return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||"")+'</svg>'; }
 function renderNav(){
   let last="",html="";
-  NAV.forEach(n=>{ if(n.section!==last){html+='<div class="nav-label">'+n.section+'</div>';last=n.section;}
+  const items=NAV.filter(n=> canEdit() || (n.section!=="Manage" && n.id!=="live"));
+  items.forEach(n=>{ if(n.section!==last){html+='<div class="nav-label">'+n.section+'</div>';last=n.section;}
     html+='<a href="#/'+n.id+'" data-id="'+n.id+'">'+icon(n.icon)+'<span>'+n.label+'</span></a>'; });
+  if(editHashSet()){
+    html+='<div class="nav-label">Access</div>';
+    html+= EDIT_UNLOCKED
+      ? '<a href="#/dashboard" data-id="__lock" onclick="lockEditing();return false;">'+icon("cloud")+'<span>🔓 Editing — tap to lock</span></a>'
+      : '<a href="#/dashboard" data-id="__unlock" onclick="promptUnlock();return false;">'+icon("cloud")+'<span>🔒 View only — unlock</span></a>';
+  }
   $("#nav-desktop").innerHTML=html; $("#nav-mobile").innerHTML=html;
   $("#foot-count").textContent=DATA.matches.length+" matches recorded";
 }
@@ -602,7 +686,7 @@ function setActive(id){ document.querySelectorAll(".nav a").forEach(a=>a.classLi
 function updateBanner(){
   const v=$("#view"); if(!v)return;
   const old=$("#dirty-banner"); if(old)old.remove();
-  if(isDirty()){
+  if(isDirty() && canEdit()){
     const div=document.createElement("div");
     div.id="dirty-banner"; div.className="dirty";
     if(ghConfigured()){
@@ -647,11 +731,12 @@ function emptyBlock(msg){return `<div class="empty"><div class="em-ic">🏏</div
 function router(){
   const hash=location.hash.replace(/^#\/?/,"")||"dashboard";
   const [route,arg]=hash.split("/");
+  if(({add:1,squad:1,data:1,live:1}[route]) && !canEdit()){ location.hash="#/dashboard"; return; }
   setActive(route);
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
     fielding:viewFielding,players:viewPlayers,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
-    records:viewRecords,venues:viewVenues,schedule:viewSchedule,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
+    records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
 }
@@ -750,9 +835,9 @@ function viewScorecard(v,id){
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px">
     <a href="#/matches" class="btn ghost sm">← All matches</a>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn ghost sm" onclick="editMatch('${m.id}')">✎ Edit match</button>
+      ${canEdit()?`<button class="btn ghost sm" onclick="editMatch('${m.id}')">✎ Edit match</button>`:""}
       <button class="btn primary sm" onclick="pdfMatch('${m.id}')">⬇ Download PDF</button>
-      <button class="btn danger sm" onclick="deleteMatch('${m.id}')">🗑 Delete</button>
+      ${canEdit()?`<button class="btn danger sm" onclick="deleteMatch('${m.id}')">🗑 Delete</button>`:""}
     </div>
   </div>
   <div class="scoreboard"><div class="sb-top">
@@ -1079,7 +1164,7 @@ function viewRecords(v){
     <tbody>${opponents().map(o=>{const ms=DATA.matches.filter(m=>m.opponent===o);const w=ms.filter(m=>m.result==="won").length;const l=ms.filter(m=>m.result==="lost").length;const dec=w+l+ms.filter(m=>m.result==="tie").length;return `<tr><td class="l pname">${esc(o)}</td><td class="tnum dim">${ms.length}</td><td class="tnum" style="color:var(--pitch)">${w}</td><td class="tnum" style="color:#e37a70">${l}</td><td class="tnum hi">${dec?(w/dec*100).toFixed(0):"—"}%</td></tr>`;}).join("")||emptyRow(5)}</tbody>
   </table></div>`;
 }
-let FORMPREFILL=null; let EDIT_ID=null;
+let FORMPREFILL=null; let EDIT_ID=null; let LIVE=null;
 /* ============================================================ SQUAD (roster) ============================================================ */
 function viewSquad(v){
   const players=(DATA.team&&DATA.team.players)||[];
@@ -1276,6 +1361,15 @@ function viewData(v){
   const gh=getGH();
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Manage</div><h2>Data &amp; publish</h2><p>Your permanent record lives in data.json on GitHub. Export, back up, import or merge here.</p></div></div>
   <div class="notice"><b>Sunday routine:</b> add each match on the Add match tab → come here → <b>Download data.json</b> → upload/replace it in your GitHub repo and commit. Previous matches are always kept; new ones are appended. This browser also holds an automatic working copy so nothing is lost mid-session.</div>
+  <div class="form-section"><h3>Edit protection (view-only for others)</h3>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 12px">${editHashSet()?"An edit password is set. People who open the link see a <b>view-only</b> app; editing, deleting, adding and live scoring stay hidden until someone unlocks with the password. Remember to <b>Publish</b> after changing this so it applies for everyone.":"No password yet — anyone opening the link can edit. Set a password to make the app <b>view-only</b> for others; only someone with the password can edit, delete, add matches or score live."}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="setEditPassword()">${editHashSet()?"Change edit password":"Set edit password"}</button>
+      ${editHashSet()?`<button class="btn ghost" onclick="removeEditPassword()">Remove protection</button>`:""}
+      ${editHashSet()&&EDIT_UNLOCKED?`<button class="btn ghost" onclick="lockEditing()">🔓 Lock now</button>`:""}
+    </div>
+    <p style="color:var(--muted-2);font-size:12px;margin:12px 0 0">Note: this is a friendly lock for a shared link, not bank-grade security — the app runs in the browser, so a determined technical person could work around it. Your <b>permanent</b> record is protected separately: only someone with your GitHub token can actually save to GitHub.</p>
+  </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
     <button class="btn primary" onclick="publishToGitHub()">⬆ Publish now (GitHub)</button>
     <button class="btn ghost" onclick="downloadData()">⬇ Download data.json</button>
@@ -1319,6 +1413,11 @@ function viewData(v){
 }
 function downloadData(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();setDirty(false);}
 const LS_GH="goldhayat_gh";
+const LS_UNLOCK="goldhayat_unlock";
+async function promptUnlock(){ const pw=prompt("Enter the edit password to unlock editing:"); if(pw==null)return; const h=await sha256hex(pw); if(DATA.config&&h===DATA.config.editHash){ EDIT_UNLOCKED=true; try{localStorage.setItem(LS_UNLOCK,h);}catch(e){} renderNav(); router(); } else { alert("Wrong password."); } }
+function lockEditing(){ EDIT_UNLOCKED=false; try{localStorage.removeItem(LS_UNLOCK);}catch(e){} renderNav(); if(({add:1,squad:1,data:1,live:1})[location.hash.replace(/^#\/?/,"").split("/")[0]]) location.hash="#/dashboard"; router(); }
+async function setEditPassword(){ const pw=prompt("Set a new EDIT password (others stay view-only). Use something only you know:"); if(!pw)return; const pw2=prompt("Re-enter to confirm:"); if(pw!==pw2){ alert("Passwords did not match — nothing changed."); return; } DATA.config=DATA.config||{}; DATA.config.editHash=await sha256hex(pw); EDIT_UNLOCKED=true; try{localStorage.setItem(LS_UNLOCK,DATA.config.editHash);}catch(e){} saveLocal(); setDirty(true); renderNav(); router(); alert("Edit password set. Tap ⬆ Publish now so it takes effect for everyone who opens the shared link."); }
+function removeEditPassword(){ if(!confirm("Remove edit protection? After you publish, anyone will be able to edit again."))return; if(DATA.config) delete DATA.config.editHash; EDIT_UNLOCKED=true; try{localStorage.removeItem(LS_UNLOCK);}catch(e){} saveLocal(); setDirty(true); renderNav(); router(); }
 function getGH(){ try{return JSON.parse(localStorage.getItem(LS_GH)||"{}");}catch(e){return {};} }
 function ghConfigured(){ const g=getGH(); return !!(g.owner&&g.repo&&g.token); }
 function saveGHSettings(){
@@ -1373,7 +1472,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -1561,17 +1660,17 @@ function viewSchedule(v){
      <td class="l">${esc(f.venue||"—")}${f.venueType?' <span class="chip'+(f.venueType==="away"?" red":"")+'">'+vt(f.venueType)+'</span>':""}</td>
      <td class="l">${esc(f.format||"")}</td>
      <td class="l dim">${esc(f.note||"")}</td>
-     <td class="l" style="white-space:nowrap"><button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button> <button class="btn danger sm" onclick="removeFixture('${f.id}')">Remove</button></td></tr>`;
+     <td class="l" style="white-space:nowrap">${canEdit()?`<button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button> <button class="btn danger sm" onclick="removeFixture('${f.id}')">Remove</button>`:'<span class="dim">—</span>'}</td></tr>`;
   const head='<thead><tr><th class="l">Date</th><th class="l">Opponent</th><th class="l">Venue</th><th class="l">Format</th><th class="l">Note</th><th class="l">Actions</th></tr></thead>';
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Fixtures</div><h2>Schedule</h2><p>Add upcoming matches with venue. When a match is played, tap “Record result” to open a pre-filled scorecard.</p></div></div>
-  <div class="form-section"><h3>Add a fixture</h3><div class="form-grid">
+  ${canEdit()?`<div class="form-section"><h3>Add a fixture</h3><div class="form-grid">
     <div class="field"><label>Match date</label><input type="date" id="fx-date"></div>
     <div class="field"><label>Opponent</label><input id="fx-opp" list="opp-list2" placeholder="Team"><datalist id="opp-list2">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
     <div class="field"><label>Venue</label><input id="fx-venue" list="venue-list2" placeholder="Ground"><datalist id="venue-list2">${venues().map(gr=>`<option value="${esc(gr)}">`).join("")}</datalist></div>
     <div class="field"><label>Match at</label><select id="fx-type"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
     <div class="field"><label>Format</label><select id="fx-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
     <div class="field" style="flex:1;min-width:180px"><label>Note (optional)</label><input id="fx-note" placeholder="e.g. league semi-final"></div>
-  </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">+ Add fixture</button></div>
+  </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">+ Add fixture</button></div>`:""}
   <div class="eyebrow">Upcoming</div>
   <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map(row).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
   ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures not yet recorded</div>
@@ -1624,7 +1723,258 @@ function viewVenues(v){
 $("#menuBtn").addEventListener("click",()=>$("#drawer").classList.toggle("open"));
 $("#drawer").addEventListener("click",e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("open");});
 window.addEventListener("hashchange",router);
-(async function(){DATA=await loadData();paintBrand();applyTheme(currentTheme());renderNav();router();})();
+(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const u=localStorage.getItem(LS_UNLOCK); if(u&&DATA.config&&u===DATA.config.editHash)EDIT_UNLOCKED=true;}catch(e){}paintBrand();applyTheme(currentTheme());renderNav();router();})();
+/* ============================================================ LIVE SCORING ============================================================
+   Ball-by-ball, offline, auto-saved to this browser after every tap.
+   We only score OUR team: our batting (per-batter shots) and our bowling
+   (per-bowler figures). Finish -> converts to a normal match for review/save. */
+const LS_LIVE="goldhayat_live";
+const FMT_OVERS={"T20":20,"T10":10,"OD":8,"Test Match":""};
+window.onLiveFormat=()=>{ const f=(($("#lv-format")||{}).value); const o=$("#lv-overs"); if(o){ const d=FMT_OVERS[f]; o.value=(d===""||d==null)?"":d; } };
+function liveSave(){ try{ localStorage.setItem(LS_LIVE, JSON.stringify(LIVE)); }catch(e){} }
+function liveSnap(){ const c=JSON.parse(JSON.stringify(LIVE)); delete c._undo; (LIVE._undo=LIVE._undo||[]).push(c); if(LIVE._undo.length>150)LIVE._undo.shift(); }
+function liveCommit(){ liveSave(); router(); }
+window.liveUndo=()=>{ if(LIVE&&LIVE._undo&&LIVE._undo.length){ const u=LIVE._undo; const prev=u.pop(); prev._undo=u; LIVE=prev; liveCommit(); } };
+function oversStr(balls){ return Math.floor(balls/6)+"."+(balls%6); }
+function liveActive(){ return !!(LIVE&&LIVE.active); }
+
+function emptyBat(){ return {striker:"",nonStriker:"",order:[],players:{},extras:{wides:0,noballs:0},legalBalls:0,total:0,wickets:0,recent:[],needNew:false,pendingWicket:false,done:false}; }
+function emptyBowl(){ return {currentBowler:"",bowlers:{},oppTotal:0,oppWkts:0,legalBalls:0,recent:[],needNew:true,pendingWicket:false,done:false}; }
+
+window.liveStart=()=>{
+  const g=id=>(($("#"+id)||{}).value||"");
+  const opp=g("lv-opp").trim();
+  if(!opp){ alert("Please enter the opponent."); return; }
+  LIVE={ active:true,
+    meta:{ date:g("lv-date")||new Date().toISOString().slice(0,10), opponent:opp, ground:g("lv-venue").trim(),
+      venueType:g("lv-type"), format:g("lv-format"), captain:g("lv-captain").trim(), toss:g("lv-toss"), decision:g("lv-decision"),
+      oversLimit:int(g("lv-overs")) },
+    phase:(g("lv-decision")==="bat"?"batting":"bowling"),
+    xi:[], xiDraft:rosterNames().slice(), pool:rosterNames().slice(),
+    bat:emptyBat(), bowl:emptyBowl(), field:{}, _undo:[] };
+  liveCommit();
+};
+window.liveDiscard=()=>{ if(confirm("Discard this live match? Entered balls will be lost.")){ try{localStorage.removeItem(LS_LIVE);}catch(e){} LIVE=null; location.hash="#/live"; router(); } };
+
+function ensureBat(b,name){ if(!b.players[name]){ b.players[name]={dots:0,ones:0,twos:0,threes:0,fours:0,sixes:0,balls:0,out:false,dismissal:"notout"}; b.order.push(name); } }
+function ensureBowl(w,name){ if(!w.bowlers[name]){ w.bowlers[name]={balls:0,runs:0,wickets:0,dots:0,wides:0,noballs:0}; } }
+function swapStrike(b){ const t=b.striker; b.striker=b.nonStriker; b.nonStriker=t; }
+function pushRecent(arr,sym){ arr.push(sym); if(arr.length>8)arr.shift(); }
+
+window.liveSetOpeners=()=>{ const b=LIVE.bat; const s=($("#lv-striker")||{}).value, n=($("#lv-nonstriker")||{}).value;
+  if(!s||!n||s===n){ alert("Pick two different opening batsmen."); return; }
+  liveSnap(); ensureBat(b,s); ensureBat(b,n); b.striker=s; b.nonStriker=n; liveCommit(); };
+window.liveNewBatsman=()=>{ const b=LIVE.bat; const nm=($("#lv-newbat")||{}).value; if(!nm){alert("Pick the next batsman.");return;}
+  liveSnap(); ensureBat(b,nm); b.striker=nm; b.needNew=false; if(b._swap){ swapStrike(b); b._swap=false; } liveCommit(); };
+window.liveSetBowler=()=>{ const w=LIVE.bowl; const nm=($("#lv-bowler")||{}).value; if(!nm){alert("Pick the bowler.");return;}
+  liveSnap(); ensureBowl(w,nm); w.currentBowler=nm; w.needNew=false; liveCommit(); };
+window.liveSwapStrike=()=>{ if(!LIVE||LIVE.phase!=="batting")return; const b=LIVE.bat; if(!b.striker||!b.nonStriker||b.needNew||b.pendingWicket)return; liveSnap(); swapStrike(b); liveCommit(); };
+function liveSquad(){ return (LIVE&&LIVE.xi&&LIVE.xi.length)?LIVE.xi:((LIVE&&LIVE.pool)||allPlayers()); }
+window.liveToggleXI=(enc)=>{ const nm=decodeURIComponent(enc); const d=LIVE.xiDraft||(LIVE.xiDraft=[]); const i=d.indexOf(nm); if(i<0)d.push(nm); else d.splice(i,1); liveCommit(); };
+window.liveAddSub=()=>{ const el=$("#lv-sub"); if(!el)return; const nm=(el.value||"").trim(); if(!nm)return;
+  if(!LIVE.pool.includes(nm))LIVE.pool.push(nm); if(!LIVE.xiDraft.includes(nm))LIVE.xiDraft.push(nm); liveCommit(); };
+window.liveConfirmXI=()=>{ if((LIVE.xiDraft||[]).length<2){ alert("Select at least 2 players (usually 11)."); return; } LIVE.xi=LIVE.xiDraft.slice(); liveCommit(); };
+window.liveAddSubPrompt=()=>{ if(!LIVE)return; const nm=(prompt("Substitute / extra player name:")||"").trim(); if(!nm)return; liveSnap();
+  if(!LIVE.pool.includes(nm))LIVE.pool.push(nm); if(!LIVE.xi.includes(nm))LIVE.xi.push(nm); liveCommit(); };
+function xiPickerHTML(){
+  const pool=LIVE.pool||[], draft=LIVE.xiDraft||[];
+  return `<div class="lv-panel"><h4>Playing XI — who is playing today?</h4>
+    <p class="dim" style="font-size:12.5px;margin:0 0 12px">Tap a name to include or drop it. Pick your 11 from the 13 — the players left out won't appear anywhere in this match. Add a guest/substitute below.</p>
+    <div class="xi-chips">${pool.map(n=>`<button class="xi-chip${draft.includes(n)?" on":""}" onclick="liveToggleXI('${encodeURIComponent(n)}')">${esc(n)}</button>`).join("")}</div>
+    <div class="controls" style="margin-top:14px">
+      <div class="field" style="flex:1;min-width:200px"><label>Add substitute / guest</label><input id="lv-sub" placeholder="Player name" onkeydown="if(event.key==='Enter'){liveAddSub();}"></div>
+      <button class="btn ghost" onclick="liveAddSub()">+ Add</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px">
+      <span class="dim">Selected: <b style="color:var(--gold)">${draft.length}</b> ${draft.length===11?"✓ perfect":"· recommended 11"}</span>
+      <button class="btn primary" onclick="liveConfirmXI()">Confirm Playing XI →</button>
+    </div></div>`;
+}
+
+window.onLiveRun=(r)=>{
+  if(LIVE.phase==="batting"){ const b=LIVE.bat; if(b.needNew||b.pendingWicket||!b.striker||!b.nonStriker)return;
+    liveSnap(); const s=b.players[b.striker]; s.balls++; b.total+=r; b.legalBalls++;
+    if(r===0)s.dots++; else if(r===1)s.ones++; else if(r===2)s.twos++; else if(r===3)s.threes++; else if(r===4)s.fours++; else if(r===6)s.sixes++;
+    pushRecent(b.recent, r===0?"•":String(r));
+    if(r%2===1) swapStrike(b);
+    if(b.legalBalls%6===0) swapStrike(b);
+    liveCommit();
+  } else { const w=LIVE.bowl; if(w.needNew||w.pendingWicket||!w.currentBowler)return;
+    liveSnap(); const bw=w.bowlers[w.currentBowler]; bw.balls++; bw.runs+=r; w.oppTotal+=r; w.legalBalls++;
+    if(r===0)bw.dots++; pushRecent(w.recent, r===0?"•":String(r));
+    if(w.legalBalls%6===0){ w.needNew=true; }
+    liveCommit();
+  }
+};
+window.onLiveExtra=(kind)=>{ // wide/noball: +1, not a legal ball
+  if(LIVE.phase==="batting"){ const b=LIVE.bat; if(b.needNew||b.pendingWicket||!b.striker)return; liveSnap();
+    b.total+=1; if(kind==="wd")b.extras.wides++; else b.extras.noballs++; pushRecent(b.recent, kind==="wd"?"Wd":"Nb"); liveCommit();
+  } else { const w=LIVE.bowl; if(w.needNew||w.pendingWicket||!w.currentBowler)return; liveSnap();
+    const bw=w.bowlers[w.currentBowler]; bw.runs+=1; w.oppTotal+=1; if(kind==="wd")bw.wides++; else bw.noballs++; pushRecent(w.recent, kind==="wd"?"Wd":"Nb"); liveCommit();
+  }
+};
+window.onLiveWicketStart=()=>{ if(LIVE.phase==="batting"){ if(LIVE.bat.needNew)return; LIVE.bat.pendingWicket=true; } else { if(LIVE.bowl.needNew)return; LIVE.bowl.pendingWicket=true; } liveCommit(); };
+window.onLiveWicketCancel=()=>{ LIVE.bat.pendingWicket=false; LIVE.bowl.pendingWicket=false; liveCommit(); };
+window.onLiveWicket=(type)=>{
+  if(LIVE.phase==="batting"){ const b=LIVE.bat; liveSnap(); const s=b.players[b.striker];
+    s.balls++; s.out=true; s.dismissal=type; b.legalBalls++; b.wickets++; pushRecent(b.recent,"W"); b.pendingWicket=false;
+    const overEnd=(b.legalBalls%6===0);
+    if(b.wickets>=10){ b.done=true; } else { b.needNew=true; b._swap=overEnd; }
+    liveCommit();
+  } else { const w=LIVE.bowl; const fielder=($("#lv-fielder")||{}).value||""; liveSnap();
+    const bw=w.bowlers[w.currentBowler]; bw.balls++; bw.wickets++; bw.dots++; w.oppTotal+=0; w.legalBalls++; w.oppWkts++; pushRecent(w.recent,"W"); w.pendingWicket=false;
+    if(fielder && (type==="caught"||type==="runout"||type==="stumped")){ const f=LIVE.field[fielder]||(LIVE.field[fielder]={catches:0,runouts:0,stumpings:0});
+      if(type==="caught")f.catches++; else if(type==="runout")f.runouts++; else f.stumpings++; }
+    if(w.legalBalls%6===0){ w.needNew=true; }
+    liveCommit();
+  }
+};
+window.liveEndInnings=()=>{
+  if(LIVE.phase==="batting"){ LIVE.bat.done=true; LIVE.phase="bowling"; }
+  else { LIVE.bowl.done=true; LIVE.phase="batting"; if(!LIVE.bat.order.length){/* stay to score batting */} }
+  liveCommit();
+};
+function liveToMatch(){
+  const b=LIVE.bat, w=LIVE.bowl;
+  const batting=b.order.map((nm,i)=>{ const p=b.players[nm]; return {name:nm,dots:p.dots,ones:p.ones,twos:p.twos,threes:p.threes,fours:p.fours,sixes:p.sixes,dismissal:p.out?p.dismissal:"notout",position:i+1}; });
+  const bowling=Object.keys(w.bowlers).map(nm=>{ const p=w.bowlers[nm]; return {name:nm,overs:oversStr(p.balls),runs:p.runs,wickets:p.wickets,dots:p.dots,wides:p.wides,noballs:p.noballs}; });
+  const fielding=Object.keys(LIVE.field||{}).map(nm=>({name:nm,catches:LIVE.field[nm].catches,runouts:LIVE.field[nm].runouts,stumpings:LIVE.field[nm].stumpings}));
+  const m=LIVE.meta;
+  return { date:m.date,opponent:m.opponent,ground:m.ground,venueType:m.venueType,format:m.format,captain:m.captain,toss:m.toss,decision:m.decision,
+    ourTotal:b.total,ourWickets:b.wickets,ourOvers:oversStr(b.legalBalls),
+    oppTotal:w.oppTotal,oppWickets:w.oppWkts,oppOvers:oversStr(w.legalBalls),
+    result:"",motm:"",batting,bowling,fielding };
+}
+window.liveFinish=()=>{
+  const match=liveToMatch();
+  if(!match.batting.length && !match.bowling.length){ alert("Score at least a few balls first."); return; }
+  FORMPREFILL=match;
+  try{localStorage.removeItem(LS_LIVE);}catch(e){} LIVE=null;
+  location.hash="#/add"; router();
+};
+
+function liveSetupForm(){
+  const today=new Date().toISOString().slice(0,10);
+  return `<div class="page-head"><div><div class="eyebrow">Live scoring</div><h2>Start a live match</h2><p>Score ball-by-ball during the game. It auto-saves in this browser after every tap; when you finish, it fills a full scorecard for review.</p></div></div>
+  <div class="form-section"><h3>Match setup</h3><div class="form-grid">
+    <div class="field"><label>Date</label><input type="date" id="lv-date" value="${today}"></div>
+    <div class="field"><label>Opponent</label><input id="lv-opp" list="opp-list-lv" placeholder="Team"><datalist id="opp-list-lv">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
+    <div class="field"><label>Venue</label><input id="lv-venue" list="venue-list-lv" placeholder="Ground"><datalist id="venue-list-lv">${venues().map(g=>`<option value="${esc(g)}">`).join("")}</datalist></div>
+    <div class="field"><label>Match at</label><select id="lv-type"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
+    <div class="field"><label>Format</label><select id="lv-format" onchange="onLiveFormat()">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
+    <div class="field"><label>Overs per side</label><input type="number" id="lv-overs" list="lv-overs-list" value="${FMT_OVERS[FORMATS[0]]||""}" placeholder="e.g. 8"><datalist id="lv-overs-list"><option value="8"><option value="10"><option value="15"><option value="20"><option value="25"><option value="40"><option value="50"></datalist></div>
+    <div class="field"><label>Captain (ours)</label><input id="lv-captain" list="cap-list-lv" placeholder="Captain"><datalist id="cap-list-lv">${captains().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
+    <div class="field"><label>Toss</label><select id="lv-toss"><option>won</option><option>lost</option></select></div>
+    <div class="field"><label>We are…</label><select id="lv-decision"><option value="bat">Batting first</option><option value="bowl">Bowling first</option></select></div>
+  </div>
+  <button class="btn primary" style="margin-top:14px" onclick="liveStart()">▶ Start live match</button></div>`;
+}
+function pad(){
+  return `<div class="lv-keypad">
+    <div class="lv-keys-runs">
+      <button class="lv-key" onclick="onLiveRun(0)"><span class="k-n">0</span><span class="k-l">dot</span></button>
+      <button class="lv-key" onclick="onLiveRun(1)"><span class="k-n">1</span><span class="k-l">single</span></button>
+      <button class="lv-key" onclick="onLiveRun(2)"><span class="k-n">2</span><span class="k-l">two</span></button>
+      <button class="lv-key" onclick="onLiveRun(3)"><span class="k-n">3</span><span class="k-l">three</span></button>
+      <button class="lv-key four" onclick="onLiveRun(4)"><span class="k-n">4</span><span class="k-l">four</span></button>
+      <button class="lv-key six" onclick="onLiveRun(6)"><span class="k-n">6</span><span class="k-l">six</span></button>
+    </div>
+    <div class="lv-keys-act">
+      <button class="lv-key act ext" onclick="onLiveExtra('wd')">Wide +1</button>
+      <button class="lv-key act ext" onclick="onLiveExtra('nb')">No ball +1</button>
+      <button class="lv-key act wkt" onclick="onLiveWicketStart()">Wicket</button>
+      <button class="lv-key act undo" onclick="liveUndo()">↶ Undo</button>
+    </div>
+  </div>`;
+}
+function recentChips(arr){
+  const bead=x=>{let c="";if(x==="4")c="b4";else if(x==="6")c="b6";else if(x==="W")c="bw";else if(x==="Wd"||x==="Nb")c="bx";return `<span class="lv-bead ${c}">${esc(x)}</span>`;};
+  return `<div class="lv-timeline"><span class="lbl">Recent</span>${(arr&&arr.length)?arr.map(bead).join(""):'<span class="dim">—</span>'}</div>`;
+}
+function batSelect(id,exclude){ const opts=liveSquad().filter(n=>!exclude.includes(n)); return `<select id="${id}"><option value="">Select…</option>${opts.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select>`; }
+function viewLive(v){
+  if(!liveActive()){ v.innerHTML=liveSetupForm(); return; }
+  const m=LIVE.meta;
+  const R=p=>p.ones+2*p.twos+3*p.threes+4*p.fours+6*p.sixes;
+  const toolbar=`<div class="lv-toolbar">
+    <div class="lv-tag"><span class="lv-live-dot"></span>LIVE <span class="dim">· vs ${esc(m.opponent)}${m.ground?" · "+esc(m.ground):""}</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="liveAddSubPrompt()">＋ Sub</button>
+      <button class="btn ghost sm" onclick="liveEndInnings()">End innings ⇄</button>
+      <button class="btn primary sm" onclick="liveFinish()">✓ Finish &amp; review</button>
+      <button class="btn danger sm" onclick="liveDiscard()">Discard</button>
+    </div></div>`;
+
+  if(!(LIVE.xi&&LIVE.xi.length)){
+    v.innerHTML=`<div class="lv-toolbar"><div class="lv-tag"><span class="lv-live-dot"></span>SETUP <span class="dim">· vs ${esc(m.opponent)}${m.format?" · "+esc(m.format):""}</span></div><button class="btn danger sm" onclick="liveDiscard()">Discard</button></div>`+xiPickerHTML();
+    return;
+  }
+
+  if(LIVE.phase==="batting"){
+    const b=LIVE.bat;
+    if(!b.striker||!b.nonStriker){
+      v.innerHTML=toolbar+`<div class="lv-panel"><h4>Opening batsmen</h4>
+        <div class="form-grid"><div class="field"><label>Striker</label>${batSelect("lv-striker",[])}</div>
+        <div class="field"><label>Non-striker</label>${batSelect("lv-nonstriker",[])}</div></div>
+        <button class="btn primary" style="margin-top:12px" onclick="liveSetOpeners()">Start batting</button></div>`;
+      return;
+    }
+    const s=b.players[b.striker], ns=b.players[b.nonStriker];
+    const sR=R(s), nsR=R(ns);
+    const sSR=s.balls?(sR/s.balls*100).toFixed(0):"0", nsSR=ns.balls?(nsR/ns.balls*100).toFixed(0):"0";
+    const rr=b.legalBalls?(b.total/(b.legalBalls/6)).toFixed(2):"0.00";
+    const ballsLeft=m.oversLimit?Math.max(0,m.oversLimit*6-b.legalBalls):null;
+    const board=`<div class="lv-board">
+      <div class="lv-board-top"><div class="lv-team">Gold Hayat — batting</div><div class="lv-badge">${esc(m.format||"")} · ${oversStr(b.legalBalls)}${m.oversLimit?" / "+m.oversLimit:""} ov</div></div>
+      <div class="lv-score">${b.total}<span class="w">/${b.wickets}</span><span class="ov">(${oversStr(b.legalBalls)})</span></div>
+      <div class="lv-meta"><span class="chipm">CRR <b>${rr}</b></span>${ballsLeft!=null?`<span class="chipm">${ballsLeft} balls left</span>`:""}<span class="chipm">vs ${esc(m.opponent)}</span></div>
+      <div class="lv-strike">
+        <div class="lv-batcard on"><div class="nm">▶ on strike · ${esc(b.striker)}</div><div class="rn">${sR}<small> (${s.balls})</small></div><div class="sr">SR ${sSR} · ${s.fours}×4 ${s.sixes}×6</div></div>
+        <div class="lv-batcard"><div class="nm">${esc(b.nonStriker)}</div><div class="rn">${nsR}<small> (${ns.balls})</small></div><div class="sr">SR ${nsSR}</div></div>
+      </div>
+      <div style="text-align:right;margin-top:10px"><button class="btn ghost sm" onclick="liveSwapStrike()">⇄ Swap strike</button></div>
+      ${recentChips(b.recent)}
+    </div>`;
+    let panel="";
+    if(b.needNew){ panel=`<div class="lv-panel"><h4>Wicket! Next batsman in</h4>${batSelect("lv-newbat",b.order)}
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="liveNewBatsman()">Send in</button><button class="btn ghost" onclick="liveAddSubPrompt()">＋ Add player</button></div></div>`; }
+    else if(b.pendingWicket){ panel=`<div class="lv-panel"><h4>How was ${esc(b.striker)} out?</h4>
+      <div class="lv-types">${["bowled","caught","lbw","runout","stumped","hitwicket"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t==="hitwicket"?"hit wicket":t}</button>`).join("")}</div>
+      <button class="btn ghost sm" style="margin-top:12px" onclick="onLiveWicketCancel()">Cancel</button></div>`; }
+    v.innerHTML=toolbar+board+((b.needNew||b.pendingWicket)?panel:pad());
+    return;
+  }
+
+  const w=LIVE.bowl;
+  if(w.needNew||!w.currentBowler){
+    v.innerHTML=toolbar+`<div class="lv-board">
+      <div class="lv-board-top"><div class="lv-team">${esc(m.opponent)} — batting</div><div class="lv-badge">${esc(m.format||"")} · ${oversStr(w.legalBalls)}${m.oversLimit?" / "+m.oversLimit:""} ov</div></div>
+      <div class="lv-score">${w.oppTotal}<span class="w">/${w.oppWkts}</span><span class="ov">(${oversStr(w.legalBalls)})</span></div>
+      <div class="lv-meta"><span class="chipm">Our bowling</span></div>${recentChips(w.recent)}</div>
+      <div class="lv-panel"><h4>${w.legalBalls?"Next over — choose bowler":"Opening bowler"}</h4>${batSelect("lv-bowler",[])}
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="liveSetBowler()">Start over</button><button class="btn ghost" onclick="liveAddSubPrompt()">＋ Add player</button></div></div>`;
+    return;
+  }
+  const bw=w.bowlers[w.currentBowler];
+  const econ=bw.balls?(bw.runs/(bw.balls/6)).toFixed(2):"0.00";
+  const rr=w.legalBalls?(w.oppTotal/(w.legalBalls/6)).toFixed(2):"0.00";
+  const board=`<div class="lv-board">
+    <div class="lv-board-top"><div class="lv-team">${esc(m.opponent)} — batting</div><div class="lv-badge">${esc(m.format||"")} · ${oversStr(w.legalBalls)}${m.oversLimit?" / "+m.oversLimit:""} ov</div></div>
+    <div class="lv-score">${w.oppTotal}<span class="w">/${w.oppWkts}</span><span class="ov">(${oversStr(w.legalBalls)})</span></div>
+    <div class="lv-meta"><span class="chipm">Our bowling</span><span class="chipm">RR <b>${rr}</b></span></div>
+    <div class="lv-strike">
+      <div class="lv-batcard on"><div class="nm">● bowling · ${esc(w.currentBowler)}</div><div class="rn">${bw.wickets}<small>/${bw.runs}</small></div><div class="sr">${oversStr(bw.balls)} ov · econ ${econ}</div></div>
+      <div class="lv-batcard"><div class="nm">This spell</div><div class="rn">${bw.dots}<small> dots</small></div><div class="sr">${bw.wides} wd · ${bw.noballs} nb</div></div>
+    </div>
+    ${recentChips(w.recent)}
+  </div>`;
+  let panel="";
+  if(w.pendingWicket){ panel=`<div class="lv-panel"><h4>Wicket! Credit our fielder (for catch / run-out / stumping)</h4>
+    <div class="field" style="margin-bottom:10px"><label>Fielder</label>${batSelect("lv-fielder",[])}</div>
+    <div class="lv-types">${["bowled","caught","lbw","runout","stumped"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t}</button>`).join("")}</div>
+    <button class="btn ghost sm" style="margin-top:12px" onclick="onLiveWicketCancel()">Cancel</button></div>`; }
+  v.innerHTML=toolbar+board+(w.pendingWicket?panel:pad());
+}
 
 </script>
 </body>
