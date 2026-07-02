@@ -72,7 +72,7 @@ input,select{font-family:inherit}
 .stat-card .v small{font-size:14px;color:var(--muted);font-weight:400}
 .stat-card .sub{font-size:12px;color:var(--muted-2)}
 .table-wrap{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);overflow:hidden}
-.table-scroll{overflow-x:auto}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:right;padding:13px 12px;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line-soft);white-space:nowrap;background:var(--bg-2);position:sticky;top:0}
 thead th.sortable{cursor:pointer;user-select:none;transition:color .15s}
@@ -187,6 +187,40 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
   .barH{grid-template-columns:96px 1fr 78px}
 }
 @media(min-width:901px){.drawer{display:none!important}}
+/* Tablets / large phones (portrait): use two columns instead of one where it helps */
+@media(min-width:600px) and (max-width:900px){
+  .grid.c3{grid-template-columns:repeat(2,1fr)}
+  .grid.c2{grid-template-columns:repeat(2,1fr)}
+  .main{padding:22px 22px 76px}
+}
+/* Touch devices: stop iOS auto-zoom on input focus, enlarge tap targets */
+@media(max-width:900px){
+  input,select,textarea{font-size:16px}
+  .entry-table input,.entry-table select{font-size:15px}
+  .swatch{width:24px;height:24px}
+  .main{max-width:100%}
+  .btn.sm{padding:8px 12px}
+}
+/* Small phones */
+@media(max-width:430px){
+  .main{padding:16px 12px 64px}
+  .scoreboard{padding:20px 17px}
+  .sb-title{font-size:21px}
+  .sb-eyebrow{font-size:10px}
+  .sb-stats{gap:16px}
+  .sb-stat .n{font-size:20px}
+  .grid.c4{grid-template-columns:repeat(2,1fr);gap:12px}
+  .card{padding:15px 15px}
+  .stat-card .v{font-size:24px}
+  .page-head h2{font-size:22px}
+  .profile-head h2{font-size:24px}
+  .avatar{width:56px;height:56px;font-size:22px}
+  .controls{gap:8px}
+  .controls .field{flex:1;min-width:calc(50% - 4px)}
+  .controls select,.controls input{width:100%}
+  .donut-wrap{gap:16px;justify-content:center}
+  .legend{min-width:130px}
+}
 
 /* ---- Logo crest ---- */
 .crest{overflow:hidden}
@@ -286,6 +320,7 @@ function normalize(d){
   if(!d.team.name) d.team.name=TEAM_NAME;
   if(!Array.isArray(d.team.players)) d.team.players=[];
   if(!Array.isArray(d.matches)) d.matches=[];
+  if(!Array.isArray(d.fixtures)) d.fixtures=[];
   return d;
 }
 async function loadData(){
@@ -305,6 +340,7 @@ const int = v => { const n=parseInt(v,10); return isNaN(n)?0:n; };
 function oversToBalls(o){ const s=String(o||"0").trim(); const p=s.split("."); const ov=int(p[0]); const b=p[1]?int(p[1].charAt(0)):0; return ov*6+Math.min(b,5); }
 function ballsToOvers(b){ b=Math.round(b); return Math.floor(b/6)+"."+(b%6); }
 function fmtDate(d){ if(!d) return ""; const dt=new Date(d+"T00:00"); if(isNaN(dt)) return d; return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}); }
+function fmtDateW(d){ if(!d) return ""; const dt=new Date(d+"T00:00"); if(isNaN(dt)) return d; return dt.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}); }
 function initials(name){ return String(name||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase(); }
 function inn(b){
   const dots=int(b.dots),o=int(b.ones),t=int(b.twos),th=int(b.threes),f=int(b.fours),s=int(b.sixes),fv=int(b.fives||0);
@@ -346,6 +382,17 @@ function getMatches(opts={}){
   });
 }
 function opponents(){ return [...new Set(DATA.matches.map(m=>m.opponent).filter(Boolean))].sort(); }
+function venues(){ return [...new Set(DATA.matches.map(m=>m.ground).filter(Boolean))].sort(); }
+function venueAgg(ms){ ms=ms||DATA.matches; const map={};
+  ms.forEach(m=>{ const g=m.ground||"—"; const p=map[g]||(map[g]={venue:g,played:0,w:0,l:0,t:0,nr:0});
+    p.played++; if(m.result==="won")p.w++; else if(m.result==="lost")p.l++; else if(m.result==="tie")p.t++; else p.nr++; });
+  return Object.values(map).map(p=>{const dec=p.w+p.l+p.t;p.winPct=dec?p.w/dec*100:0;return p;});
+}
+function oppVenueAgg(ms){ ms=ms||DATA.matches; const map={};
+  ms.forEach(m=>{ const k=(m.opponent||"—")+" @@ "+(m.ground||"—"); const p=map[k]||(map[k]={opponent:m.opponent||"—",venue:m.ground||"—",played:0,w:0,l:0});
+    p.played++; if(m.result==="won")p.w++; else if(m.result==="lost")p.l++; });
+  return Object.values(map);
+}
 function captains(){ return [...new Set(DATA.matches.map(m=>m.captain).filter(Boolean))].sort(); }
 function monthsPresent(){ return [...new Set(DATA.matches.map(m=>(m.date||"").slice(0,7)).filter(Boolean))].sort().reverse(); }
 
@@ -485,11 +532,13 @@ function sparkBars(series){
 const NAV=[
   {id:"dashboard",label:"Dashboard",section:"Overview",icon:"grid"},
   {id:"matches",label:"Matches",section:"Overview",icon:"cal"},
+  {id:"schedule",label:"Schedule",section:"Overview",icon:"clock"},
   {id:"batting",label:"Batting",section:"Leaderboards",icon:"bat"},
   {id:"bowling",label:"Bowling",section:"Leaderboards",icon:"ball"},
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
   {id:"players",label:"Players",section:"Leaderboards",icon:"user"},
   {id:"captains",label:"Captains",section:"Team",icon:"star"},
+  {id:"venues",label:"Venues",section:"Team",icon:"pin"},
   {id:"records",label:"Records",section:"Team",icon:"trophy"},
   {id:"squad",label:"Squad",section:"Manage",icon:"user"},
   {id:"add",label:"Add match",section:"Manage",icon:"plus"},
@@ -505,7 +554,9 @@ const ICONS={
   star:'<path d="M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9 6.8 19l1-5.8L3.6 9.1l5.8-.8z"/>',
   trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM7 5H4v2a3 3 0 003 3M17 5h3v2a3 3 0 01-3 3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
-  cloud:'<path d="M17 18a4 4 0 000-8 6 6 0 00-11.5 2A3.5 3.5 0 006 18z"/><path d="M12 12v6M9 15l3-3 3 3"/>'
+  cloud:'<path d="M17 18a4 4 0 000-8 6 6 0 00-11.5 2A3.5 3.5 0 006 18z"/><path d="M12 12v6M9 15l3-3 3 3"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pin:'<path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>'
 };
 function icon(n){ return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||"")+'</svg>'; }
 function renderNav(){
@@ -533,8 +584,10 @@ function updateBanner(){
 
 /* ---------- Shared filter state ---------- */
 const sortState={batting:{key:"runs",dir:-1},bowling:{key:"wkts",dir:-1},fielding:{key:"total",dir:-1},captains:{key:"winPct",dir:-1}};
-let filterOpp={batting:"all",bowling:"all",fielding:"all",captains:"all"};
-let filterPeriod={batting:"all",bowling:"all",fielding:"all"};
+let filterOpp={batting:"all",bowling:"all",fielding:"all",captains:"all",venues:"all",matches:"all"};
+let filterPeriod={batting:"all",bowling:"all",fielding:"all",matches:"all"};
+let matchDateFilter="";
+window.onMatchDate=(val)=>{matchDateFilter=val;router();};
 window.onFilter=(id,val)=>{filterOpp[id]=val;router();};
 window.onPeriod=(id,val)=>{filterPeriod[id]=val;router();};
 window.onSort=(tbl,key)=>{const s=sortState[tbl];if(s.key===key)s.dir*=-1;else{s.key=key;s.dir=(key==="name"?1:-1);}router();};
@@ -558,7 +611,7 @@ function router(){
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
     fielding:viewFielding,players:viewPlayers,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
-    records:viewRecords,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
+    records:viewRecords,venues:viewVenues,schedule:viewSchedule,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
 }
@@ -568,8 +621,8 @@ function matchRow(m){
   const badge={won:"win",lost:"loss",tie:"tie"}[m.result]||"nr";
   const label={won:"Won",lost:"Lost",tie:"Tied"}[m.result]||"No result";
   return `<div class="match-row" onclick="location.hash='#/match/${m.id}'">
-    <div class="match-date tnum">${fmtDate(m.date)}</div>
-    <div class="match-vs"><div class="opp">vs ${esc(m.opponent)}</div><div class="meta">${esc(m.ground||"")}${m.captain?' · <span class="chip cap">© '+esc(m.captain)+'</span>':""}</div></div>
+    <div class="match-date tnum">${fmtDateW(m.date)}</div>
+    <div class="match-vs"><div class="opp">vs ${esc(m.opponent)}</div><div class="meta">${esc(m.ground||"")}${m.venueType?' · <span class="chip'+(m.venueType==="away"?" red":"")+'">'+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+'</span>':""}${m.captain?' · <span class="chip cap">© '+esc(m.captain)+'</span>':""}</div></div>
     <div class="match-score tnum">${m.ourTotal}/${m.ourWickets} <span class="opp-score">(${m.oppTotal}/${m.oppWickets})</span></div>
     <div><span class="badge ${badge}">${label}</span></div></div>`;
 }
@@ -611,10 +664,10 @@ function viewDashboard(v){
   </div>
 
   <div class="grid c2">
-    <div><div class="eyebrow">Most runs (all time)</div><div class="table-wrap"><table>
+    <div><div class="eyebrow">Most runs (all time)</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Batsman</th><th>Runs</th><th>Avg</th><th>SR</th></tr></thead>
       <tbody>${bat.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(0)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
-    <div><div class="eyebrow">Most wickets (all time)</div><div class="table-wrap"><table>
+    <div><div class="eyebrow">Most wickets (all time)</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Bowler</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
       <tbody>${bowl.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(1)}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
   </div>
@@ -625,10 +678,20 @@ function viewDashboard(v){
 
 /* ============================================================ MATCHES + SCORECARD ============================================================ */
 function viewMatches(v){
-  const ms=DATA.matches.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Full log</div><h2>Matches</h2><p>${ms.length} recorded • tap any match for the full scorecard</p></div>
+  let ms=getMatches({opp:filterOpp.matches,period:filterPeriod.matches});
+  if(matchDateFilter) ms=ms.filter(m=>m.date===matchDateFilter);
+  ms=ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const total=DATA.matches.length;
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Full log</div><h2>Matches</h2><p>${total} recorded • filter by month or a specific date, then tap a match for its full scorecard</p></div>
     <a class="btn primary" href="#/add">+ Add match</a></div>
-    <div class="table-wrap">${ms.map(matchRow).join("")||emptyBlock("No matches yet — add your first from the Add match tab")}</div>`;
+  <div class="controls">
+    <div class="field"><label>Opponent</label>${oppSelect("matches",filterOpp.matches)}</div>
+    <div class="field"><label>Month</label>${periodSelect("matches",filterPeriod.matches)}</div>
+    <div class="field"><label>Exact date</label><input type="date" value="${esc(matchDateFilter)}" onchange="onMatchDate(this.value)"></div>
+    ${matchDateFilter?'<button class="btn ghost sm" onclick="onMatchDate(\'\')">Clear date</button>':""}
+  </div>
+  <div style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Showing ${ms.length} match${ms.length===1?"":"es"}${matchDateFilter?" on "+fmtDateW(matchDateFilter):""}</div>
+  <div class="table-wrap">${ms.map(matchRow).join("")||emptyBlock("No matches found for this filter")}</div>`;
 }
 function viewScorecard(v,id){
   const m=DATA.matches.find(x=>x.id===id);
@@ -641,10 +704,14 @@ function viewScorecard(v,id){
   v.innerHTML=`
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px">
     <a href="#/matches" class="btn ghost sm">← All matches</a>
-    <button class="btn primary sm" onclick="pdfMatch('${m.id}')">⬇ Download scorecard PDF</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="editMatch('${m.id}')">✎ Edit match</button>
+      <button class="btn primary sm" onclick="pdfMatch('${m.id}')">⬇ Download PDF</button>
+      <button class="btn danger sm" onclick="deleteMatch('${m.id}')">🗑 Delete</button>
+    </div>
   </div>
   <div class="scoreboard"><div class="sb-top">
-    <div><div class="sb-eyebrow">${fmtDate(m.date)} • ${esc(m.ground||"—")}${m.format?" • "+esc(m.format):""}</div>
+    <div><div class="sb-eyebrow">${fmtDateW(m.date)} • ${esc(m.ground||"—")}${m.venueType?" ("+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+")":""}${m.format?" • "+esc(m.format):""}</div>
       <div class="sb-title" style="font-size:28px">Gold Hayat vs ${esc(m.opponent)}</div>
       <div class="sb-sub">${m.captain?'<span class="chip cap">© Captain: '+esc(m.captain)+'</span> ':""}Toss: ${esc(m.toss||"—")}${m.decision?" · chose to "+esc(m.decision):""}${m.motm?' · <span class="star">★</span> MOTM: '+esc(m.motm):""}</div></div>
     <div style="text-align:right"><span class="badge ${badge}" style="font-size:12px">${label}</span>
@@ -857,6 +924,7 @@ function viewRecords(v){
     <tbody>${opponents().map(o=>{const ms=DATA.matches.filter(m=>m.opponent===o);const w=ms.filter(m=>m.result==="won").length;const l=ms.filter(m=>m.result==="lost").length;const dec=w+l+ms.filter(m=>m.result==="tie").length;return `<tr><td class="l pname">${esc(o)}</td><td class="tnum dim">${ms.length}</td><td class="tnum" style="color:var(--pitch)">${w}</td><td class="tnum" style="color:#e37a70">${l}</td><td class="tnum hi">${dec?(w/dec*100).toFixed(0):"—"}%</td></tr>`;}).join("")||emptyRow(5)}</tbody>
   </table></div>`;
 }
+let FORMPREFILL=null; let EDIT_ID=null;
 /* ============================================================ SQUAD (roster) ============================================================ */
 function viewSquad(v){
   const players=(DATA.team&&DATA.team.players)||[];
@@ -901,13 +969,14 @@ function toggleSub(enc){
 /* ============================================================ ADD MATCH ============================================================ */
 let rowSeq=0;
 function viewAdd(v){
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">New entry</div><h2>Add match</h2><p>Enter batting, bowling, fielding &amp; captain — runs, balls and strike rate are calculated for you</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">New entry</div><h2 id="add-head">Add match</h2><p>Enter batting, bowling, fielding &amp; captain — runs, balls and strike rate are calculated for you</p></div></div>
   <div class="notice">Enter <b>dots, 1s, 2s, 3s, 4s and 6s</b> per batsman; runs &amp; balls compute automatically. This adds to your existing record — nothing is overwritten. After saving, open <b>Data &amp; publish</b> to download <b>data.json</b> and commit it to GitHub.</div>
   <div class="form-section"><h3>Match details</h3><div class="form-grid">
     <div class="field"><label>Date</label><input type="date" id="f-date"></div>
     <div class="field"><label>Opponent</label><input id="f-opp" placeholder="Team name" list="opp-list"><datalist id="opp-list">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
     <div class="field"><label>Captain (ours)</label><input id="f-captain" placeholder="Captain name" list="cap-list"><datalist id="cap-list">${captains().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
-    <div class="field"><label>Ground</label><input id="f-ground" placeholder="Venue"></div>
+    <div class="field"><label>Venue</label><input id="f-ground" placeholder="Ground name" list="venue-list"><datalist id="venue-list">${venues().map(gr=>`<option value="${esc(gr)}">`).join("")}</datalist></div>
+    <div class="field"><label>Match at</label><select id="f-venuetype"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
     <div class="field"><label>Format</label><select id="f-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
     <div class="field"><label>Toss</label><select id="f-toss"><option>won</option><option>lost</option></select></div>
     <div class="field"><label>Chose to</label><select id="f-decision"><option>bat</option><option>bowl</option></select></div>
@@ -934,16 +1003,26 @@ function viewAdd(v){
     <tbody id="field-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow()">+ Add fielder</button></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">
-    <button class="btn primary" onclick="saveMatch()">Save match</button>
+    <button class="btn primary" id="save-btn" onclick="saveMatch()">Save match</button>
     <button class="btn ghost" onclick="location.hash='#/add';router()">Reset form</button>
     <span id="save-msg" style="align-self:center;color:var(--pitch);font-weight:600"></span></div>`;
-  for(let i=0;i<5;i++)addBatRow();
-  for(let i=0;i<5;i++)addBowlRow();
-  for(let i=0;i<3;i++)addFieldRow();
+  const P=FORMPREFILL; FORMPREFILL=null; EDIT_ID=(P&&P.editId)||null;
+  if(P&&P.batting&&P.batting.length){ P.batting.forEach(b=>addBatRow(b)); } else { for(let i=0;i<5;i++)addBatRow(); }
+  if(P&&P.bowling&&P.bowling.length){ P.bowling.forEach(b=>addBowlRow(b)); } else { for(let i=0;i<5;i++)addBowlRow(); }
+  if(P&&P.fielding&&P.fielding.length){ P.fielding.forEach(b=>addFieldRow(b)); } else { for(let i=0;i<3;i++)addFieldRow(); }
+  if(P){
+    const setv=(id,val)=>{const el=$("#"+id); if(el&&val!=null&&val!=="")el.value=val;};
+    setv("f-date",P.date);setv("f-opp",P.opponent);setv("f-captain",P.captain);setv("f-ground",P.ground);setv("f-venuetype",P.venueType);setv("f-format",P.format);
+    setv("f-toss",P.toss);setv("f-decision",P.decision);setv("f-ourtotal",P.ourTotal);setv("f-ourwkts",P.ourWickets);setv("f-ourovers",P.ourOvers);
+    setv("f-opptotal",P.oppTotal);setv("f-oppwkts",P.oppWickets);setv("f-oppovers",P.oppOvers);setv("f-result",P.result);setv("f-motm",P.motm);
+    const btn=$("#save-btn"), msg=$("#save-msg"), h=$("#add-head");
+    if(EDIT_ID){ if(btn)btn.textContent="Update match"; if(h)h.textContent="Edit match"; if(msg)msg.textContent="Editing — Update will overwrite ONLY this match; everything else stays."; }
+    else if(msg){ msg.textContent="Pre-filled from your schedule — add the scores and Save."; }
+  }
 }
 function playerListOptions(){return allPlayers().map(n=>`<option value="${esc(n)}">`).join("");}
 function ensureDatalist(){if(!$("#pl-all")){const dl=document.createElement("datalist");dl.id="pl-all";dl.innerHTML=playerListOptions();document.body.appendChild(dl);}}
-function addBatRow(){
+function addBatRow(d){
   const id="b"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
   tr.innerHTML=`<td><input class="name" list="pl-all" data-k="name" placeholder="Name"></td>
     <td><input class="num" type="number" data-k="dots" oninput="recalcBat('${id}')" placeholder="0"></td>
@@ -957,8 +1036,11 @@ function addBatRow(){
     <td class="calc" id="calc-${id}">0 (0)</td>
     <td><button class="row-del" onclick="this.closest('tr').remove();recalcBatTotal()">×</button></td>`;
   $("#bat-rows").appendChild(tr);ensureDatalist();
+  if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
+    set("name",d.name);set("dots",d.dots);set("ones",d.ones);set("twos",d.twos);set("threes",d.threes);set("fours",d.fours);set("sixes",d.sixes);
+    set("dismissal",d.dismissal); set("who",d.fielder||d.bowler||""); recalcBat(id); }
 }
-function addBowlRow(){
+function addBowlRow(d){
   const id="w"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
   tr.innerHTML=`<td><input class="name" list="pl-all" data-k="name" placeholder="Name"></td>
     <td><input class="num" data-k="overs" oninput="recalcBowl('${id}')" placeholder="4"></td>
@@ -970,8 +1052,10 @@ function addBowlRow(){
     <td class="calc" id="calc-${id}">—</td>
     <td><button class="row-del" onclick="this.closest('tr').remove()">×</button></td>`;
   $("#bowl-rows").appendChild(tr);ensureDatalist();
+  if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
+    set("name",d.name);set("overs",d.overs);set("runs",d.runs);set("wickets",d.wickets);set("dots",d.dots);set("wides",d.wides);set("noballs",d.noballs); recalcBowl(id); }
 }
-function addFieldRow(){
+function addFieldRow(d){
   const id="f"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
   tr.innerHTML=`<td><input class="name" list="pl-all" data-k="name" placeholder="Name"></td>
     <td><input class="num" type="number" data-k="catches" placeholder="0"></td>
@@ -979,6 +1063,8 @@ function addFieldRow(){
     <td><input class="num" type="number" data-k="stumpings" placeholder="0"></td>
     <td><button class="row-del" onclick="this.closest('tr').remove()">×</button></td>`;
   $("#field-rows").appendChild(tr);ensureDatalist();
+  if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
+    set("name",d.name);set("catches",d.catches);set("runouts",d.runouts);set("stumpings",d.stumpings); }
 }
 function rowVal(id,k){const el=document.querySelector("#"+id+" [data-k='"+k+"']");return el?el.value:"";}
 function recalcBat(id){
@@ -1016,12 +1102,15 @@ function saveMatch(){
   if(!g("f-opp").trim()){alert("Please enter the opponent name.");return;}
   if(bat.length===0){alert("Add at least one batsman.");return;}
   const match={id:"m"+Date.now(),date:g("f-date")||new Date().toISOString().slice(0,10),
-    opponent:g("f-opp").trim(),captain:g("f-captain").trim(),ground:g("f-ground").trim(),format:g("f-format").trim(),
+    opponent:g("f-opp").trim(),captain:g("f-captain").trim(),ground:g("f-ground").trim(),venueType:g("f-venuetype"),format:g("f-format").trim(),
     toss:g("f-toss"),decision:g("f-decision"),
     ourTotal:int(g("f-ourtotal")),ourWickets:int(g("f-ourwkts")),ourOvers:g("f-ourovers").trim(),
     oppTotal:int(g("f-opptotal")),oppWickets:int(g("f-oppwkts")),oppOvers:g("f-oppovers").trim(),
     result:g("f-result"),motm:g("f-motm").trim(),batting:bat,bowling:bowl,fielding:field};
-  DATA.matches.push(match);saveLocal();setDirty(true);renderNav();
+  if(EDIT_ID){ const i=DATA.matches.findIndex(m=>m.id===EDIT_ID); match.id=EDIT_ID; if(i>=0)DATA.matches[i]=match; else DATA.matches.push(match); EDIT_ID=null; }
+  else { DATA.matches.push(match); }
+  if(Array.isArray(DATA.fixtures)) DATA.fixtures=DATA.fixtures.filter(fx=>!(fx.date===match.date&&fx.opponent===match.opponent));
+  saveLocal();setDirty(true);renderNav();
   const el=$("#save-msg");if(el)el.textContent="✓ Saved. Go to Data & publish to export.";
   setTimeout(()=>{location.hash="#/match/"+match.id;},700);
 }
@@ -1070,7 +1159,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -1162,6 +1251,79 @@ function pdfBowling(){
   const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>Dots</th></tr></thead><tbody>'+
     rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Bowlers", filterLabelPDF("bowling"), body);
+}
+
+
+/* ============================================================ SCHEDULE (fixtures) ============================================================ */
+function viewSchedule(v){
+  const today=new Date().toISOString().slice(0,10);
+  const fx=((DATA.fixtures)||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const upcoming=fx.filter(f=>(f.date||"")>=today);
+  const past=fx.filter(f=>(f.date||"")<today);
+  const vt=t=>t==="home"?"Home":t==="away"?"Away":t==="neutral"?"Neutral":"";
+  const row=f=>`<tr>
+     <td class="l">${fmtDateW(f.date)}</td>
+     <td class="l pname">vs ${esc(f.opponent||"—")}</td>
+     <td class="l">${esc(f.venue||"—")}${f.venueType?' <span class="chip'+(f.venueType==="away"?" red":"")+'">'+vt(f.venueType)+'</span>':""}</td>
+     <td class="l">${esc(f.format||"")}</td>
+     <td class="l dim">${esc(f.note||"")}</td>
+     <td class="l" style="white-space:nowrap"><button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button> <button class="btn danger sm" onclick="removeFixture('${f.id}')">Remove</button></td></tr>`;
+  const head='<thead><tr><th class="l">Date</th><th class="l">Opponent</th><th class="l">Venue</th><th class="l">Format</th><th class="l">Note</th><th class="l">Actions</th></tr></thead>';
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Fixtures</div><h2>Schedule</h2><p>Add upcoming matches with venue. When a match is played, tap “Record result” to open a pre-filled scorecard.</p></div></div>
+  <div class="form-section"><h3>Add a fixture</h3><div class="form-grid">
+    <div class="field"><label>Match date</label><input type="date" id="fx-date"></div>
+    <div class="field"><label>Opponent</label><input id="fx-opp" list="opp-list2" placeholder="Team"><datalist id="opp-list2">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
+    <div class="field"><label>Venue</label><input id="fx-venue" list="venue-list2" placeholder="Ground"><datalist id="venue-list2">${venues().map(gr=>`<option value="${esc(gr)}">`).join("")}</datalist></div>
+    <div class="field"><label>Match at</label><select id="fx-type"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
+    <div class="field"><label>Format</label><select id="fx-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
+    <div class="field" style="flex:1;min-width:180px"><label>Note (optional)</label><input id="fx-note" placeholder="e.g. league semi-final"></div>
+  </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">+ Add fixture</button></div>
+  <div class="eyebrow">Upcoming</div>
+  <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map(row).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
+  ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures not yet recorded</div>
+  <div class="table-wrap table-scroll"><table>${head}<tbody>${past.map(row).join("")}</tbody></table></div>`:""}`;
+}
+function addFixture(){
+  const g=id=>($("#"+id)||{}).value||"";
+  if(!g("fx-date")){alert("Please pick the match date.");return;}
+  if(!g("fx-opp").trim()){alert("Please enter the opponent.");return;}
+  if(!Array.isArray(DATA.fixtures))DATA.fixtures=[];
+  DATA.fixtures.push({id:"fx"+Date.now(),date:g("fx-date"),opponent:g("fx-opp").trim(),venue:g("fx-venue").trim(),venueType:g("fx-type"),format:g("fx-format"),note:g("fx-note").trim()});
+  saveLocal();setDirty(true);router();
+}
+function removeFixture(id){ DATA.fixtures=((DATA.fixtures)||[]).filter(f=>f.id!==id); saveLocal(); setDirty(true); router(); }
+function playFixture(id){ const f=((DATA.fixtures)||[]).find(x=>x.id===id); if(!f)return; FORMPREFILL={date:f.date,opponent:f.opponent,ground:f.venue,format:f.format,venueType:f.venueType}; location.hash="#/add"; }
+function editMatch(id){
+  const m=DATA.matches.find(x=>x.id===id); if(!m)return;
+  FORMPREFILL={ editId:id, date:m.date,opponent:m.opponent,captain:m.captain,ground:m.ground,venueType:m.venueType,format:m.format,
+    toss:m.toss,decision:m.decision,ourTotal:m.ourTotal,ourWickets:m.ourWickets,ourOvers:m.ourOvers,
+    oppTotal:m.oppTotal,oppWickets:m.oppWickets,oppOvers:m.oppOvers,result:m.result,motm:m.motm,
+    batting:(m.batting||[]).map(b=>({...b})), bowling:(m.bowling||[]).map(b=>({...b})), fielding:(m.fielding||[]).map(b=>({...b})) };
+  location.hash="#/add";
+}
+function deleteMatch(id){
+  const m=DATA.matches.find(x=>x.id===id); if(!m)return;
+  if(!confirm("Delete this match (vs "+m.opponent+" on "+fmtDate(m.date)+")?\nEvery other match stays. Tip: keep a backup first."))return;
+  DATA.matches=DATA.matches.filter(x=>x.id!==id);
+  saveLocal();setDirty(true);renderNav();location.hash="#/matches";
+}
+
+/* ============================================================ VENUES ============================================================ */
+function viewVenues(v){
+  const oppF=filterOpp.venues||"all";
+  const vAgg=sortRows(venueAgg(),"played",-1);
+  let ov=oppVenueAgg(getMatches({opp:oppF}));
+  ov=ov.sort((a,b)=>a.opponent.localeCompare(b.opponent)||(b.played-a.played)||a.venue.localeCompare(b.venue));
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Grounds</div><h2>Venues</h2><p>Where we play, and how many times we have beaten each team at each ground</p></div></div>
+  <div class="eyebrow">Results by venue</div>
+  <div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Venue</th><th>P</th><th>W</th><th>L</th><th>T</th><th>NR</th><th>Win%</th></tr></thead>
+    <tbody>${vAgg.map(r=>`<tr><td class="l pname">${esc(r.venue)}</td><td class="tnum dim">${r.played}</td><td class="tnum" style="color:var(--pitch)">${r.w}</td><td class="tnum" style="color:#e37a70">${r.l}</td><td class="tnum dim">${r.t}</td><td class="tnum dim">${r.nr}</td><td class="hi tnum">${r.winPct.toFixed(0)}%</td></tr>`).join("")||emptyRow(7)}</tbody></table></div>
+  <div class="controls" style="margin-top:24px"><div class="field"><label>Opponent</label>${oppSelect("venues",oppF)}</div></div>
+  <div class="eyebrow">Head-to-head by venue${oppF!=="all"?" — vs "+esc(oppF):""}</div>
+  <div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Opponent</th><th class="l">Venue</th><th>Played</th><th>Won</th><th>Lost</th><th>Win%</th></tr></thead>
+    <tbody>${ov.map(r=>{const dec=r.w+r.l;const pct=dec?(r.w/dec*100).toFixed(0)+"%":"—";return `<tr><td class="l pname">${esc(r.opponent)}</td><td class="l">${esc(r.venue)}</td><td class="tnum dim">${r.played}</td><td class="tnum" style="color:var(--pitch)">${r.w}</td><td class="tnum" style="color:#e37a70">${r.l}</td><td class="hi tnum">${pct}</td></tr>`;}).join("")||emptyRow(6)}</tbody></table></div>`;
 }
 
 /* ---------- Boot ---------- */
