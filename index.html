@@ -222,6 +222,19 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
   .legend{min-width:130px}
 }
 
+/* ---- Profile format tabs ---- */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 22px}
+.tab{padding:8px 16px;border-radius:22px;border:1px solid var(--line-soft);background:var(--surface);color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+.tab:hover{color:var(--cream);border-color:var(--line)}
+.tab.on{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1a1206;border-color:transparent}
+.split-title{font-family:var(--mono);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:26px 0 14px;display:flex;align-items:center;gap:10px}
+.split-title .pill{font-family:var(--body);font-size:11px;letter-spacing:.02em;text-transform:none;color:var(--muted);background:var(--gold-soft);padding:2px 9px;border-radius:20px}
+.split-title::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.minitabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.minitab{padding:5px 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.minitab:hover{color:var(--cream)}
+.minitab.on{background:var(--gold-soft);color:var(--gold);border-color:var(--line)}
+.minitabs select{padding:5px 9px;font-size:12px;margin-left:2px}
 /* ---- Logo crest ---- */
 .crest{overflow:hidden}
 .crest.has-img{background:transparent;box-shadow:0 8px 20px -8px rgba(0,0,0,.55);border:1px solid var(--line)}
@@ -528,6 +541,23 @@ function sparkBars(series){
     return `<rect class="bar" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="3"/><text x="${x+bw/2}" y="${y-4}" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="var(--mono)">${val}</text>`;}).join("");
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${bars}</svg>`;
 }
+function monthLabel(ym){ const d=new Date(ym+"-01T00:00"); return isNaN(d)?ym:d.toLocaleDateString("en-GB",{month:"short",year:"2-digit"}); }
+function monthBars(pts,{color="var(--gold)",h=160,suffix=""}={}){
+  if(!pts||!pts.length) return `<div class="empty" style="padding:24px"><div class="em-ic">📊</div>No data yet for this view</div>`;
+  const n=pts.length, w=Math.max(340, n*58), padB=30, padT=20, slot=w/n, bw=Math.min(38, slot-16);
+  const max=Math.max(...pts.map(p=>p.v),1);
+  const bars=pts.map((p,i)=>{
+    const bh=Math.max(2, p.v/max*(h-padB-padT));
+    const x=i*slot+(slot-bw)/2, y=h-padB-bh;
+    const vlabel=p.v+(suffix?(" "+suffix):"");
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="4" fill="${color}"/>`+
+      `<text x="${(x+bw/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" fill="var(--cream)" font-size="11" font-family="var(--mono)">${vlabel}</text>`+
+      `<text x="${(x+bw/2).toFixed(1)}" y="${h-9}" text-anchor="middle" fill="var(--muted)" font-size="10">${esc(p.label)}</text>`;
+  }).join("");
+  const base=`<line x1="0" y1="${h-padB}" x2="${w}" y2="${h-padB}" stroke="var(--line-soft)"/>`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" style="height:${h}px" preserveAspectRatio="xMidYMid meet">${base}${bars}</svg>`;
+}
+const DIS_META={caught:{c:"var(--sky)",l:"Caught"},bowled:{c:"var(--ball)",l:"Bowled"},lbw:{c:"#e0894b",l:"LBW"},runout:{c:"#b06bd0",l:"Run out"},stumped:{c:"#3fbf9f",l:"Stumped"},hitwicket:{c:"#d0607a",l:"Hit wicket"},retired:{c:"var(--muted-2)",l:"Retired"},notout:{c:"var(--pitch)",l:"Not out"}};
 /* ---------- Navigation ---------- */
 const NAV=[
   {id:"dashboard",label:"Dashboard",section:"Overview",icon:"grid"},
@@ -575,9 +605,15 @@ function updateBanner(){
   if(isDirty()){
     const div=document.createElement("div");
     div.id="dirty-banner"; div.className="dirty";
-    div.innerHTML=`<div class="txt"><b>Unsaved matches in this browser.</b> Download <b>data.json</b> and commit it to GitHub so the record is permanent and shared.</div>
+    if(ghConfigured()){
+      div.innerHTML=`<div class="txt"><b>You have unsaved changes.</b> Tap <b>Publish now</b> to save them to GitHub — permanent and shared.</div>
+      <button class="btn primary sm" onclick="publishToGitHub()">⬆ Publish now</button>
+      <button class="btn ghost sm" onclick="downloadData()">Download</button>`;
+    } else {
+      div.innerHTML=`<div class="txt"><b>Unsaved matches in this browser.</b> Publish them so the record is permanent and shared.</div>
       <button class="btn primary sm" onclick="downloadData()">⬇ Download data.json</button>
-      <a class="btn ghost sm" href="#/data">Publishing help</a>`;
+      <a class="btn ghost sm" href="#/data">Set up 1-click publish</a>`;
+    }
     v.insertBefore(div,v.firstChild);
   }
 }
@@ -588,6 +624,10 @@ let filterOpp={batting:"all",bowling:"all",fielding:"all",captains:"all",venues:
 let filterPeriod={batting:"all",bowling:"all",fielding:"all",matches:"all"};
 let matchDateFilter="";
 window.onMatchDate=(val)=>{matchDateFilter=val;router();};
+let teamFmt="all"; window.onTeamFmt=(f)=>{teamFmt=f;router();};
+let capListFmt="all"; window.onCaptainsFmt=(f)=>{capListFmt=f;router();};
+function fmtLabel(x){ return x==="all"?"All formats":(x==="Test Match"?"Test":x); }
+function fmtTabs(cur,handler){ return '<div class="tabs">'+["all"].concat(FORMATS).map(x=>'<button class="tab'+(x===cur?" on":"")+'" onclick="'+handler+'(\''+x+'\')">'+fmtLabel(x)+'</button>').join("")+'</div>'; }
 window.onFilter=(id,val)=>{filterOpp[id]=val;router();};
 window.onPeriod=(id,val)=>{filterPeriod[id]=val;router();};
 window.onSort=(tbl,key)=>{const s=sortState[tbl];if(s.key===key)s.dir*=-1;else{s.key=key;s.dir=(key==="name"?1:-1);}router();};
@@ -629,30 +669,35 @@ function matchRow(m){
 
 /* ============================================================ DASHBOARD ============================================================ */
 function viewDashboard(v){
-  const s=teamSummary();
-  const bat=sortRows(battingAgg(),"runs",-1).slice(0,5);
-  const bowl=sortRows(bowlingAgg(),"wkts",-1).slice(0,5);
-  const ordered=DATA.matches.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const fmt=teamFmt, ctx=fmtLabel(fmt);
+  const tms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
+  const s=teamSummary(tms);
+  const bat=sortRows(battingAgg(tms),"runs",-1).slice(0,5);
+  const bowl=sortRows(bowlingAgg(tms),"wkts",-1).slice(0,5);
+  const ordered=tms.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const recent=ordered.slice().reverse().slice(0,5);
   const formPts=ordered.slice(-8).map(m=>({v:int(m.ourTotal),label:fmtDate(m.date).slice(0,6)}));
-  // this-month leaders
-  const mBat=sortRows(battingAgg(getMatches({period:"month"})),"runs",-1)[0];
-  const mBowl=sortRows(bowlingAgg(getMatches({period:"month"})),"wkts",-1)[0];
-
+  const monthMs=tms.filter(m=>inPeriod(m.date,"month"));
+  const mBat=sortRows(battingAgg(monthMs),"runs",-1)[0];
+  const mBowl=sortRows(bowlingAgg(monthMs),"wkts",-1)[0];
+  const seg=[{label:"Won",value:s.w,color:"var(--pitch)"},{label:"Lost",value:s.l,color:"var(--ball)"},{label:"Tied",value:s.t,color:"var(--gold)"},{label:"No result",value:s.nr,color:"var(--muted-2)"}];
   v.innerHTML=`
   <div class="scoreboard"><div class="sb-top">
-    <div><div class="sb-eyebrow">Season record</div><div class="sb-title">Gold Hayat Cricket Team</div>
+    <div><div class="sb-eyebrow">Team record • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
       <div class="sb-sub">${s.played} matches • Highest total ${s.hi} • Avg total ${s.avg.toFixed(0)}</div></div>
     <div class="sb-stats">
       <div class="sb-stat win"><div class="n tnum">${s.w}</div><div class="l">Won</div></div>
       <div class="sb-stat loss"><div class="n tnum">${s.l}</div><div class="l">Lost</div></div>
       <div class="sb-stat"><div class="n tnum">${s.winPct.toFixed(0)}%</div><div class="l">Win rate</div></div>
     </div></div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    ${fmtTabs(fmt,"onTeamFmt")}
+    <button class="btn ghost" onclick="pdfTeam()">⬇ Team report PDF</button>
+  </div>
 
   <div class="grid c2" style="margin-bottom:26px">
-    <div class="chart-card"><div class="eyebrow" style="margin-bottom:14px">Results</div>
-      <div class="donut-wrap">${donut([{label:"Won",value:s.w,color:"var(--pitch)"},{label:"Lost",value:s.l,color:"var(--ball)"},{label:"Tied",value:s.t,color:"var(--gold)"},{label:"No result",value:s.nr,color:"var(--muted-2)"}])}
-        ${legend([{label:"Won",value:s.w,color:"var(--pitch)"},{label:"Lost",value:s.l,color:"var(--ball)"},{label:"Tied",value:s.t,color:"var(--gold)"},{label:"No result",value:s.nr,color:"var(--muted-2)"}])}</div></div>
+    <div class="chart-card"><div class="eyebrow" style="margin-bottom:14px">Results — ${esc(ctx)}</div>
+      <div class="donut-wrap">${donut(seg)}${legend(seg)}</div></div>
     <div class="chart-card"><div class="eyebrow" style="margin-bottom:14px">Team totals — last matches</div>${lineChart(formPts)||emptyBlock("Add matches to see form")}</div>
   </div>
 
@@ -664,10 +709,10 @@ function viewDashboard(v){
   </div>
 
   <div class="grid c2">
-    <div><div class="eyebrow">Most runs (all time)</div><div class="table-wrap table-scroll"><table>
+    <div><div class="eyebrow">Most runs — ${esc(ctx)}</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Batsman</th><th>Runs</th><th>Avg</th><th>SR</th></tr></thead>
       <tbody>${bat.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(0)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
-    <div><div class="eyebrow">Most wickets (all time)</div><div class="table-wrap table-scroll"><table>
+    <div><div class="eyebrow">Most wickets — ${esc(ctx)}</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Bowler</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
       <tbody>${bowl.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(1)}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
   </div>
@@ -787,7 +832,7 @@ function viewBowling(v){
 function viewFielding(v){
   let rows=fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding}));
   const s=sortState.fielding; rows=sortRows(rows,s.key,s.dir);
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Fielding</h2><p>Catches, run-outs and stumpings by Gold Hayat fielders</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Fielding</h2><p>Catches, run-outs and stumpings by Gold Hayat fielders</p></div><button class="btn primary" onclick="pdfFielding()">⬇ PDF</button></div>
   <div class="controls">
     <div class="field"><label>Opponent</label>${oppSelect("fielding",filterOpp.fielding)}</div>
     <div class="field"><label>Period</label>${periodSelect("fielding",filterPeriod.fielding)}</div>
@@ -809,32 +854,129 @@ function viewPlayers(v){
     <div class="profile-head" style="margin:0"><div class="avatar" style="width:52px;height:52px;font-size:20px">${initials(n)}</div>
     <div><h2 style="font-size:19px;margin:0">${esc(n)}</h2><div class="role">${b?b.runs+" runs":""}${b&&w?" · ":""}${w?w.wkts+" wkts":""}${!b&&!w?"—":""}</div></div></div></div>`;}).join("")||emptyBlock("No players yet")}</div>`;
 }
+let playerFmt="all", playerFmtFor=null;
+let playerBatMode="month", playerBowlMode="month", playerBatMonth="", playerBowlMonth="";
+window.onPlayerFmt=(f)=>{ playerFmt=f; router(); };
+window.onPCMode=(which,mode)=>{ if(which==="bat")playerBatMode=mode; else playerBowlMode=mode; router(); };
+window.onPCMonth=(which,ym)=>{ if(which==="bat")playerBatMonth=ym; else playerBowlMonth=ym; router(); };
+function dayLabel(d){ const dt=new Date(d+"T00:00"); return isNaN(dt)?d:dt.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
+function pcMonths(pmatches,name,isBowling){ const set=new Set(); pmatches.forEach(m=>{ const k=(m.date||"").slice(0,7); if(!k)return; const has=(isBowling?(m.bowling||[]):(m.batting||[])).some(x=>x.name===name); if(has)set.add(k); }); return [...set].sort(); }
+function pcSeriesMonthly(pmatches,name,isBowling){ const mp={}; pmatches.forEach(m=>{ const k=(m.date||"").slice(0,7); if(!k)return; if(isBowling){(m.bowling||[]).forEach(x=>{ if(x.name===name)mp[k]=(mp[k]||0)+int(x.wickets); });} else {(m.batting||[]).map(inn).forEach(x=>{ if(x.name===name)mp[k]=(mp[k]||0)+x.runs; });} }); return Object.keys(mp).sort().map(k=>({label:monthLabel(k),v:mp[k]})); }
+function pcSeriesSunday(pmatches,name,isBowling,ym){ const mp={}; pmatches.forEach(m=>{ const d=m.date||""; if(!d||(ym&&d.slice(0,7)!==ym))return; if(isBowling){(m.bowling||[]).forEach(x=>{ if(x.name===name)mp[d]=(mp[d]||0)+int(x.wickets); });} else {(m.batting||[]).map(inn).forEach(x=>{ if(x.name===name)mp[d]=(mp[d]||0)+x.runs; });} }); return Object.keys(mp).sort().map(k=>({label:dayLabel(k),v:mp[k]})); }
+function playerChartBlock(which,pmatches,name){
+  const isBowling=(which==="bowl");
+  const mode=isBowling?playerBowlMode:playerBatMode;
+  const months=pcMonths(pmatches,name,isBowling);
+  let month=isBowling?playerBowlMonth:playerBatMonth;
+  if(mode==="sunday" && (!month||!months.includes(month))) month=months[months.length-1]||"";
+  const series=(mode==="month")?pcSeriesMonthly(pmatches,name,isBowling):pcSeriesSunday(pmatches,name,isBowling,month);
+  const color=isBowling?"var(--ball)":"var(--gold)";
+  const suffix=isBowling?"wkts":"";
+  const title=isBowling?(mode==="month"?"Wickets by month":"Wickets by Sunday"):(mode==="month"?"Runs by month":"Runs by Sunday");
+  const monthSel=(mode==="sunday"&&months.length)?`<select onchange="onPCMonth('${which}',this.value)">${months.map(ym=>`<option value="${ym}"${ym===month?" selected":""}>${monthLabel(ym)}</option>`).join("")}</select>`:"";
+  return `<div class="chart-card"><div class="eyebrow" style="margin-bottom:10px">${title}</div>
+    <div class="minitabs">
+      <button class="minitab${mode==="month"?" on":""}" onclick="onPCMode('${which}','month')">Monthly</button>
+      <button class="minitab${mode==="sunday"?" on":""}" onclick="onPCMode('${which}','sunday')">By Sunday</button>${monthSel}
+    </div>${monthBars(series,{color,suffix})}</div>`;
+}
+
 function viewPlayer(v,name){
-  const b=battingAgg().find(p=>p.name===name);
-  const w=bowlingAgg().find(p=>p.name===name);
-  const f=fieldingAgg().find(p=>p.name===name);
-  const log=DATA.matches.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(m=>({m,bat:(m.batting||[]).map(inn).find(x=>x.name===name),bw:(m.bowling||[]).find(x=>x.name===name)})).filter(r=>r.bat||r.bw);
+  if(playerFmtFor!==name){ playerFmt="all"; playerFmtFor=name; playerBatMode="month"; playerBowlMode="month"; playerBatMonth=""; playerBowlMonth=""; }
+  const fmt=playerFmt;
+  const pmatches=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt))
+    .slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const b=battingAgg(pmatches).find(p=>p.name===name);
+  const w=bowlingAgg(pmatches).find(p=>p.name===name);
+  const f=fieldingAgg(pmatches).find(p=>p.name===name);
+
+  // month-wise series (selected format)
+  const bm={}, wm={};
+  pmatches.forEach(m=>{
+    const k=(m.date||"").slice(0,7); if(!k)return;
+    (m.batting||[]).map(inn).forEach(x=>{ if(x.name===name) bm[k]=(bm[k]||0)+x.runs; });
+    (m.bowling||[]).forEach(x=>{ if(x.name===name) wm[k]=(wm[k]||0)+int(x.wickets); });
+  });
+  const batMonths=Object.keys(bm).sort().map(k=>({label:monthLabel(k),v:bm[k]}));
+  const wktMonths=Object.keys(wm).sort().map(k=>({label:monthLabel(k),v:wm[k]}));
+
+  // dismissal breakdown (selected format)
+  const dis={};
+  pmatches.forEach(m=>(m.batting||[]).forEach(x=>{ if(x.name!==name)return; const d=x.dismissal||"caught"; dis[d]=(dis[d]||0)+1; }));
+  const disSegs=Object.keys(dis).map(k=>({label:(DIS_META[k]||{l:k}).l,value:dis[k],color:(DIS_META[k]||{c:"var(--muted-2)"}).c}));
+
+  // per-innings series
+  const runsSeries=[]; const wktSeries=[];
+  pmatches.forEach(m=>{ const bx=(m.batting||[]).map(inn).find(x=>x.name===name); if(bx)runsSeries.push(bx.runs);
+    const wx=(m.bowling||[]).find(x=>x.name===name); if(wx)wktSeries.push(int(wx.wickets)); });
+
+  // match log + vs team (selected format)
+  const log=pmatches.map(m=>({m,bat:(m.batting||[]).map(inn).find(x=>x.name===name),bw:(m.bowling||[]).find(x=>x.name===name)})).filter(r=>r.bat||r.bw).reverse();
   const vsMap={};
-  DATA.matches.forEach(m=>{
+  pmatches.forEach(m=>{
     (m.batting||[]).map(inn).forEach(x=>{if(x.name!==name)return;const t=vsMap[m.opponent]||(vsMap[m.opponent]={opp:m.opponent,inns:0,runs:0,wkts:0,balls:0});t.inns++;t.runs+=x.runs;t.balls+=x.balls;});
     (m.bowling||[]).forEach(x=>{if(x.name!==name)return;const t=vsMap[m.opponent]||(vsMap[m.opponent]={opp:m.opponent,inns:0,runs:0,wkts:0,balls:0});t.wkts+=int(x.wickets);});
   });
   const vs=Object.values(vsMap);
-  const runsSeries=log.filter(r=>r.bat).map(r=>r.bat.runs);
+
+  // career-by-format tables (all formats)
+  const batByFmt=FORMATS.map(ff=>({ff,p:battingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
+  const bowlByFmt=FORMATS.map(ff=>({ff,p:bowlingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
+
+  const tabLabel=x=>x==="all"?"All formats":(x==="Test Match"?"Test":x);
+  const tabs=["all"].concat(FORMATS).map(x=>`<button class="tab${x===fmt?" on":""}" onclick="onPlayerFmt('${x}')">${tabLabel(x)}</button>`).join("");
+  const ctx=fmt==="all"?"All formats":tabLabel(fmt);
+
   v.innerHTML=`
-  <a href="#/players" class="btn ghost sm" style="margin-bottom:16px">← All players</a>
-  <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)}</h2><div class="role">${b?b.inns+" batting inns":""}${w?" · "+w.inns+" bowling inns":""}</div></div></div>
-  <div class="grid c4" style="margin:20px 0">
-    <div class="card stat-card"><div class="k">Runs</div><div class="v tnum">${b?b.runs:0}</div><div class="sub">HS ${b?b.hs+(b.hsNo?"*":""):"—"} · Avg ${b&&b.avg!=null?b.avg.toFixed(1):"—"}</div></div>
-    <div class="card stat-card"><div class="k">Strike rate</div><div class="v tnum">${b?b.sr.toFixed(0):"—"}</div><div class="sub">${b?b.fours+" fours · "+b.sixes+" sixes":""}</div></div>
-    <div class="card stat-card"><div class="k">Wickets</div><div class="v tnum">${w?w.wkts:0}</div><div class="sub">${w?"BBI "+w.bbi+" · Econ "+w.econ.toFixed(1):"—"}</div></div>
-    <div class="card stat-card"><div class="k">Fielding</div><div class="v tnum">${f?f.total:0}</div><div class="sub">${f?f.catches+" ct · "+f.runouts+" ro · "+f.stumpings+" st":"—"}</div></div>
+  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px"><a href="#/players" class="btn ghost sm">← All players</a><button class="btn primary sm" onclick="pdfPlayer('${encodeURIComponent(name)}')">⬇ Download profile PDF</button></div>
+  <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)}</h2>
+    <div class="role">${b?b.inns+" batting inns":"No batting"}${w?" · "+w.inns+" bowling inns":""}${f?" · "+f.total+" fielding":""}</div></div></div>
+  <div class="tabs">${tabs}</div>
+
+  <div class="split-title">Batting <span class="pill">${esc(ctx)}</span></div>
+  ${b?`
+  <div class="grid c4" style="margin-bottom:16px">
+    <div class="card stat-card"><div class="k">Runs</div><div class="v tnum">${b.runs}</div><div class="sub">${b.inns} inns · ${b.no} NO</div></div>
+    <div class="card stat-card"><div class="k">Average</div><div class="v tnum">${b.avg==null?"—":b.avg.toFixed(1)}</div><div class="sub">HS ${b.hs}${b.hsNo?"*":""}</div></div>
+    <div class="card stat-card"><div class="k">Strike rate</div><div class="v tnum">${b.sr.toFixed(0)}</div><div class="sub">${b.fours} fours · ${b.sixes} sixes</div></div>
+    <div class="card stat-card"><div class="k">Milestones</div><div class="v tnum">${b.fifties}<small> 50s</small> ${b.hundreds}<small> 100s</small></div><div class="sub">${b.ducks} ducks</div></div>
   </div>
-  ${runsSeries.length>1?`<div class="chart-card" style="margin-bottom:20px"><div class="eyebrow" style="margin-bottom:12px">Runs per innings</div>${sparkBars(runsSeries)}</div>`:""}
+  <div class="grid c2" style="margin-bottom:8px">
+    ${playerChartBlock("bat",pmatches,name)}
+    <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">How out</div>${disSegs.length?`<div class="donut-wrap">${donut(disSegs,150)}${legend(disSegs.map(x=>({label:x.label,value:x.value,color:x.color})))}</div>`:emptyBlock("No dismissals recorded")}</div>
+  </div>
+  ${runsSeries.length>1?`<div class="chart-card" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:10px">Runs per innings</div>${sparkBars(runsSeries)}</div>`:""}
+  `:`<div class="notice">No batting record in ${esc(ctx)} yet.</div>`}
+
+  <div class="split-title">Bowling <span class="pill">${esc(ctx)}</span></div>
+  ${w?`
+  <div class="grid c4" style="margin-bottom:16px">
+    <div class="card stat-card"><div class="k">Wickets</div><div class="v tnum">${w.wkts}</div><div class="sub">${w.inns} inns · BBI ${w.bbi}</div></div>
+    <div class="card stat-card"><div class="k">Economy</div><div class="v tnum">${w.econ.toFixed(2)}</div><div class="sub">${w.overs} overs</div></div>
+    <div class="card stat-card"><div class="k">Average</div><div class="v tnum">${w.avg==null?"—":w.avg.toFixed(1)}</div><div class="sub">SR ${w.sr==null?"—":w.sr.toFixed(1)}</div></div>
+    <div class="card stat-card"><div class="k">Runs conceded</div><div class="v tnum">${w.runs}</div><div class="sub">${w.dots} dots · ${w.threeFer} 3W</div></div>
+  </div>
+  <div class="grid c2" style="margin-bottom:8px">
+    ${playerChartBlock("bowl",pmatches,name)}
+    <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">Wickets per innings</div>${wktSeries.length>1?sparkBars(wktSeries):emptyBlock("Not enough innings yet")}</div>
+  </div>
+  `:`<div class="notice">No bowling record in ${esc(ctx)} yet.</div>`}
+
+  ${(batByFmt.length||bowlByFmt.length)?`<div class="split-title">Career by format</div>
   <div class="grid c2">
-    <div><div class="eyebrow">Match by match</div><div class="table-wrap table-scroll"><table>
+    <div><div class="eyebrow">Batting</div><div class="table-wrap table-scroll"><table>
+      <thead><tr><th class="l">Format</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th></tr></thead>
+      <tbody>${batByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="hi tnum">${r.p.runs}</td><td class="tnum">${r.p.hs}${r.p.hsNo?"*":""}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.sr.toFixed(0)}</td><td class="tnum dim">${r.p.fifties}</td><td class="tnum dim">${r.p.hundreds}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
+    <div><div class="eyebrow">Bowling</div><div class="table-wrap table-scroll"><table>
+      <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th></tr></thead>
+      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td></tr>`).join("")||emptyRow(7)}</tbody></table></div></div>
+  </div>`:""}
+
+  <div class="split-title">Match by match <span class="pill">${esc(ctx)}</span></div>
+  <div class="grid c2">
+    <div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Match</th><th>Bat</th><th>Bowl</th></tr></thead>
-      <tbody>${log.map(r=>`<tr class="clickable" onclick="location.hash='#/match/${r.m.id}'"><td class="l"><span class="pname">vs ${esc(r.m.opponent)}</span><div class="dim" style="font-size:11px">${fmtDate(r.m.date)}</div></td>
+      <tbody>${log.map(r=>`<tr class="clickable" onclick="location.hash='#/match/${r.m.id}'"><td class="l"><span class="pname">vs ${esc(r.m.opponent)}</span><div class="dim" style="font-size:11px">${fmtDate(r.m.date)}${r.m.format?" · "+esc(r.m.format):""}</div></td>
         <td class="tnum">${r.bat?r.bat.runs+" ("+r.bat.balls+")":"—"}</td><td class="tnum">${r.bw?r.bw.wickets+"/"+r.bw.runs+" ("+esc(r.bw.overs)+")":"—"}</td></tr>`).join("")||emptyRow(3)}</tbody></table></div></div>
     <div><div class="eyebrow">Against each team</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Opponent</th><th>Inns</th><th>Runs</th><th>SR</th><th>Wkts</th></tr></thead>
@@ -844,10 +986,13 @@ function viewPlayer(v,name){
 
 /* ============================================================ CAPTAINS ============================================================ */
 function viewCaptains(v){
-  let rows=captainAgg(getMatches({opp:filterOpp.captains}));
-  const s=sortState.captains; rows=sortRows(rows,s.key,s.dir);
+  let base=getMatches({opp:filterOpp.captains});
+  if(capListFmt!=="all") base=base.filter(m=>m.format===capListFmt);
+  let rows=captainAgg(base);
+  const st=sortState.captains; rows=sortRows(rows,st.key,st.dir);
   const cmp=sortRows(rows,"winPct",-1).map(c=>({label:c.name,value:c.winPct,display:c.winPct.toFixed(0)+"%  ("+c.w+"-"+c.l+")",href:"#/captain/"+encodeURIComponent(c.name)}));
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Captaincy</div><h2>Captains</h2><p>Win ratio and record for every captain — filter by opponent, click a name for full detail</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Captaincy</div><h2>Captains</h2><p>Win ratio and record for every captain — filter by format or opponent, click a name for detail</p></div><button class="btn ghost" onclick="pdfCaptains()">⬇ PDF</button></div>
+  ${fmtTabs(capListFmt,"onCaptainsFmt")}
   <div class="controls"><div class="field"><label>Opponent</label>${oppSelect("captains",filterOpp.captains)}</div></div>
   ${rows.length?`<div class="chart-card" style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:14px">Win % comparison${filterOpp.captains!=="all"?" vs "+esc(filterOpp.captains):""}</div>${barsH(cmp)}</div>`:""}
   <div class="table-wrap table-scroll"><table>
@@ -858,32 +1003,42 @@ function viewCaptains(v){
       <td class="tnum dim">${c.t}</td><td class="tnum dim">${c.nr}</td><td class="hi tnum">${c.winPct.toFixed(0)}%</td></tr>`).join("")||emptyRow(8)}</tbody>
   </table></div>`;
 }
+let capFmt="all", capFmtFor=null; window.onCapFmt=(f)=>{capFmt=f;router();};
 function viewCaptain(v,name){
-  const ms=getMatches({captain:name});
-  if(!ms.length){v.innerHTML=emptyBlock("No matches under this captain");return;}
+  if(capFmtFor!==name){ capFmt="all"; capFmtFor=name; }
+  const fmt=capFmt, ctx=fmtLabel(fmt);
+  let ms=getMatches({captain:name}); if(fmt!=="all") ms=ms.filter(m=>m.format===fmt);
+  const backbar=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px"><a href="#/captains" class="btn ghost sm">← All captains</a><button class="btn primary sm" onclick="pdfCaptain('${encodeURIComponent(name)}')">⬇ Download PDF</button></div>`;
+  if(!ms.length){ v.innerHTML=backbar+`<div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)}</h2><div class="role">Captain</div></div></div>`+fmtTabs(fmt,"onCapFmt")+`<div class="notice">No matches led in ${esc(ctx)} yet.</div>`; return; }
   const agg=captainAgg(ms)[0]||{played:0,w:0,l:0,t:0,nr:0,winPct:0};
-  // vs each opponent
   const vs={};
   ms.forEach(m=>{const o=m.opponent;const t=vs[o]||(vs[o]={opp:o,p:0,w:0,l:0});t.p++;if(m.result==="won")t.w++;else if(m.result==="lost")t.l++;});
   const vsArr=Object.values(vs).map(t=>{const dec=t.p; t.pct=dec?t.w/dec*100:0; return t;});
   const topBat=sortRows(battingAgg(ms),"runs",-1)[0];
   const topBowl=sortRows(bowlingAgg(ms),"wkts",-1)[0];
-  v.innerHTML=`
-  <a href="#/captains" class="btn ghost sm" style="margin-bottom:16px">← All captains</a>
-  <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)} <span class="chip cap" style="font-size:12px;vertical-align:middle">Captain</span></h2><div class="role">${agg.played} matches led</div></div></div>
-  <div class="grid c4" style="margin:20px 0">
+  const seg=[{label:"Won",value:agg.w,color:"var(--pitch)"},{label:"Lost",value:agg.l,color:"var(--ball)"},{label:"Tied",value:agg.t,color:"var(--gold)"},{label:"No result",value:agg.nr,color:"var(--muted-2)"}];
+  const wm={}; ms.forEach(m=>{const k=(m.date||"").slice(0,7); if(!k)return; if(m.result==="won") wm[k]=(wm[k]||0)+1;});
+  const winMonths=Object.keys(wm).sort().map(k=>({label:monthLabel(k),v:wm[k]}));
+  v.innerHTML=backbar+`
+  <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)} <span class="chip cap" style="font-size:12px;vertical-align:middle">Captain</span></h2><div class="role">${agg.played} matches led · ${esc(ctx)}</div></div></div>
+  ${fmtTabs(fmt,"onCapFmt")}
+  <div class="grid c4" style="margin:4px 0 16px">
     <div class="card stat-card"><div class="k">Played</div><div class="v tnum">${agg.played}</div></div>
     <div class="card stat-card"><div class="k">Won</div><div class="v tnum" style="color:var(--pitch)">${agg.w}</div></div>
     <div class="card stat-card"><div class="k">Lost</div><div class="v tnum" style="color:var(--ball)">${agg.l}</div></div>
     <div class="card stat-card"><div class="k">Win rate</div><div class="v tnum">${agg.winPct.toFixed(0)}%</div><div class="sub">${agg.t} tie · ${agg.nr} NR</div></div>
+  </div>
+  <div class="grid c2" style="margin-bottom:8px">
+    <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">Results — ${esc(ctx)}</div><div class="donut-wrap">${donut(seg)}${legend(seg)}</div></div>
+    <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">Wins by month</div>${monthBars(winMonths,{color:"var(--pitch)"})}</div>
   </div>
   <div class="grid c2">
     <div><div class="eyebrow">Record vs each team</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Opponent</th><th>P</th><th>W</th><th>L</th><th>Win%</th></tr></thead>
       <tbody>${vsArr.map(t=>`<tr><td class="l pname">${esc(t.opp)}</td><td class="tnum dim">${t.p}</td><td class="tnum" style="color:var(--pitch)">${t.w}</td><td class="tnum" style="color:#e37a70">${t.l}</td><td class="hi tnum">${t.pct.toFixed(0)}%</td></tr>`).join("")}</tbody></table></div>
       <div class="grid c2" style="margin-top:16px">
-        <div class="card stat-card"><div class="k">Top scorer under ${esc(name)}</div><div class="v" style="font-size:18px">${topBat?esc(topBat.name):"—"}</div><div class="sub">${topBat?topBat.runs+" runs":""}</div></div>
-        <div class="card stat-card"><div class="k">Top bowler under ${esc(name)}</div><div class="v" style="font-size:18px">${topBowl?esc(topBowl.name):"—"}</div><div class="sub">${topBowl?topBowl.wkts+" wkts":""}</div></div>
+        <div class="card stat-card"><div class="k">Top scorer</div><div class="v" style="font-size:18px">${topBat?esc(topBat.name):"—"}</div><div class="sub">${topBat?topBat.runs+" runs":""}</div></div>
+        <div class="card stat-card"><div class="k">Top bowler</div><div class="v" style="font-size:18px">${topBowl?esc(topBowl.name):"—"}</div><div class="sub">${topBowl?topBowl.wkts+" wkts":""}</div></div>
       </div>
     </div>
     <div><div class="eyebrow">Matches led</div><div class="table-wrap">${ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(matchRow).join("")}</div></div>
@@ -906,7 +1061,7 @@ function viewRecords(v){
   const mostCt=sortRows(fieldingAgg(),"total",-1)[0];
   const bestCap=sortRows(captainAgg().filter(c=>c.played>=2),"winPct",-1)[0];
   const rec=(l,m,s)=>`<div class="card gold stat-card"><div class="k">${l}</div><div class="v" style="font-size:22px">${m}</div><div class="sub">${s}</div></div>`;
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Hall of records</div><h2>Records</h2><p>Club bests across all recorded matches</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Hall of records</div><h2>Records</h2><p>Club bests across all recorded matches</p></div><button class="btn primary" onclick="pdfRecords()">⬇ PDF</button></div>
   <div class="grid c3">
     ${bestBat?rec("Highest score",esc(bestBat.name)+" — "+bestBat.runs,"vs "+esc(bestBat.opp)+" · "+fmtDate(bestBat.date)):""}
     ${bestBowl?rec("Best bowling",esc(bestBowl.name)+" — "+bestBowl.w+"/"+bestBowl.r,"vs "+esc(bestBowl.opp)):""}
@@ -1118,16 +1273,35 @@ function saveMatch(){
 /* ============================================================ DATA & PUBLISH ============================================================ */
 function viewData(v){
   const json=JSON.stringify(DATA,null,2);
+  const gh=getGH();
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Manage</div><h2>Data &amp; publish</h2><p>Your permanent record lives in data.json on GitHub. Export, back up, import or merge here.</p></div></div>
   <div class="notice"><b>Sunday routine:</b> add each match on the Add match tab → come here → <b>Download data.json</b> → upload/replace it in your GitHub repo and commit. Previous matches are always kept; new ones are appended. This browser also holds an automatic working copy so nothing is lost mid-session.</div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
-    <button class="btn primary" onclick="downloadData()">⬇ Download data.json</button>
+    <button class="btn primary" onclick="publishToGitHub()">⬆ Publish now (GitHub)</button>
+    <button class="btn ghost" onclick="downloadData()">⬇ Download data.json</button>
     <button class="btn ghost" onclick="downloadBackup()">⬇ Dated backup</button>
     <label class="btn ghost" style="cursor:pointer">⬆ Merge from file<input type="file" accept="application/json" style="display:none" onchange="importFile(this,true)"></label>
     <label class="btn ghost" style="cursor:pointer">⬆ Replace from file<input type="file" accept="application/json" style="display:none" onchange="importFile(this,false)"></label>
     <button class="btn ghost" onclick="copyData()">Copy JSON</button>
     <button class="btn danger" onclick="resetData()">Reset to sample</button>
     <button class="btn danger" onclick="clearAll()">Clear all matches</button>
+  </div>
+  <div class="form-section"><h3>One-click publish to GitHub</h3>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 14px">Set this up once. Then <b>Publish now</b> (and the banner button) saves your data straight to GitHub — no manual download or commit needed. The public site updates within about a minute.</p>
+    <div class="form-grid">
+      <div class="field"><label>GitHub owner (username)</label><input id="gh-owner" placeholder="e.g. yourname" value="${esc(gh.owner||"")}"></div>
+      <div class="field"><label>Repository</label><input id="gh-repo" placeholder="e.g. gold-hayat" value="${esc(gh.repo||"")}"></div>
+      <div class="field"><label>Branch</label><input id="gh-branch" placeholder="main" value="${esc(gh.branch||"main")}"></div>
+      <div class="field"><label>File path</label><input id="gh-path" placeholder="data.json" value="${esc(gh.path||"data.json")}"></div>
+      <div class="field" style="flex:1;min-width:260px"><label>Access token (fine-grained · Contents: Read &amp; write)</label><input id="gh-token" type="password" placeholder="github_pat_..." value="${esc(gh.token||"")}"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
+      <button class="btn" onclick="saveGHSettings()">Save publish settings</button>
+      <button class="btn primary" onclick="publishToGitHub()">⬆ Publish now</button>
+      <button class="btn ghost" onclick="forgetGH()">Remove token</button>
+      <span id="gh-msg" style="font-size:12.5px;color:var(--muted)"></span>
+    </div>
+    <div class="notice" style="margin-top:14px">How to get a token: GitHub → <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new</b>. Give it access to only your <b>gold-hayat</b> repo, permission <b>Contents: Read and write</b>, and an expiry date. Paste it above. Your token is stored <b>only in this browser</b> — never in the code or on the public site. Avoid doing this on a shared/public computer.</div>
   </div>
   <div class="eyebrow">Current data (${DATA.matches.length} matches)</div>
   <textarea id="json-box" spellcheck="false">${esc(json)}</textarea>
@@ -1139,11 +1313,51 @@ function viewData(v){
     2. Upload two files: this <b>index.html</b> and your <b>data.json</b>.<br>
     3. Repo <b>Settings → Pages → Source: main branch</b> → Save.<br>
     4. Your public link appears there, like <span class="chip">https://yourname.github.io/gold-hayat/</span>. Share it with anyone.<br>
-    5. Every Sunday: add matches here, download the new <b>data.json</b>, re-upload it to the repo, commit. Done.
+    5. Every Sunday: add matches, then either tap <b>Publish now</b> (after the one-time token setup above), or download <b>data.json</b> and re-upload it to the repo. Done.
   </div>
   <div class="notice" style="margin-top:18px">Tip: keep a <b>Dated backup</b> after every match day in a Drive/WhatsApp folder. If a device is ever lost, import the latest backup and you're fully restored.</div>`;
 }
 function downloadData(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();setDirty(false);}
+const LS_GH="goldhayat_gh";
+function getGH(){ try{return JSON.parse(localStorage.getItem(LS_GH)||"{}");}catch(e){return {};} }
+function ghConfigured(){ const g=getGH(); return !!(g.owner&&g.repo&&g.token); }
+function saveGHSettings(){
+  const val=id=>(($("#"+id)||{}).value||"").trim();
+  const g={owner:val("gh-owner"),repo:val("gh-repo"),branch:val("gh-branch")||"main",path:val("gh-path")||"data.json",token:val("gh-token")};
+  if(!g.owner||!g.repo){ alert("Please enter the GitHub owner (username) and repository."); return; }
+  if(!g.token){ alert("Please paste your access token."); return; }
+  localStorage.setItem(LS_GH, JSON.stringify(g));
+  const m=$("#gh-msg"); if(m)m.textContent="✓ Settings saved in this browser.";
+  updateBanner();
+}
+function forgetGH(){ if(!confirm("Remove the saved GitHub token and publish settings from this browser?"))return; localStorage.removeItem(LS_GH); router(); }
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+async function publishToGitHub(){
+  const g=getGH();
+  const setMsg=t=>{const e=$("#gh-msg"); if(e)e.textContent=t;};
+  if(!g.owner||!g.repo||!g.token){ alert("First set up one-click publish (owner, repo and token) in Data & publish."); location.hash="#/data"; return; }
+  const path=g.path||"data.json", branch=g.branch||"main";
+  const url="https://api.github.com/repos/"+g.owner+"/"+g.repo+"/contents/"+path.split("/").map(encodeURIComponent).join("/");
+  const headers={Authorization:"Bearer "+g.token,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};
+  try{
+    setMsg("Publishing…");
+    let sha;
+    const getRes=await fetch(url+"?ref="+encodeURIComponent(branch),{headers});
+    if(getRes.status===200){ const j=await getRes.json(); sha=j.sha; }
+    else if(getRes.status===401||getRes.status===403){ throw new Error("Token rejected — check it has Contents: Read & write for this repo."); }
+    else if(getRes.status!==404){ throw new Error("Could not read repo ("+getRes.status+") — check owner/repo/branch."); }
+    const body={message:"Update data.json ("+new Date().toISOString().slice(0,10)+") via Stats Hub",content:utf8ToB64(JSON.stringify(DATA,null,2)),branch};
+    if(sha)body.sha=sha;
+    const putRes=await fetch(url,{method:"PUT",headers,body:JSON.stringify(body)});
+    if(!putRes.ok){ let e={}; try{e=await putRes.json();}catch(_){}
+      throw new Error(e.message||("Publish failed ("+putRes.status+")")); }
+    setDirty(false); setMsg("✓ Published to GitHub. Public site updates within ~1 minute.");
+    alert("Published to GitHub successfully!\nYour public site will update in about a minute.");
+  }catch(err){
+    setMsg("✗ "+err.message);
+    alert("Could not publish: "+err.message+"\n\nYou can still use Download data.json as a manual backup.");
+  }
+}
 function downloadBackup(){const d=new Date().toISOString().slice(0,10);const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="goldhayat-backup-"+d+".json";a.click();}
 function copyData(){navigator.clipboard.writeText(JSON.stringify(DATA,null,2)).then(()=>alert("JSON copied to clipboard."));}
 function importFile(inp,merge){
@@ -1159,7 +1373,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBatTotal,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -1252,6 +1466,86 @@ function pdfBowling(){
     rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Bowlers", filterLabelPDF("bowling"), body);
 }
+/* ---- shared PDF table helper ---- */
+function pdfTbl(headers,rows,leftCols){
+  leftCols=leftCols||1;
+  const h="<thead><tr>"+headers.map((x,i)=>'<th class="'+(i<leftCols?'l':'')+'">'+x+'</th>').join("")+"</tr></thead>";
+  const b="<tbody>"+(rows.length?rows.map(r=>"<tr>"+r.map((c,i)=>'<td class="'+(i<leftCols?'l':'')+'">'+(c==null?"":c)+'</td>').join("")+"</tr>").join(""):'<tr><td class="l">No data</td></tr>')+"</tbody>";
+  return "<table>"+h+b+"</table>";
+}
+function pdfHead(t){ return '<h2 class="title">'+t+'</h2>'; }
+function pdfPlayer(enc){
+  const name=decodeURIComponent(enc);
+  const fmt=(typeof playerFmt!=="undefined"?playerFmt:"all"), ctx=fmtLabel(fmt);
+  const pm=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt)).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const b=battingAgg(pm).find(p=>p.name===name), w=bowlingAgg(pm).find(p=>p.name===name), f=fieldingAgg(pm).find(p=>p.name===name);
+  let body="";
+  body+=pdfHead("Summary — "+ctx)+pdfTbl(["Batting","Bowling","Fielding"],[[
+    b?(b.runs+" runs, avg "+(b.avg==null?"-":b.avg.toFixed(1))+", SR "+b.sr.toFixed(0)+", HS "+b.hs+(b.hsNo?"*":"")):"—",
+    w?(w.wkts+" wkts, econ "+w.econ.toFixed(2)+", BBI "+w.bbi):"—",
+    f?(f.catches+" ct, "+f.runouts+" ro, "+f.stumpings+" st"):"—"]],3);
+  const batByFmt=FORMATS.map(ff=>({ff,p:battingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
+  const bowlByFmt=FORMATS.map(ff=>({ff,p:bowlingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
+  if(batByFmt.length) body+=pdfHead("Batting by format")+pdfTbl(["Format","Inns","Runs","HS","Avg","SR","50","100","4s","6s"],batByFmt.map(r=>[esc(r.ff),r.p.inns,r.p.runs,r.p.hs+(r.p.hsNo?"*":""),r.p.avg==null?"-":r.p.avg.toFixed(1),r.p.sr.toFixed(0),r.p.fifties,r.p.hundreds,r.p.fours,r.p.sixes]));
+  if(bowlByFmt.length) body+=pdfHead("Bowling by format")+pdfTbl(["Format","Inns","Overs","Runs","Wkts","Econ","Avg","BBI","3W"],bowlByFmt.map(r=>[esc(r.ff),r.p.inns,r.p.overs,r.p.runs,r.p.wkts,r.p.econ.toFixed(2),r.p.avg==null?"-":r.p.avg.toFixed(1),r.p.bbi,r.p.threeFer]));
+  const log=pm.map(m=>({m,bx:(m.batting||[]).map(inn).find(x=>x.name===name),wx:(m.bowling||[]).find(x=>x.name===name)})).filter(r=>r.bx||r.wx).reverse();
+  if(log.length) body+=pdfHead("Match by match — "+ctx)+pdfTbl(["Date","Format","Opponent","Batting","Bowling"],log.map(r=>[fmtDate(r.m.date),esc(r.m.format||""),esc(r.m.opponent),r.bx?r.bx.runs+" ("+r.bx.balls+")":"-",r.wx?r.wx.wickets+"/"+r.wx.runs+" ("+esc(r.wx.overs)+")":"-"]),3);
+  openPrint("Player report — "+esc(name), "Format: "+ctx, body);
+}
+function pdfCaptain(enc){
+  const name=decodeURIComponent(enc);
+  const fmt=(typeof capFmt!=="undefined"?capFmt:"all"), ctx=fmtLabel(fmt);
+  let ms=getMatches({captain:name}); if(fmt!=="all") ms=ms.filter(m=>m.format===fmt);
+  const agg=captainAgg(ms)[0]||{played:0,w:0,l:0,t:0,nr:0,winPct:0};
+  const vs={}; ms.forEach(m=>{const o=m.opponent;const t=vs[o]||(vs[o]={opp:o,p:0,w:0,l:0});t.p++;if(m.result==="won")t.w++;else if(m.result==="lost")t.l++;});
+  let body=pdfHead("Captaincy summary — "+ctx)+pdfTbl(["Played","Won","Lost","Tie","NR","Win%"],[[agg.played,agg.w,agg.l,agg.t,agg.nr,agg.winPct.toFixed(0)+"%"]],0);
+  body+=pdfHead("Record vs each team")+pdfTbl(["Opponent","Played","Won","Lost","Win%"],Object.values(vs).map(t=>[esc(t.opp),t.p,t.w,t.l,(t.p?(t.w/t.p*100).toFixed(0):"-")+"%"]));
+  body+=pdfHead("Matches led")+pdfTbl(["Date","Opponent","Venue","Result"],ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(m=>[fmtDate(m.date),esc(m.opponent),esc(m.ground||""),({won:"Won",lost:"Lost",tie:"Tied"}[m.result]||"No result")]),3);
+  openPrint("Captain report — "+esc(name), "Format: "+ctx, body);
+}
+function pdfCaptains(){
+  let base=getMatches({opp:filterOpp.captains}); if(capListFmt!=="all") base=base.filter(m=>m.format===capListFmt);
+  const rows=sortRows(captainAgg(base),"winPct",-1);
+  const body=pdfHead("Captains")+pdfTbl(["#","Captain","P","W","L","T","NR","Win%"],rows.map((c,i)=>[i+1,esc(c.name),c.played,c.w,c.l,c.t,c.nr,c.winPct.toFixed(0)+"%"]),2);
+  openPrint("Captains — win ratios", "Format: "+fmtLabel(capListFmt)+(filterOpp.captains!=="all"?" · vs "+filterOpp.captains:""), body);
+}
+function pdfTeam(){
+  const fmt=(typeof teamFmt!=="undefined"?teamFmt:"all"), ctx=fmtLabel(fmt);
+  const tms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
+  const s=teamSummary(tms);
+  let body=pdfHead("Team summary — "+ctx)+pdfTbl(["Played","Won","Lost","Tie","NR","Win%","Highest","Lowest","Avg total"],[[s.played,s.w,s.l,s.t,s.nr,s.winPct.toFixed(0)+"%",s.hi,s.lo,s.avg.toFixed(0)]],0);
+  body+=pdfHead("Most runs")+pdfTbl(["#","Batsman","Inns","Runs","HS","Avg","SR"],sortRows(battingAgg(tms),"runs",-1).slice(0,10).map((p,i)=>[i+1,esc(p.name),p.inns,p.runs,p.hs+(p.hsNo?"*":""),p.avg==null?"-":p.avg.toFixed(1),p.sr.toFixed(0)]),2);
+  body+=pdfHead("Most wickets")+pdfTbl(["#","Bowler","Inns","Overs","Wkts","Econ","BBI"],sortRows(bowlingAgg(tms),"wkts",-1).slice(0,10).map((p,i)=>[i+1,esc(p.name),p.inns,p.overs,p.wkts,p.econ.toFixed(2),p.bbi]),2);
+  body+=pdfHead("Head to head")+pdfTbl(["Opponent","Played","Won","Lost"],opponents().map(o=>{const ms=tms.filter(m=>m.opponent===o);return [esc(o),ms.length,ms.filter(m=>m.result==="won").length,ms.filter(m=>m.result==="lost").length];}));
+  openPrint("Team report — Gold Hayat", "Format: "+ctx, body);
+}
+function pdfVenues(){
+  let body=pdfHead("Results by venue")+pdfTbl(["Venue","P","W","L","T","NR","Win%"],sortRows(venueAgg(),"played",-1).map(r=>[esc(r.venue),r.played,r.w,r.l,r.t,r.nr,r.winPct.toFixed(0)+"%"]));
+  body+=pdfHead("Head-to-head by venue")+pdfTbl(["Opponent","Venue","Played","Won","Lost","Win%"],oppVenueAgg().sort((a,b)=>a.opponent.localeCompare(b.opponent)).map(r=>[esc(r.opponent),esc(r.venue),r.played,r.w,r.l,(r.w+r.l?(r.w/(r.w+r.l)*100).toFixed(0):"-")+"%"]),2);
+  openPrint("Venue report", "All venues", body);
+}
+function pdfFielding(){
+  const rows=sortRows(fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding})),"total",-1);
+  const body=pdfHead("Fielding")+pdfTbl(["#","Fielder","Catches","Run-outs","Stumpings","Total"],rows.map((p,i)=>[i+1,esc(p.name),p.catches,p.runouts,p.stumpings,p.total]),2);
+  openPrint("Fielding leaderboard", filterLabelPDF("fielding"), body);
+}
+function pdfRecords(){
+  const bb=sortRows(battingAgg(),"runs",-1)[0], bw=sortRows(bowlingAgg(),"wkts",-1)[0];
+  let hs=null,bbowl=null;
+  DATA.matches.forEach(m=>(m.batting||[]).map(inn).forEach(x=>{ if(!hs||x.runs>hs.r)hs={n:x.name,r:x.runs,opp:m.opponent}; }));
+  DATA.matches.forEach(m=>(m.bowling||[]).forEach(x=>{const w=int(x.wickets),r=int(x.runs); if(!bbowl||w>bbowl.w||(w===bbowl.w&&r<bbowl.r))bbowl={n:x.name,w,r,opp:m.opponent};}));
+  const bestCap=sortRows(captainAgg().filter(c=>c.played>=2),"winPct",-1)[0];
+  const rows=[
+    ["Highest score", hs?esc(hs.n)+" — "+hs.r+" (vs "+esc(hs.opp)+")":"—"],
+    ["Best bowling", bbowl?esc(bbowl.n)+" — "+bbowl.w+"/"+bbowl.r+" (vs "+esc(bbowl.opp)+")":"—"],
+    ["Most career runs", bb?esc(bb.name)+" — "+bb.runs:"—"],
+    ["Most career wickets", bw?esc(bw.name)+" — "+bw.wkts:"—"],
+    ["Best captain (win%)", bestCap?esc(bestCap.name)+" — "+bestCap.winPct.toFixed(0)+"%":"—"]
+  ];
+  let body=pdfHead("Club records")+pdfTbl(["Record","Holder"],rows,2);
+  body+=pdfHead("Head to head")+pdfTbl(["Opponent","Played","Won","Lost"],opponents().map(o=>{const ms=DATA.matches.filter(m=>m.opponent===o);return [esc(o),ms.length,ms.filter(m=>m.result==="won").length,ms.filter(m=>m.result==="lost").length];}));
+  openPrint("Records — Gold Hayat", "All time", body);
+}
 
 
 /* ============================================================ SCHEDULE (fixtures) ============================================================ */
@@ -1314,7 +1608,7 @@ function viewVenues(v){
   const vAgg=sortRows(venueAgg(),"played",-1);
   let ov=oppVenueAgg(getMatches({opp:oppF}));
   ov=ov.sort((a,b)=>a.opponent.localeCompare(b.opponent)||(b.played-a.played)||a.venue.localeCompare(b.venue));
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Grounds</div><h2>Venues</h2><p>Where we play, and how many times we have beaten each team at each ground</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Grounds</div><h2>Venues</h2><p>Where we play, and how many times we have beaten each team at each ground</p></div><button class="btn primary" onclick="pdfVenues()">⬇ PDF</button></div>
   <div class="eyebrow">Results by venue</div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">Venue</th><th>P</th><th>W</th><th>L</th><th>T</th><th>NR</th><th>Win%</th></tr></thead>
