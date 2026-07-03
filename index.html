@@ -886,6 +886,11 @@ function viewScorecard(v,id){
     <tbody>${(m.bowling||[]).map(b=>{const balls=oversToBalls(b.overs);const e=balls?int(b.runs)/(balls/6):0;return `<tr>
       <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}</td>
       <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${int(b.fours)}</td><td class="tnum">${int(b.sixes)}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
+  </table></div>
+  <div class="sc-section-title" style="font-size:14px;margin-top:18px">Bowling summary (per bowler)</div>
+  <div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Extras</th><th>Dots</th><th>Econ</th></tr></thead>
+    <tbody>${(()=>{const map={};(m.bowling||[]).forEach(b=>{const p=map[b.name]||(map[b.name]={name:b.name,balls:0,runs:0,wkts:0,fours:0,sixes:0,wides:0,noballs:0,dots:0});p.balls+=oversToBalls(b.overs);p.runs+=int(b.runs);p.wkts+=int(b.wickets);p.fours+=int(b.fours);p.sixes+=int(b.sixes);p.wides+=int(b.wides);p.noballs+=int(b.noballs);p.dots+=int(b.dots);});return Object.values(map).map(p=>{const e=p.balls?(p.runs/(p.balls/6)):0;return `<tr><td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">${esc(p.name)}</td><td class="tnum">${ballsToOvers(p.balls)}</td><td class="hi tnum">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.wides}</td><td class="tnum dim">${p.noballs}</td><td class="tnum dim">${p.wides+p.noballs}</td><td class="tnum dim">${p.dots}</td><td class="tnum">${e.toFixed(1)}</td></tr>`;}).join("");})()}</tbody>
   </table></div>`;
   const inningsOrder = (m.decision==="bowl") ? (bowlingBlock+battingBlock) : (battingBlock+bowlingBlock);
   v.innerHTML=`
