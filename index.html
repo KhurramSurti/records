@@ -368,6 +368,93 @@ html[data-theme="white"]{
   --shadow:0 16px 40px -22px rgba(0,0,0,.16);
 }
 html[data-theme="white"] body{background:var(--bg)}
+
+/* ===== depth & motion — tasteful, mobile-first ===== */
+.card,.form-section{box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 26px -16px rgba(0,0,0,.24);transition:transform .18s ease,box-shadow .18s ease}
+.stat-card{box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 22px -15px rgba(0,0,0,.22);transition:transform .18s ease,box-shadow .18s ease}
+@media(hover:hover){
+  .card:hover,.form-section:hover,.stat-card:hover{transform:translateY(-3px);box-shadow:0 6px 14px rgba(0,0,0,.07),0 22px 48px -20px rgba(0,0,0,.34)}
+  .nav a:hover{transform:translateX(2px)}
+  .brand{perspective:600px}
+  .brand:hover .crest{transform:rotateY(-14deg) rotateX(7deg) translateZ(6px)}
+  .btn:hover{transform:translateY(-1px)}
+}
+.crest{transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.card:active,.stat-card:active,.form-section:active{transform:translateY(-1px)}
+.btn{transition:transform .12s ease,box-shadow .15s ease,background .15s ease,border-color .15s ease}
+.btn:active{transform:scale(.95)}
+.btn.primary{box-shadow:0 8px 20px -10px var(--gold)}
+.match-row{transition:transform .14s ease,background .15s ease}
+.match-row:active{transform:scale(.99)}
+.scoreboard::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.05),transparent 32%);pointer-events:none}
+.badge{transition:transform .15s ease}
+.swatch{transition:transform .15s ease,box-shadow .15s ease}
+.swatch:active{transform:scale(.9)}
+@keyframes viewIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.view-in{animation:viewIn .28s cubic-bezier(.2,.7,.2,1)}
+.countup{font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;transition:none!important}
+  .card:hover,.form-section:hover,.stat-card:hover,.brand:hover .crest,.btn:hover,.btn:active,.match-row:active,.swatch:active{transform:none!important}
+}
+
+/* ================= premium refinement pass ================= */
+:root{--radius:16px;--radius-sm:11px}
+.sb-title{font-size:31px;letter-spacing:.2px;line-height:1.03}
+.sb-eyebrow{letter-spacing:.24em;font-size:10.5px}
+.sb-sub{font-size:12.5px;letter-spacing:.2px}
+.sb-top{align-items:center}
+/* aligned stat cluster with hairline dividers */
+.sb-stats{display:flex;align-items:center;gap:0}
+.sb-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2px 20px;min-width:60px}
+.sb-stat .n{font-size:31px;line-height:1;font-weight:600}
+.sb-stat .l{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:8px;white-space:nowrap}
+.sb-div{align-self:stretch;width:1px;background:var(--line);margin:8px 0}
+/* recent-form guide — signature */
+.sb-form{display:flex;align-items:center;gap:6px;margin-top:15px}
+.sb-form .fl{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-right:3px}
+.sb-form .fp{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:11px;color:#fff;box-shadow:0 2px 6px -2px rgba(0,0,0,.3)}
+.sb-form .fp-win{background:var(--pitch)}
+.sb-form .fp-loss{background:var(--ball)}
+.sb-form .fp-tie{background:var(--gold);color:#1a1206}
+.sb-form .fp-nr{background:var(--muted-2)}
+/* tables — tighter premium rhythm & clear alignment */
+thead th{font-size:10.5px;letter-spacing:.11em;font-weight:600;padding:12px 14px}
+tbody td{padding:12.5px 14px}
+@media(hover:hover){tbody tr:hover td{background:var(--gold-soft)}}
+/* cards, headings, buttons */
+.card,.form-section{border-radius:var(--radius)}
+.page-head h2{letter-spacing:.2px}
+.eyebrow{letter-spacing:.2em}
+.btn{border-radius:11px;letter-spacing:.1px}
+@media(max-width:620px){
+  .sb-top{align-items:flex-start}
+  .sb-stats{width:100%;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .sb-stat{padding:2px 4px;flex:1}
+}
+
+/* ================= compare — dueling bars ================= */
+.cmp-hero{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;padding:24px 22px;margin-bottom:6px}
+.cmp-pl{display:flex;flex-direction:column;align-items:center;gap:9px;flex:1;min-width:120px;max-width:240px}
+.cmp-pl .av{width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,var(--gold),var(--gold-2));display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:21px;color:#1a1206;box-shadow:0 10px 26px -10px var(--gold);letter-spacing:.5px}
+.cmp-pl .av.alt{background:linear-gradient(145deg,var(--sky),#2f6fb0);color:#fff;box-shadow:0 10px 26px -10px var(--sky)}
+.cmp-pl .nm{font-weight:600;font-size:15.5px;color:var(--cream);text-align:center;line-height:1.2}
+.cmp-pl .hd{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cmp-vs{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--muted);width:44px;height:44px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;flex:none;letter-spacing:.5px}
+.cmp-ctx{flex-basis:100%;text-align:center;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-top:4px}
+.cmp-panel{padding:22px 24px 10px}
+.cmp-bar{margin:0 0 16px}
+.cmp-lbl{text-align:center;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.cmp-row{display:flex;align-items:center;gap:14px}
+.cmp-v{font-family:var(--mono);font-size:16px;min-width:58px;color:var(--text)}
+.cmp-v.a{text-align:right}.cmp-v.b{text-align:left}
+.cmp-v.win{color:var(--gold);font-weight:700}
+.cmp-track{flex:1;display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line-soft)}
+.cmp-fill{height:100%;transition:width .55s cubic-bezier(.2,.7,.2,1)}
+.cmp-fill.a{background:var(--muted-2);border-radius:6px 0 0 6px}
+.cmp-fill.b{background:var(--muted);border-radius:0 6px 6px 0}
+.cmp-fill.a.win{background:linear-gradient(90deg,var(--gold-2),var(--gold))}
+.cmp-fill.b.win{background:linear-gradient(90deg,var(--gold),var(--gold-2))}
 </style>
 </head>
 <body>
@@ -378,12 +465,13 @@ html[data-theme="white"] body{background:var(--bg)}
 <div id="toast" class="toast"></div>
     <nav class="nav" id="nav-desktop"></nav>
     <div class="theme-row"><span>Theme</span><div class="theme-switch"></div></div>
-    <button class="btn ghost sm refresh-btn" id="refresh-btn" onclick="refreshData()" style="margin:4px 0 10px;width:100%">↻ Refresh data</button>
+    <button class="btn ghost sm refresh-btn" id="refresh-btn" onclick="refreshData()" style="margin:4px 0 8px;width:100%">↻ Refresh data</button>
+    <button class="btn ghost sm" id="sound-btn" onclick="toggleSound()" style="margin:0 0 10px;width:100%">🔊 Sound</button>
     <div class="sidebar-foot">Manual scorecard hub — our batting, bowling, fielding &amp; captaincy only.<br><span id="foot-count"></span></div>
   </aside>
   <div class="topbar">
     <div class="brand"><div class="crest">GH</div><h1 style="font-family:var(--mono);color:var(--cream)">Gold Hayat</h1></div>
-    <div style="display:flex;gap:8px;align-items:center"><button class="menu-btn" id="refresh-btn-m" onclick="refreshData()" title="Refresh data">↻</button><button class="menu-btn" id="menuBtn">☰</button></div>
+    <div style="display:flex;gap:8px;align-items:center"><button class="menu-btn" id="sound-btn-m" onclick="toggleSound()" title="Sound on/off">🔊</button><button class="menu-btn" id="refresh-btn-m" onclick="refreshData()" title="Refresh data">↻</button><button class="menu-btn" id="menuBtn">☰</button></div>
   </div>
   <div class="drawer" id="drawer"><div class="panel">
     <div class="brand" style="padding:6px 8px 16px"><div class="crest">GH</div><div><h1 style="font-family:var(--mono);color:var(--cream)">Gold Hayat</h1><span style="font-size:11px;color:var(--muted)">Cricket Team</span></div></div>
@@ -792,6 +880,7 @@ function router(){
     records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
+  try{ v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); if(typeof runCountUps==="function") runCountUps(); }catch(e){}
 }
 
 /* ---------- Match row ---------- */
@@ -818,14 +907,18 @@ function viewDashboard(v){
   const mBat=sortRows(battingAgg(monthMs),"runs",-1)[0];
   const mBowl=sortRows(bowlingAgg(monthMs),"wkts",-1)[0];
   const seg=[{label:"Won",value:s.w,color:"var(--pitch)"},{label:"Lost",value:s.l,color:"var(--ball)"},{label:"Tied",value:s.t,color:"var(--gold)"},{label:"No result",value:s.nr,color:"var(--muted-2)"}];
+  const formPills=ordered.slice(-5).map(m=>{const c=matchMargin(m).cls;const ch=c==="win"?"W":c==="loss"?"L":c==="tie"?"T":"·";return '<span class="fp fp-'+c+'" title="'+esc(matchMargin(m).label)+' vs '+esc(m.opponent||"")+'">'+ch+'</span>';}).join("");
   v.innerHTML=`
   <div class="scoreboard"><div class="sb-top">
     <div><div class="sb-eyebrow">Team record • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
-      <div class="sb-sub">${s.played} matches • Highest total ${s.hi} • Avg total ${s.avg.toFixed(0)}</div></div>
+      <div class="sb-sub">${s.played} ${s.played===1?"match":"matches"} · highest ${s.hi} · average ${s.avg.toFixed(0)}</div>
+      ${formPills?`<div class="sb-form"><span class="fl">Recent form</span>${formPills}</div>`:""}</div>
     <div class="sb-stats">
-      <div class="sb-stat win"><div class="n tnum">${s.w}</div><div class="l">Won</div></div>
-      <div class="sb-stat loss"><div class="n tnum">${s.l}</div><div class="l">Lost</div></div>
-      <div class="sb-stat"><div class="n tnum">${s.winPct.toFixed(0)}%</div><div class="l">Win rate</div></div>
+      <div class="sb-stat"><div class="n tnum countup" data-to="${s.w}" style="color:var(--pitch)">${s.w}</div><div class="l">Won</div></div>
+      <div class="sb-div"></div>
+      <div class="sb-stat"><div class="n tnum countup" data-to="${s.l}" style="color:var(--ball)">${s.l}</div><div class="l">Lost</div></div>
+      <div class="sb-div"></div>
+      <div class="sb-stat"><div class="n tnum countup" data-to="${s.winPct.toFixed(0)}" data-suf="%">${s.winPct.toFixed(0)}%</div><div class="l">Win rate</div></div>
     </div></div></div>
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
     ${fmtTabs(fmt,"onTeamFmt")}
@@ -1019,6 +1112,17 @@ function cmpRow(label,a,b,dir,fmt){
   if(dir&&a!=null&&b!=null&&a!==b){ const aBetter = dir>0 ? a>b : a<b; if(aBetter)ca="cmp-win"; else cb="cmp-win"; }
   return `<tr><td class="l cmp-metric">${label}</td><td class="tnum ${ca}">${fmt(a)}</td><td class="tnum ${cb}">${fmt(b)}</td></tr>`;
 }
+function cmpBar(label,a,b,dir,fmt){
+  fmt=fmt||(x=>x==null?"—":x);
+  const na=(a==null?NaN:parseFloat(a)), nb=(b==null?NaN:parseFloat(b));
+  let wA=50,wB=50,ca="",cb="";
+  if(!isNaN(na)&&!isNaN(nb)){
+    const tot=Math.abs(na)+Math.abs(nb);
+    wA= tot>0?Math.max(5,Math.min(95,Math.round(Math.abs(na)/tot*100))):50; wB=100-wA;
+    if(na!==nb&&dir){ const aw=dir>0?na>nb:na<nb; if(aw)ca="win";else cb="win"; }
+  }
+  return `<div class="cmp-bar"><div class="cmp-lbl">${label}</div><div class="cmp-row"><div class="cmp-v a ${ca}">${fmt(a)}</div><div class="cmp-track"><div class="cmp-fill a ${ca}" style="width:${wA}%"></div><div class="cmp-fill b ${cb}" style="width:${wB}%"></div></div><div class="cmp-v b ${cb}">${fmt(b)}</div></div></div>`;
+}
 function viewCompare(v){
   const players=allPlayers();
   if(!cmpA||!players.includes(cmpA)) cmpA=players[0]||"";
@@ -1031,52 +1135,52 @@ function viewCompare(v){
   const oppSel=`<select onchange="onCmpOpp(this.value)"><option value="all"${cmpOpp==="all"?" selected":""}>All opponents</option>${opponents().map(o=>`<option value="${esc(o)}"${o===cmpOpp?" selected":""}>${esc(o)}</option>`).join("")}</select>`;
   const ctx=(cmpFmt==="all"?"All formats":fmtLabel(cmpFmt))+(cmpOpp==="all"?"":" · vs "+esc(cmpOpp));
   const num=(x,dp)=>x==null?"—":(dp!=null?x.toFixed(dp):x);
-  // batting rows
-  const batRows = ba||bb ? [
-    cmpRow("Innings", ba?ba.inns:0, bb?bb.inns:0, 0),
-    cmpRow("Runs", ba?ba.runs:0, bb?bb.runs:0, 1),
-    cmpRow("Highest", ba?ba.hs:0, bb?bb.hs:0, 1),
-    cmpRow("Average", ba?ba.avg:null, bb?bb.avg:null, 1, x=>num(x,1)),
-    cmpRow("Strike rate", ba?ba.sr:0, bb?bb.sr:0, 1, x=>num(x,0)),
-    cmpRow("Fifties", ba?ba.fifties:0, bb?bb.fifties:0, 1),
-    cmpRow("Hundreds", ba?ba.hundreds:0, bb?bb.hundreds:0, 1),
-    cmpRow("Fours", ba?ba.fours:0, bb?bb.fours:0, 1),
-    cmpRow("Sixes", ba?ba.sixes:0, bb?bb.sixes:0, 1),
-    cmpRow("Ducks", ba?ba.ducks:0, bb?bb.ducks:0, -1)
+  const headA = ba?(ba.runs+" runs"):(wa?(wa.wkts+" wkts"):"—");
+  const headB = bb?(bb.runs+" runs"):(wb?(wb.wkts+" wkts"):"—");
+  const batBars = (ba||bb) ? [
+    cmpBar("Innings", ba?ba.inns:0, bb?bb.inns:0, 0),
+    cmpBar("Runs", ba?ba.runs:0, bb?bb.runs:0, 1),
+    cmpBar("Highest", ba?ba.hs:0, bb?bb.hs:0, 1),
+    cmpBar("Average", ba?ba.avg:null, bb?bb.avg:null, 1, x=>num(x,1)),
+    cmpBar("Strike rate", ba?ba.sr:0, bb?bb.sr:0, 1, x=>num(x,0)),
+    cmpBar("Fifties", ba?ba.fifties:0, bb?bb.fifties:0, 1),
+    cmpBar("Hundreds", ba?ba.hundreds:0, bb?bb.hundreds:0, 1),
+    cmpBar("Fours", ba?ba.fours:0, bb?bb.fours:0, 1),
+    cmpBar("Sixes", ba?ba.sixes:0, bb?bb.sixes:0, 1),
+    cmpBar("Ducks", ba?ba.ducks:0, bb?bb.ducks:0, -1)
   ].join("") : "";
-  // bowling rows
-  const bowlRows = wa||wb ? [
-    cmpRow("Innings", wa?wa.inns:0, wb?wb.inns:0, 0),
-    cmpRow("Overs", wa?oversFromBalls(wa.balls):0, wb?oversFromBalls(wb.balls):0, 0, x=>num(x)),
-    cmpRow("Wickets", wa?wa.wkts:0, wb?wb.wkts:0, 1),
-    cmpRow("Economy", wa?wa.econ:null, wb?wb.econ:null, -1, x=>num(x,2)),
-    cmpRow("Average", wa?wa.avg:null, wb?wb.avg:null, -1, x=>num(x,1)),
-    cmpRow("Best (BBI)", wa?wa.bbi:"—", wb?wb.bbi:"—", 0),
-    cmpRow("Dots", wa?wa.dots:0, wb?wb.dots:0, 1),
-    cmpRow("Bowled", wa?wa.bowled:0, wb?wb.bowled:0, 1),
-    cmpRow("Caught", wa?wa.caught:0, wb?wb.caught:0, 1),
-    cmpRow("LBW", wa?wa.lbw:0, wb?wb.lbw:0, 1),
-    cmpRow("Stumped", wa?wa.stumped:0, wb?wb.stumped:0, 1),
-    cmpRow("4s conceded", wa?wa.fours:0, wb?wb.fours:0, -1),
-    cmpRow("6s conceded", wa?wa.sixes:0, wb?wb.sixes:0, -1)
+  const bowlBars = (wa||wb) ? [
+    cmpBar("Innings", wa?wa.inns:0, wb?wb.inns:0, 0),
+    cmpBar("Overs", wa?oversFromBalls(wa.balls):0, wb?oversFromBalls(wb.balls):0, 0, x=>num(x)),
+    cmpBar("Wickets", wa?wa.wkts:0, wb?wb.wkts:0, 1),
+    cmpBar("Economy", wa?wa.econ:null, wb?wb.econ:null, -1, x=>num(x,2)),
+    cmpBar("Average", wa?wa.avg:null, wb?wb.avg:null, -1, x=>num(x,1)),
+    cmpBar("Best (BBI)", wa?wa.bbi:"—", wb?wb.bbi:"—", 0, x=>x==null?"—":x),
+    cmpBar("Dots", wa?wa.dots:0, wb?wb.dots:0, 1),
+    cmpBar("Bowled", wa?wa.bowled:0, wb?wb.bowled:0, 1),
+    cmpBar("Caught", wa?wa.caught:0, wb?wb.caught:0, 1),
+    cmpBar("LBW", wa?wa.lbw:0, wb?wb.lbw:0, 1),
+    cmpBar("Stumped", wa?wa.stumped:0, wb?wb.stumped:0, 1),
+    cmpBar("4s conceded", wa?wa.fours:0, wb?wb.fours:0, -1),
+    cmpBar("6s conceded", wa?wa.sixes:0, wb?wb.sixes:0, -1)
   ].join("") : "";
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Head to head</div><h2>Compare players</h2><p>Put any two players side by side — overall, by format, or against one opponent. The stronger number in each row is highlighted.</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Head to head</div><h2>Compare players</h2><p>Two players side by side — overall, by format, or against one opponent. The stronger number in each row fills gold.</p></div></div>
   ${fmtTabs(cmpFmt,"onCmpFmt")}
   <div class="controls">
     <div class="field"><label>Player A</label>${sel("onCmpA",cmpA)}</div>
     <div class="field"><label>Player B</label>${sel("onCmpB",cmpB)}</div>
     <div class="field"><label>Opponent</label>${oppSel}</div>
   </div>
-  <div class="cmp-head">
-    <div class="cmp-side"><div class="avatar">${initials(cmpA)}</div><div class="nm">${esc(cmpA)}</div></div>
-    <div class="cmp-vs">vs</div>
-    <div class="cmp-side"><div class="avatar">${initials(cmpB)}</div><div class="nm">${esc(cmpB)}</div></div>
+  <div class="cmp-hero card">
+    <div class="cmp-pl"><div class="av">${initials(cmpA)}</div><div class="nm">${esc(cmpA)}</div><div class="hd">${headA}</div></div>
+    <div class="cmp-vs">VS</div>
+    <div class="cmp-pl"><div class="av alt">${initials(cmpB)}</div><div class="nm">${esc(cmpB)}</div><div class="hd">${headB}</div></div>
+    <div class="cmp-ctx">${esc(ctx)}</div>
   </div>
-  <div class="dim" style="margin:-6px 0 16px;text-align:center;font-size:12px">${esc(ctx)}</div>
   <div class="split-title">Batting</div>
-  ${batRows?`<div class="table-wrap"><table class="cmp-table"><thead><tr><th class="l">Metric</th><th>${esc(cmpA)}</th><th>${esc(cmpB)}</th></tr></thead><tbody>${batRows}</tbody></table></div>`:emptyBlock("No batting data for this selection")}
+  ${batBars?`<div class="card cmp-panel">${batBars}</div>`:emptyBlock("No batting data for this selection")}
   <div class="split-title">Bowling</div>
-  ${bowlRows?`<div class="table-wrap"><table class="cmp-table"><thead><tr><th class="l">Metric</th><th>${esc(cmpA)}</th><th>${esc(cmpB)}</th></tr></thead><tbody>${bowlRows}</tbody></table></div>`:emptyBlock("No bowling data for this selection")}`;
+  ${bowlBars?`<div class="card cmp-panel">${bowlBars}</div>`:emptyBlock("No bowling data for this selection")}`;
 }
 function oversFromBalls(b){ return Math.floor(b/6)+ (b%6?("."+(b%6)):""); }
 
@@ -1706,7 +1810,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -2122,6 +2226,21 @@ function viewVenues(v){
 $("#menuBtn").addEventListener("click",()=>$("#drawer").classList.toggle("open"));
 $("#drawer").addEventListener("click",e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("open");});
 window.addEventListener("hashchange",router);
+function animateCount(el){
+  const to=parseFloat(el.getAttribute("data-to")); if(isNaN(to))return;
+  const dec=parseInt(el.getAttribute("data-dec")||"0",10); const suf=el.getAttribute("data-suf")||""; const pre=el.getAttribute("data-pre")||"";
+  const dur=650, t0=(performance&&performance.now?performance.now():Date.now());
+  function step(t){ const now=t||(performance&&performance.now?performance.now():Date.now()); const p=Math.min(1,(now-t0)/dur); const e=1-Math.pow(1-p,3); el.textContent=pre+(to*e).toFixed(dec)+suf; if(p<1)requestAnimationFrame(step); else el.textContent=pre+to.toFixed(dec)+suf; }
+  requestAnimationFrame(step);
+}
+function runCountUps(){ try{ document.querySelectorAll("#view .countup[data-to]").forEach(animateCount); }catch(e){} }
+let SOUND_ON=true; try{ SOUND_ON = (localStorage.getItem("goldhayat_sound")!=="off"); }catch(e){}
+let _ACTX=null;
+function _actx(){ if(!_ACTX){ try{ _ACTX=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return _ACTX; }
+function playClick(kind){ if(!SOUND_ON)return; const ac=_actx(); if(!ac)return; try{ if(ac.state==="suspended")ac.resume(); const o=ac.createOscillator(),g=ac.createGain(); o.type="sine"; o.frequency.value= kind==="nav"?540 : kind==="primary"?700 : kind==="toggle"?640 : 470; o.connect(g); g.connect(ac.destination); const t=ac.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.05,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+0.11); o.start(t); o.stop(t+0.12); }catch(e){} }
+function soundLabels(){ const b=document.getElementById("sound-btn"); if(b)b.innerHTML=(SOUND_ON?"🔊":"🔇")+" Sound"; const bm=document.getElementById("sound-btn-m"); if(bm)bm.textContent=SOUND_ON?"🔊":"🔇"; }
+function toggleSound(){ SOUND_ON=!SOUND_ON; try{ localStorage.setItem("goldhayat_sound", SOUND_ON?"on":"off"); }catch(e){} soundLabels(); if(SOUND_ON)playClick("toggle"); }
+function bindSounds(){ try{ document.addEventListener("click",(e)=>{ const t=e.target; const el=t&&t.closest?t.closest("button,.nav a,.xi-chip,.swatch,.match-row,.tab,.minitab,.lv-key,.pname"):null; if(!el)return; let k="click"; if(el.classList&&(el.classList.contains("primary")||el.classList.contains("run")))k="primary"; else if(el.matches&&el.matches(".nav a"))k="nav"; playClick(k); }, true); }catch(e){} soundLabels(); }
 function toast(msg){ let t=document.getElementById("toast"); if(!t){t=document.createElement("div");t.id="toast";t.className="toast";document.body.appendChild(t);} t.textContent=msg; t.classList.add("show"); clearTimeout(window.__toastT); window.__toastT=setTimeout(()=>t.classList.remove("show"),2600); }
 async function refreshData(){
   if(canEdit() && isDirty()){
@@ -2144,7 +2263,7 @@ async function refreshData(){
   }catch(e){ toast("Couldn't refresh — check your connection"); }
   set("↻ Refresh data",false);
 }
-(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json",{cache:"no-store"});if(res.ok){const j=await res.json();applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();})();
+(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json",{cache:"no-store"});if(res.ok){const j=await res.json();applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();bindSounds();})();
 /* ============================================================ LIVE SCORING ============================================================
    Ball-by-ball, offline, auto-saved to this browser after every tap.
    We only score OUR team: our batting (per-batter shots) and our bowling
