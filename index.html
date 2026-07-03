@@ -172,7 +172,7 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
 @media(max-width:900px){
   .app{grid-template-columns:1fr}
   .sidebar{display:none}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:40;padding:14px 18px;background:rgba(9,13,11,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:40;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 14px -8px rgba(0,0,0,.25)}
   .topbar .brand{padding:0}
   .topbar .crest{width:36px;height:36px;font-size:16px}
   .topbar h1{font-size:14px}
@@ -371,7 +371,7 @@ html[data-theme="white"] body{background:var(--bg)}
 </style>
 </head>
 <body>
-<script>try{var _t=localStorage.getItem("goldhayat_theme");if(["black","grey","cream","white"].indexOf(_t)<0)_t="cream";document.documentElement.setAttribute("data-theme",_t);}catch(e){document.documentElement.setAttribute("data-theme","cream");}</script>
+<script>try{var _t=localStorage.getItem("goldhayat_theme");if(["black","grey","cream","white"].indexOf(_t)<0)_t="white";document.documentElement.setAttribute("data-theme",_t);}catch(e){document.documentElement.setAttribute("data-theme","white");}</script>
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><div class="crest">GH</div><div><h1>Gold Hayat</h1><span>Cricket Team</span></div></div>
@@ -1719,7 +1719,7 @@ const THEMES=[
   {id:"cream",label:"Cream",dot:"#efe6d3"},
   {id:"white",label:"White",dot:"#ffffff"}
 ];
-function currentTheme(){ try{const t=localStorage.getItem("goldhayat_theme"); return ["black","grey","cream","white"].indexOf(t)>=0?t:"cream"; }catch(e){return "cream";} }
+function currentTheme(){ try{const t=localStorage.getItem("goldhayat_theme"); return ["black","grey","cream","white"].indexOf(t)>=0?t:"white"; }catch(e){return "white";} }
 function applyTheme(id){ document.documentElement.setAttribute("data-theme",id); try{localStorage.setItem("goldhayat_theme",id);}catch(e){} renderThemeSwitch(); }
 function renderThemeSwitch(){
   const cur=currentTheme();
