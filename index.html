@@ -79,7 +79,9 @@ thead th.sortable{cursor:pointer;user-select:none;transition:color .15s}
 thead th.sortable:hover{color:var(--gold)}
 thead th .arr{color:var(--gold);margin-left:3px}
 th.l,td.l{text-align:left}
-tbody td{padding:12px;border-bottom:1px solid rgba(255,255,255,.03);text-align:right;white-space:nowrap;color:var(--text)}
+tbody td,tfoot td{padding:12px;border-bottom:1px solid rgba(255,255,255,.03);text-align:right;white-space:nowrap;color:var(--text)}
+tfoot td{border-bottom:none;border-top:2px solid var(--line-soft)}
+.sc-total td{font-weight:600}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:rgba(232,184,75,.03)}
 tbody tr.clickable{cursor:pointer}
@@ -882,9 +884,19 @@ function viewScorecard(v,id){
       <td class="l dismissal">${dismissalText(b)}</td>
       <td class="hi tnum">${b.runs}</td><td class="tnum dim">${b.balls}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.ones}</td><td class="tnum dim">${b.twos}</td><td class="tnum dim">${b.threes}</td>
       <td class="tnum">${b.fours}</td><td class="tnum">${b.sixes}</td><td class="tnum">${b.balls?(b.runs/b.balls*100).toFixed(0):"—"}</td></tr>`).join("")}</tbody>
-    <tfoot><tr style="border-top:1px solid var(--line)">
-      <td class="l" style="font-family:var(--mono);color:var(--cream)">Total</td><td class="l dim">Extras ${extras>=0?extras:0} • ${esc(m.ourOvers||"")} ov</td>
-      <td class="hi tnum">${m.ourTotal}</td><td class="tnum dim">${bt.b}</td><td colspan="4"></td><td class="tnum">${bt.f}</td><td class="tnum">${bt.s}</td><td></td></tr></tfoot>
+    <tfoot><tr class="sc-total">
+      <td class="l" style="font-family:var(--mono);color:var(--cream)">Total</td>
+      <td class="l dim">Extras ${extras>=0?extras:0} • ${esc(m.ourOvers||"")} ov</td>
+      <td class="hi tnum">${m.ourTotal}</td>
+      <td class="tnum dim">${bt.b}</td>
+      <td class="tnum dim"></td>
+      <td class="tnum dim"></td>
+      <td class="tnum dim"></td>
+      <td class="tnum dim"></td>
+      <td class="tnum">${bt.f}</td>
+      <td class="tnum">${bt.s}</td>
+      <td class="tnum"></td>
+    </tr></tfoot>
   </table></div>
   ${dnbLine}`;
   const bowlingBlock=`
