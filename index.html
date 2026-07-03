@@ -301,6 +301,14 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
 .xi-chip.on::before{content:"✓ ";font-weight:700}
 .autotag{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);padding:1px 6px;border-radius:10px;margin-left:6px;vertical-align:middle;font-weight:700}
 .form-grid input[readonly]{background:var(--bg-2);color:var(--gold);font-family:var(--mono);border-style:dashed;cursor:not-allowed}
+.cmp-head{display:flex;align-items:center;justify-content:center;gap:22px;margin:10px 0 4px}
+.cmp-head .cmp-side{text-align:center}
+.cmp-head .cmp-side .avatar{margin:0 auto 8px}
+.cmp-head .cmp-side .nm{font-weight:600;color:var(--cream);font-size:15px}
+.cmp-head .cmp-vs{font-family:var(--mono);color:var(--gold);font-size:18px;font-weight:700}
+.cmp-table td.cmp-metric{color:var(--muted);text-align:left}
+.cmp-table th:not(.l),.cmp-table td:not(.l){text-align:center}
+.cmp-table td.cmp-win{color:var(--gold);font-weight:700;background:var(--gold-soft)}
 @media(max-width:900px){
   .lv-score{font-size:46px}.lv-score .w{font-size:24px}
   .lv-keys-runs .lv-key{width:calc(33.333% - 10px)}
@@ -668,6 +676,7 @@ const NAV=[
   {id:"bowling",label:"Bowling",section:"Leaderboards",icon:"ball"},
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
   {id:"players",label:"Players",section:"Leaderboards",icon:"user"},
+  {id:"compare",label:"Compare",section:"Leaderboards",icon:"compare"},
   {id:"captains",label:"Captains",section:"Team",icon:"star"},
   {id:"venues",label:"Venues",section:"Team",icon:"pin"},
   {id:"records",label:"Records",section:"Team",icon:"trophy"},
@@ -688,7 +697,8 @@ const ICONS={
   cloud:'<path d="M17 18a4 4 0 000-8 6 6 0 00-11.5 2A3.5 3.5 0 006 18z"/><path d="M12 12v6M9 15l3-3 3 3"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   pin:'<path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
-  live:'<circle cx="12" cy="12" r="3.5"/><path d="M5.5 5.5a9 9 0 000 13M18.5 5.5a9 9 0 010 13M8 8a5 5 0 000 8M16 8a5 5 0 010 8"/>'
+  live:'<circle cx="12" cy="12" r="3.5"/><path d="M5.5 5.5a9 9 0 000 13M18.5 5.5a9 9 0 010 13M8 8a5 5 0 000 8M16 8a5 5 0 010 8"/>',
+  compare:'<path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3"/>'
 };
 function icon(n){ return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||"")+'</svg>'; }
 function renderNav(){
@@ -760,7 +770,7 @@ function router(){
   setActive(route);
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
-    fielding:viewFielding,players:viewPlayers,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
+    fielding:viewFielding,players:viewPlayers,compare:viewCompare,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
     records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
@@ -956,6 +966,79 @@ function viewFielding(v){
 }
 
 /* ============================================================ PLAYERS ============================================================ */
+let cmpA="", cmpB="", cmpFmt="all", cmpOpp="all";
+window.onCmpA=(v)=>{cmpA=v;router();};
+window.onCmpB=(v)=>{cmpB=v;router();};
+window.onCmpFmt=(f)=>{cmpFmt=f;router();};
+window.onCmpOpp=(v)=>{cmpOpp=v;router();};
+function cmpMatches(){ return DATA.matches.filter(m=>(cmpFmt==="all"||m.format===cmpFmt)&&(cmpOpp==="all"||m.opponent===cmpOpp)); }
+function cmpRow(label,a,b,dir,fmt){
+  fmt=fmt||(x=>x==null?"—":x);
+  let ca="",cb="";
+  if(dir&&a!=null&&b!=null&&a!==b){ const aBetter = dir>0 ? a>b : a<b; if(aBetter)ca="cmp-win"; else cb="cmp-win"; }
+  return `<tr><td class="l cmp-metric">${label}</td><td class="tnum ${ca}">${fmt(a)}</td><td class="tnum ${cb}">${fmt(b)}</td></tr>`;
+}
+function viewCompare(v){
+  const players=allPlayers();
+  if(!cmpA||!players.includes(cmpA)) cmpA=players[0]||"";
+  if(!cmpB||!players.includes(cmpB)) cmpB=players[1]||players[0]||"";
+  const ms=cmpMatches();
+  const ba=battingAgg(ms).find(p=>p.name===cmpA), bb=battingAgg(ms).find(p=>p.name===cmpB);
+  const wa=bowlingAgg(ms).find(p=>p.name===cmpA), wb=bowlingAgg(ms).find(p=>p.name===cmpB);
+  const g=(o,k,d)=>o?(d?o[k]:o[k]):null;
+  const sel=(id,val)=>`<select onchange="${id}(this.value)">${players.map(n=>`<option value="${esc(n)}"${n===val?" selected":""}>${esc(n)}</option>`).join("")}</select>`;
+  const oppSel=`<select onchange="onCmpOpp(this.value)"><option value="all"${cmpOpp==="all"?" selected":""}>All opponents</option>${opponents().map(o=>`<option value="${esc(o)}"${o===cmpOpp?" selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  const ctx=(cmpFmt==="all"?"All formats":fmtLabel(cmpFmt))+(cmpOpp==="all"?"":" · vs "+esc(cmpOpp));
+  const num=(x,dp)=>x==null?"—":(dp!=null?x.toFixed(dp):x);
+  // batting rows
+  const batRows = ba||bb ? [
+    cmpRow("Innings", ba?ba.inns:0, bb?bb.inns:0, 0),
+    cmpRow("Runs", ba?ba.runs:0, bb?bb.runs:0, 1),
+    cmpRow("Highest", ba?ba.hs:0, bb?bb.hs:0, 1),
+    cmpRow("Average", ba?ba.avg:null, bb?bb.avg:null, 1, x=>num(x,1)),
+    cmpRow("Strike rate", ba?ba.sr:0, bb?bb.sr:0, 1, x=>num(x,0)),
+    cmpRow("Fifties", ba?ba.fifties:0, bb?bb.fifties:0, 1),
+    cmpRow("Hundreds", ba?ba.hundreds:0, bb?bb.hundreds:0, 1),
+    cmpRow("Fours", ba?ba.fours:0, bb?bb.fours:0, 1),
+    cmpRow("Sixes", ba?ba.sixes:0, bb?bb.sixes:0, 1),
+    cmpRow("Ducks", ba?ba.ducks:0, bb?bb.ducks:0, -1)
+  ].join("") : "";
+  // bowling rows
+  const bowlRows = wa||wb ? [
+    cmpRow("Innings", wa?wa.inns:0, wb?wb.inns:0, 0),
+    cmpRow("Overs", wa?oversFromBalls(wa.balls):0, wb?oversFromBalls(wb.balls):0, 0, x=>num(x)),
+    cmpRow("Wickets", wa?wa.wkts:0, wb?wb.wkts:0, 1),
+    cmpRow("Economy", wa?wa.econ:null, wb?wb.econ:null, -1, x=>num(x,2)),
+    cmpRow("Average", wa?wa.avg:null, wb?wb.avg:null, -1, x=>num(x,1)),
+    cmpRow("Best (BBI)", wa?wa.bbi:"—", wb?wb.bbi:"—", 0),
+    cmpRow("Dots", wa?wa.dots:0, wb?wb.dots:0, 1),
+    cmpRow("Bowled", wa?wa.bowled:0, wb?wb.bowled:0, 1),
+    cmpRow("Caught", wa?wa.caught:0, wb?wb.caught:0, 1),
+    cmpRow("LBW", wa?wa.lbw:0, wb?wb.lbw:0, 1),
+    cmpRow("Stumped", wa?wa.stumped:0, wb?wb.stumped:0, 1),
+    cmpRow("4s conceded", wa?wa.fours:0, wb?wb.fours:0, -1),
+    cmpRow("6s conceded", wa?wa.sixes:0, wb?wb.sixes:0, -1)
+  ].join("") : "";
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Head to head</div><h2>Compare players</h2><p>Put any two players side by side — overall, by format, or against one opponent. The stronger number in each row is highlighted.</p></div></div>
+  ${fmtTabs(cmpFmt,"onCmpFmt")}
+  <div class="controls">
+    <div class="field"><label>Player A</label>${sel("onCmpA",cmpA)}</div>
+    <div class="field"><label>Player B</label>${sel("onCmpB",cmpB)}</div>
+    <div class="field"><label>Opponent</label>${oppSel}</div>
+  </div>
+  <div class="cmp-head">
+    <div class="cmp-side"><div class="avatar">${initials(cmpA)}</div><div class="nm">${esc(cmpA)}</div></div>
+    <div class="cmp-vs">vs</div>
+    <div class="cmp-side"><div class="avatar">${initials(cmpB)}</div><div class="nm">${esc(cmpB)}</div></div>
+  </div>
+  <div class="dim" style="margin:-6px 0 16px;text-align:center;font-size:12px">${esc(ctx)}</div>
+  <div class="split-title">Batting</div>
+  ${batRows?`<div class="table-wrap"><table class="cmp-table"><thead><tr><th class="l">Metric</th><th>${esc(cmpA)}</th><th>${esc(cmpB)}</th></tr></thead><tbody>${batRows}</tbody></table></div>`:emptyBlock("No batting data for this selection")}
+  <div class="split-title">Bowling</div>
+  ${bowlRows?`<div class="table-wrap"><table class="cmp-table"><thead><tr><th class="l">Metric</th><th>${esc(cmpA)}</th><th>${esc(cmpB)}</th></tr></thead><tbody>${bowlRows}</tbody></table></div>`:emptyBlock("No bowling data for this selection")}`;
+}
+function oversFromBalls(b){ return Math.floor(b/6)+ (b%6?("."+(b%6)):""); }
+
 function viewPlayers(v){
   const names=allPlayers();
   const bat=Object.fromEntries(battingAgg().map(p=>[p.name,p]));
