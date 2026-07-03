@@ -864,6 +864,30 @@ function viewScorecard(v,id){
   const bat=(m.batting||[]).map(inn);
   const bt=bat.reduce((a,b)=>({r:a.r+b.runs,b:a.b+b.balls,f:a.f+b.fours,s:a.s+b.sixes}),{r:0,b:0,f:0,s:0});
   const extras=int(m.ourTotal)-bt.r;
+  const dnbLine=(m.xi&&m.xi.length)?((()=>{const dnb=m.xi.filter(n=>!(m.batting||[]).some(b=>b.name===n));return dnb.length?`<div class="dim" style="margin:2px 2px 14px;font-size:13px"><b style="color:var(--cream)">Did not bat:</b> ${dnb.map(esc).join(", ")}</div>`:"";})()):"";
+  const battingBlock=`
+  <div class="sc-section-title">Gold Hayat — Batting</div>
+  <div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Batsman</th><th class="l">How out</th><th>R</th><th>B</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>SR</th></tr></thead>
+    <tbody>${bat.map(b=>`<tr>
+      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}${b.out?"":' <span class="chip">not out</span>'}</td>
+      <td class="l dismissal">${dismissalText(b)}</td>
+      <td class="hi tnum">${b.runs}</td><td class="tnum dim">${b.balls}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.ones}</td><td class="tnum dim">${b.twos}</td><td class="tnum dim">${b.threes}</td>
+      <td class="tnum">${b.fours}</td><td class="tnum">${b.sixes}</td><td class="tnum">${b.balls?(b.runs/b.balls*100).toFixed(0):"—"}</td></tr>`).join("")}</tbody>
+    <tfoot><tr style="border-top:1px solid var(--line)">
+      <td class="l" style="font-family:var(--mono);color:var(--cream)">Total</td><td class="l dim">Extras ${extras>=0?extras:0} • ${esc(m.ourOvers||"")} ov</td>
+      <td class="hi tnum">${m.ourTotal}</td><td class="tnum dim">${bt.b}</td><td colspan="4"></td><td class="tnum">${bt.f}</td><td class="tnum">${bt.s}</td><td></td></tr></tfoot>
+  </table></div>
+  ${dnbLine}`;
+  const bowlingBlock=`
+  <div class="sc-section-title">Gold Hayat — Bowling</div>
+  <div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Econ</th><th>Dots</th><th>Wd</th><th>Nb</th></tr></thead>
+    <tbody>${(m.bowling||[]).map(b=>{const balls=oversToBalls(b.overs);const e=balls?int(b.runs)/(balls/6):0;return `<tr>
+      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}</td>
+      <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${int(b.fours)}</td><td class="tnum">${int(b.sixes)}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
+  </table></div>`;
+  const inningsOrder = (m.decision==="bowl") ? (bowlingBlock+battingBlock) : (battingBlock+bowlingBlock);
   v.innerHTML=`
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px">
     <a href="#/matches" class="btn ghost sm">← All matches</a>
@@ -884,27 +908,7 @@ function viewScorecard(v,id){
       <div class="sb-stat" style="margin-top:8px"><div class="n tnum" style="font-size:20px;color:var(--muted)">${m.oppTotal}/${m.oppWickets}</div><div class="l">${esc(m.opponent)} (${esc(m.oppOvers||"")} ov)</div></div></div>
   </div></div>
 
-  <div class="sc-section-title">Gold Hayat — Batting</div>
-  <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">Batsman</th><th class="l">How out</th><th>R</th><th>B</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>SR</th></tr></thead>
-    <tbody>${bat.map(b=>`<tr>
-      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}${b.out?"":' <span class="chip">not out</span>'}</td>
-      <td class="l dismissal">${dismissalText(b)}</td>
-      <td class="hi tnum">${b.runs}</td><td class="tnum dim">${b.balls}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.ones}</td><td class="tnum dim">${b.twos}</td><td class="tnum dim">${b.threes}</td>
-      <td class="tnum">${b.fours}</td><td class="tnum">${b.sixes}</td><td class="tnum">${b.balls?(b.runs/b.balls*100).toFixed(0):"—"}</td></tr>`).join("")}</tbody>
-    <tfoot><tr style="border-top:1px solid var(--line)">
-      <td class="l" style="font-family:var(--mono);color:var(--cream)">Total</td><td class="l dim">Extras ${extras>=0?extras:0} • ${esc(m.ourOvers||"")} ov</td>
-      <td class="hi tnum">${m.ourTotal}</td><td class="tnum dim">${bt.b}</td><td colspan="4"></td><td class="tnum">${bt.f}</td><td class="tnum">${bt.s}</td><td></td></tr></tfoot>
-  </table></div>
-
-  ${(m.xi&&m.xi.length)?((()=>{const dnb=m.xi.filter(n=>!(m.batting||[]).some(b=>b.name===n));return dnb.length?`<div class="dim" style="margin:2px 2px 14px;font-size:13px"><b style="color:var(--cream)">Did not bat:</b> ${dnb.map(esc).join(", ")}</div>`:"";})()):""}
-  <div class="sc-section-title">Gold Hayat — Bowling</div>
-  <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Econ</th><th>Dots</th><th>Wd</th><th>Nb</th></tr></thead>
-    <tbody>${(m.bowling||[]).map(b=>{const balls=oversToBalls(b.overs);const e=balls?int(b.runs)/(balls/6):0;return `<tr>
-      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}</td>
-      <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${int(b.fours)}</td><td class="tnum">${int(b.sixes)}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
-  </table></div>
+  ${inningsOrder}
 
   ${(m.fielding&&m.fielding.length)?`<div class="sc-section-title">Gold Hayat — Fielding</div>
   <div class="table-wrap table-scroll"><table>
@@ -1912,7 +1916,7 @@ function posterInner(m){
   const dnb=(m.xi||[]).filter(n=>!bat.some(b=>b.name===n));
   const disTxt=d=>({caught:"caught",bowled:"bowled",lbw:"lbw",runout:"run out",stumped:"stumped",hitwicket:"hit wkt",notout:"not out"}[d]||d||"");
   const fmtLong=(()=>{try{return new Date((m.date||"")+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});}catch(e){return m.date||"";}})();
-  return `
+  const _head=`
   <img class="plogo" src="${LOGO}" alt="">
   <h1>Gold Hayat Cricket</h1>
   <div class="psub">Match summary • detailed performance</div>
@@ -1925,7 +1929,8 @@ function posterInner(m){
       <div class="mi">Captain<b>${esc(m.captain||"—")}</b></div>
       <div class="mi">Toss<b>${m.toss?("Toss "+esc(m.toss)+" · we "+(m.decision==="bowl"?"bowled":"batted")+" first"):"—"}</b></div>
     </div>
-  </div>
+  </div>`;
+  const _bat=`
   <div class="hl">
     <div class="hc"><div class="n">${top?esc(top.name):"—"}</div><div class="k">Top scorer</div><div class="s">${top?(top.runs+" ("+top.balls+" balls) · SR "+(top.balls?(top.runs/top.balls*100):0).toFixed(0)):""}</div></div>
     <div class="hc"><div class="n">${sixMan?esc(sixMan.name):"—"}</div><div class="k">Most sixes</div><div class="s">${sixMan?(sixMan.sixes+" six"+(sixMan.sixes===1?"":"es")):"no sixes"}</div></div>
@@ -1949,9 +1954,10 @@ function posterInner(m){
     <div class="k"><div class="v">${ourExtras}</div><div class="l">Extras</div></div>
     <div class="k"><div class="v">${teamSR.toFixed(1)}</div><div class="l">Team SR</div></div>
     <div class="k"><div class="v">${runRate.toFixed(2)}</div><div class="l">Run rate</div></div>
-  </div>
-  <div class="banner tgt"><div class="bl">◎ Target set for opponent</div><div class="bb">${tgt.chaser==="Gold Hayat"?(int(m.oppTotal)+1):(int(m.ourTotal)+1)} runs</div><div class="bs">${m.oppLimit||m.oversLimit?("in "+(m.oversLimit||"—")+" overs"):""}${(()=>{const ov=oversToBalls(m.ourOvers)/6;const t=(int(m.ourTotal)+1);return ov?(" · required RR "+(t/ (m.oversLimit||ov)).toFixed(2)):"";})()}</div></div>
-
+  </div>`;
+  const _tgt=`
+  <div class="banner tgt"><div class="bl">◎ Target ${tgt.chaser==="Gold Hayat"?"for Gold Hayat":"set for opponent"}</div><div class="bb">${tgt.target} runs</div><div class="bs">${m.oppLimit||m.oversLimit?("in "+(m.oversLimit||"—")+" overs"):""}${(()=>{const ov=oversToBalls(m.ourOvers)/6;const t=(int(m.ourTotal)+1);return ov?(" · required RR "+(t/ (m.oversLimit||ov)).toFixed(2)):"";})()}</div></div>`;
+  const _bowl=`
   <div class="sec-title">Bowling — Gold Hayat</div>
   <div class="hl">
     <div class="hc"><div class="n">${mostW?esc(mostW.name):"—"}</div><div class="k">Most wickets</div><div class="s">${mostW?(mostW.wkts+" wkts · "+mostW.runs+" runs"):""}</div></div>
@@ -1975,10 +1981,13 @@ function posterInner(m){
     <div class="k"><div class="v">${sixesConceded}</div><div class="l">6s conceded</div></div>
     <div class="k"><div class="v">${foursConceded}</div><div class="l">4s conceded</div></div>
     <div class="k"><div class="v">${teamEcon.toFixed(2)}</div><div class="l">Team economy</div></div>
-  </div>
+  </div>`;
+  const _tail=`
   <div class="motm"><div class="l">Man of the match</div><div class="v">${m.motm?esc(m.motm):"—"}</div></div>
   <div class="banner ${mm.cls}"><div class="bl">🏆 Match result</div><div class="bb">GHCT ${mm.label.toUpperCase()}</div><div class="bs">Opponent ${int(m.oppTotal)}/${int(m.oppWickets)} · GHCT ${int(m.ourTotal)}/${int(m.ourWickets)}</div></div>
   `;
+  const weChased=(m.decision==="bowl");
+  return _head + (weChased ? (_bowl+_tgt+_bat) : (_bat+_tgt+_bowl)) + _tail;
 }
 function viewSummary(v,id){
   const m=DATA.matches.find(x=>x.id===id);
