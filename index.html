@@ -173,6 +173,8 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
   .topbar .crest{width:36px;height:36px;font-size:16px}
   .topbar h1{font-size:14px}
   .menu-btn{background:none;border:1px solid var(--line-soft);border-radius:9px;color:var(--cream);padding:8px 10px;font-size:18px;line-height:1}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--gold);color:#1a1206;font-weight:600;font-size:14px;padding:12px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:9999;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .drawer{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none}
   .drawer.open{display:block}
   .drawer .panel{position:absolute;top:0;left:0;bottom:0;width:250px;background:var(--bg-2);border-right:1px solid var(--line);padding:20px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
@@ -363,13 +365,15 @@ html[data-theme="maroon"]{
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><div class="crest">GH</div><div><h1>Gold Hayat</h1><span>Cricket Team</span></div></div>
+<div id="toast" class="toast"></div>
     <nav class="nav" id="nav-desktop"></nav>
     <div class="theme-row"><span>Theme</span><div class="theme-switch"></div></div>
+    <button class="btn ghost sm refresh-btn" id="refresh-btn" onclick="refreshData()" style="margin:4px 0 10px;width:100%">↻ Refresh data</button>
     <div class="sidebar-foot">Manual scorecard hub — our batting, bowling, fielding &amp; captaincy only.<br><span id="foot-count"></span></div>
   </aside>
   <div class="topbar">
     <div class="brand"><div class="crest">GH</div><h1 style="font-family:var(--mono);color:var(--cream)">Gold Hayat</h1></div>
-    <button class="menu-btn" id="menuBtn">☰</button>
+    <div style="display:flex;gap:8px;align-items:center"><button class="menu-btn" id="refresh-btn-m" onclick="refreshData()" title="Refresh data">↻</button><button class="menu-btn" id="menuBtn">☰</button></div>
   </div>
   <div class="drawer" id="drawer"><div class="panel">
     <div class="brand" style="padding:6px 8px 16px"><div class="crest">GH</div><div><h1 style="font-family:var(--mono);color:var(--cream)">Gold Hayat</h1><span style="font-size:11px;color:var(--muted)">Cricket Team</span></div></div>
@@ -1679,7 +1683,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -2096,6 +2100,28 @@ function viewVenues(v){
 $("#menuBtn").addEventListener("click",()=>$("#drawer").classList.toggle("open"));
 $("#drawer").addEventListener("click",e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("open");});
 window.addEventListener("hashchange",router);
+function toast(msg){ let t=document.getElementById("toast"); if(!t){t=document.createElement("div");t.id="toast";t.className="toast";document.body.appendChild(t);} t.textContent=msg; t.classList.add("show"); clearTimeout(window.__toastT); window.__toastT=setTimeout(()=>t.classList.remove("show"),2600); }
+async function refreshData(){
+  if(canEdit() && isDirty()){
+    if(!confirm("You have unpublished changes. Refresh will load the latest PUBLISHED data and discard your unsaved local changes on this device. Continue?")) return;
+  }
+  const set=(txt,dis)=>{["refresh-btn","refresh-btn-m"].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=dis;if(id==="refresh-btn")b.textContent=txt;}});};
+  set("↻ Refreshing…",true);
+  try{
+    const res=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
+    if(res.ok){
+      const j=await res.json();
+      DATA=normalize(j);
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA)); }catch(e){}
+      applyRemoteConfig((j&&j.config)||{});
+      try{ const u=localStorage.getItem(LS_UNLOCK); EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash); }catch(e){}
+      setDirty(false);
+      renderNav(); router();
+      toast("Updated to the latest data ✓");
+    } else { toast("Couldn't reach published data — check connection"); }
+  }catch(e){ toast("Couldn't refresh — check your connection"); }
+  set("↻ Refresh data",false);
+}
 (async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json",{cache:"no-store"});if(res.ok){const j=await res.json();applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();})();
 /* ============================================================ LIVE SCORING ============================================================
    Ball-by-ball, offline, auto-saved to this browser after every tap.
