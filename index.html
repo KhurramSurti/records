@@ -574,7 +574,7 @@ function inn(b){
   const runs=o+2*t+3*th+4*f+6*s+5*fv; const balls=dots+o+t+th+f+s+fv;
   return {...b,runs,balls,dots,ones:o,twos:t,threes:th,fours:f,sixes:s,fives:fv,out:b.dismissal!=="notout"};
 }
-const DISMISSALS=["caught","bowled","lbw","runout","stumped","hitwicket","notout","retired"];
+const DISMISSALS=["caught","bowled","runout","stumped","hitwicket","notout","retired"];
 function dismissalText(b){
   const d=b.dismissal;
   if(d==="notout")return "not out";
@@ -1159,7 +1159,6 @@ function viewCompare(v){
     cmpBar("Dots", wa?wa.dots:0, wb?wb.dots:0, 1),
     cmpBar("Bowled", wa?wa.bowled:0, wb?wb.bowled:0, 1),
     cmpBar("Caught", wa?wa.caught:0, wb?wb.caught:0, 1),
-    cmpBar("LBW", wa?wa.lbw:0, wb?wb.lbw:0, 1),
     cmpBar("Stumped", wa?wa.stumped:0, wb?wb.stumped:0, 1),
     cmpBar("4s conceded", wa?wa.fours:0, wb?wb.fours:0, -1),
     cmpBar("6s conceded", wa?wa.sixes:0, wb?wb.sixes:0, -1)
@@ -1295,7 +1294,7 @@ function viewPlayer(v,name){
     <div class="card stat-card"><div class="k">Average</div><div class="v tnum">${w.avg==null?"—":w.avg.toFixed(1)}</div><div class="sub">SR ${w.sr==null?"—":w.sr.toFixed(1)}</div></div>
     <div class="card stat-card"><div class="k">Runs conceded</div><div class="v tnum">${w.runs}</div><div class="sub">${w.dots} dots · ${w.fours} fours · ${w.sixes} sixes conceded</div></div>
   </div>
-  ${(w.bowled+w.lbw+w.caught+w.stumped>0)?`<div class="dim" style="margin:-6px 0 16px;font-size:13px"><b style="color:var(--gold)">How wickets fell:</b> Bowled ${w.bowled} · Caught ${w.caught} · LBW ${w.lbw} · Stumped ${w.stumped}</div>`:""}
+  ${(w.bowled+w.caught+w.stumped>0)?`<div class="dim" style="margin:-6px 0 16px;font-size:13px"><b style="color:var(--gold)">How wickets fell:</b> Bowled ${w.bowled} · Caught ${w.caught} · Stumped ${w.stumped}</div>`:""}
   <div class="grid c2" style="margin-bottom:8px">
     ${playerChartBlock("bowl",pmatches,name)}
     <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">Wickets per innings</div>${wktSeries.length>1?sparkBars(wktSeries):emptyBlock("Not enough innings yet")}</div>
@@ -1498,7 +1497,7 @@ function viewAdd(v){
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow()">+ Add batsman</button>
     <div class="total-line">Batting runs <span id="bat-total" class="diff">0</span> <span style="color:var(--muted)">+ Extras (wides/no-balls/byes to us)</span> <input type="number" id="f-extras" class="num extras-in" placeholder="0" oninput="recalcSummary()"> <span style="color:var(--muted)">=</span> Total <span id="bat-grand" style="color:var(--gold);font-weight:700">0</span></div></div>
   <div class="form-section" id="sec-bowl"><h3>Bowling card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
-    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>LBW</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th>Econ</th><th></th></tr></thead>
+    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th>Econ</th><th></th></tr></thead>
     <tbody id="bowl-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button>
     <div class="total-line"><span style="color:var(--muted)">Extras conceded not on a bowler (byes/leg-byes)</span> <input type="number" id="f-oppextras" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div></div>
@@ -1559,7 +1558,7 @@ function addBowlRow(d){
   const R=k=>`<td><input class="num" type="number" data-k="${k}" oninput="recalcBowl('${id}')" placeholder="0"></td>`;
   tr.innerHTML=`<td><input class="name" list="xi-list" data-k="name" placeholder="Name"></td>
     <td><input class="num" data-k="overs" oninput="recalcBowl('${id}')" placeholder="1"></td>
-    ${R("ones")}${R("twos")}${R("threes")}${R("fours")}${R("sixes")}${R("wides")}${R("noballs")}${R("bowled")}${R("lbw")}${R("caught")}${R("stumped")}
+    ${R("ones")}${R("twos")}${R("threes")}${R("fours")}${R("sixes")}${R("wides")}${R("noballs")}${R("bowled")}${R("caught")}${R("stumped")}
     <td><input class="num" type="number" data-k="runs" placeholder="0" style="opacity:.9"></td>
     <td><input class="num" type="number" data-k="dots" readonly placeholder="0" style="opacity:.7"></td>
     <td><input class="num" type="number" data-k="wickets" readonly placeholder="0" style="opacity:.7"></td>
@@ -1568,7 +1567,7 @@ function addBowlRow(d){
   $("#bowl-rows").appendChild(tr);ensureDatalist();
   if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
     set("name",d.name);set("overs",d.overs);set("ones",d.ones);set("twos",d.twos);set("threes",d.threes);set("fours",d.fours);set("sixes",d.sixes);set("wides",d.wides);set("noballs",d.noballs);
-    set("bowled",d.bowled);set("lbw",d.lbw);set("caught",d.caught);set("stumped",d.stumped);set("runs",d.runs);set("dots",d.dots);set("wickets",d.wickets);
+    set("bowled",d.bowled);set("caught",d.caught);set("stumped",d.stumped);set("runs",d.runs);set("dots",d.dots);set("wickets",d.wickets);
     const bd=int(d.ones)+2*int(d.twos)+3*int(d.threes)+4*int(d.fours)+6*int(d.sixes)+int(d.wides)+int(d.noballs);
     tr.dataset.legacy=(d.runs!=null && bd!==int(d.runs))?"1":"";
     recalcBowl(id); }
@@ -1601,7 +1600,7 @@ function recalcBowl(id){
   const legal=oversToBalls(rowVal(id,"overs"));
   const o=int(rowVal(id,"ones")),t=int(rowVal(id,"twos")),th=int(rowVal(id,"threes")),f=int(rowVal(id,"fours")),s=int(rowVal(id,"sixes"));
   const wd=int(rowVal(id,"wides")),nb=int(rowVal(id,"noballs"));
-  const wk=int(rowVal(id,"bowled"))+int(rowVal(id,"lbw"))+int(rowVal(id,"caught"))+int(rowVal(id,"stumped"));
+  const wk=int(rowVal(id,"bowled"))+int(rowVal(id,"caught"))+int(rowVal(id,"stumped"));
   const scoring=o+t+th+f+s;
   if(tr&&tr.dataset&&tr.dataset.legacy==="1"&&(o+t+th)>0) tr.dataset.legacy="";
   const legacy=tr&&tr.dataset&&tr.dataset.legacy==="1";
@@ -1667,7 +1666,7 @@ function saveMatch(){
   const bowl=[];document.querySelectorAll("#bowl-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
     const name=gk("name").trim();if(!name)return;
-    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),lbw:int(gk("lbw")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs"))});
+    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs"))});
   });
   const field=[];document.querySelectorAll("#field-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
@@ -2237,7 +2236,15 @@ function runCountUps(){ try{ document.querySelectorAll("#view .countup[data-to]"
 let SOUND_ON=true; try{ SOUND_ON = (localStorage.getItem("goldhayat_sound")!=="off"); }catch(e){}
 let _ACTX=null;
 function _actx(){ if(!_ACTX){ try{ _ACTX=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return _ACTX; }
-function playClick(kind){ if(!SOUND_ON)return; const ac=_actx(); if(!ac)return; try{ if(ac.state==="suspended")ac.resume(); const o=ac.createOscillator(),g=ac.createGain(); o.type="sine"; o.frequency.value= kind==="nav"?540 : kind==="primary"?700 : kind==="toggle"?640 : 470; o.connect(g); g.connect(ac.destination); const t=ac.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.05,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+0.11); o.start(t); o.stop(t+0.12); }catch(e){} }
+function playClick(kind){ if(!SOUND_ON)return; const ac=_actx(); if(!ac)return; try{ if(ac.state==="suspended")ac.resume();
+  const t=ac.currentTime, sr=ac.sampleRate, dur=kind==="primary"?0.035:0.026, n=Math.max(1,Math.floor(sr*dur));
+  const buf=ac.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/n,4); }
+  const src=ac.createBufferSource(); src.buffer=buf;
+  const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=1400;
+  const g=ac.createGain(); g.gain.value= kind==="primary"?0.16:(kind==="toggle"?0.14:0.10);
+  src.connect(hp); hp.connect(g); g.connect(ac.destination); src.start(t);
+}catch(e){} }
 function soundLabels(){ const b=document.getElementById("sound-btn"); if(b)b.innerHTML=(SOUND_ON?"🔊":"🔇")+" Sound"; const bm=document.getElementById("sound-btn-m"); if(bm)bm.textContent=SOUND_ON?"🔊":"🔇"; }
 function toggleSound(){ SOUND_ON=!SOUND_ON; try{ localStorage.setItem("goldhayat_sound", SOUND_ON?"on":"off"); }catch(e){} soundLabels(); if(SOUND_ON)playClick("toggle"); }
 function bindSounds(){ try{ document.addEventListener("click",(e)=>{ const t=e.target; const el=t&&t.closest?t.closest("button,.nav a,.xi-chip,.swatch,.match-row,.tab,.minitab,.lv-key,.pname"):null; if(!el)return; let k="click"; if(el.classList&&(el.classList.contains("primary")||el.classList.contains("run")))k="primary"; else if(el.matches&&el.matches(".nav a"))k="nav"; playClick(k); }, true); }catch(e){} soundLabels(); }
@@ -2480,7 +2487,7 @@ function viewLive(v){
     if(b.needNew){ panel=`<div class="lv-panel"><h4>Wicket! Next batsman in</h4>${batSelect("lv-newbat",b.order)}
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="liveNewBatsman()">Send in</button><button class="btn ghost" onclick="liveAddSubPrompt()">＋ Add player</button></div></div>`; }
     else if(b.pendingWicket){ panel=`<div class="lv-panel"><h4>How was ${esc(b.striker)} out?</h4>
-      <div class="lv-types">${["bowled","caught","lbw","runout","stumped","hitwicket"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t==="hitwicket"?"hit wicket":t}</button>`).join("")}</div>
+      <div class="lv-types">${["bowled","caught","runout","stumped","hitwicket"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t==="hitwicket"?"hit wicket":t}</button>`).join("")}</div>
       <button class="btn ghost sm" style="margin-top:12px" onclick="onLiveWicketCancel()">Cancel</button></div>`; }
     v.innerHTML=toolbar+board+((b.needNew||b.pendingWicket)?panel:pad());
     return;
@@ -2512,7 +2519,7 @@ function viewLive(v){
   let panel="";
   if(w.pendingWicket){ panel=`<div class="lv-panel"><h4>Wicket! Credit our fielder (for catch / run-out / stumping)</h4>
     <div class="field" style="margin-bottom:10px"><label>Fielder</label>${batSelect("lv-fielder",[])}</div>
-    <div class="lv-types">${["bowled","caught","lbw","runout","stumped"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t}</button>`).join("")}</div>
+    <div class="lv-types">${["bowled","caught","runout","stumped"].map(t=>`<button class="t" onclick="onLiveWicket('${t}')">${t==="runout"?"run out":t}</button>`).join("")}</div>
     <button class="btn ghost sm" style="margin-top:12px" onclick="onLiveWicketCancel()">Cancel</button></div>`; }
   v.innerHTML=toolbar+board+(w.pendingWicket?panel:pad());
 }
