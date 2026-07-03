@@ -414,8 +414,12 @@ function normalize(d){
   if(!Array.isArray(d.matches)) d.matches=[];
   if(!Array.isArray(d.fixtures)) d.fixtures=[];
   if(!d.config||typeof d.config!=="object") d.config={};
+  d.matches.forEach((m,i)=>{ if(m.seq==null) m.seq=i+1; });
   return d;
 }
+function matchNo(m){ const s=DATA.matches.slice().sort((a,b)=>(a.date<b.date?-1:a.date>b.date?1:0)||((a.seq||0)-(b.seq||0))); const i=s.findIndex(x=>x.id===m.id); return i<0?null:(i+1); }
+function matchNoStr(m){ const n=matchNo(m); return n==null?"":("#"+String(n).padStart(4,"0")); }
+function nextMatchNo(){ return DATA.matches.length+1; }
 /* ---------- Edit lock (view-only for others) ---------- */
 let EDIT_UNLOCKED=false;
 async function sha256hex(str){ const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(str))); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
@@ -781,7 +785,7 @@ function matchRow(m){
   const mm=matchMargin(m); const badge=mm.cls; const label=mm.label;
   return `<div class="match-row" onclick="location.hash='#/match/${m.id}'">
     <div class="match-date tnum">${fmtDateW(m.date)}</div>
-    <div class="match-vs"><div class="opp">vs ${esc(m.opponent)}</div><div class="meta">${esc(m.ground||"")}${m.venueType?' · <span class="chip'+(m.venueType==="away"?" red":"")+'">'+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+'</span>':""}${m.captain?' · <span class="chip cap">© '+esc(m.captain)+'</span>':""}</div></div>
+    <div class="match-vs"><div class="opp"><span style="color:var(--gold);font-family:var(--mono);font-size:12px;margin-right:6px">Match ${matchNoStr(m)}</span>vs ${esc(m.opponent)}</div><div class="meta">${esc(m.ground||"")}${m.venueType?' · <span class="chip'+(m.venueType==="away"?" red":"")+'">'+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+'</span>':""}${m.captain?' · <span class="chip cap">© '+esc(m.captain)+'</span>':""}</div></div>
     <div class="match-score tnum">${m.ourTotal}/${m.ourWickets} <span class="opp-score">(${m.oppTotal}/${m.oppWickets})</span></div>
     <div><span class="badge ${badge}">${label}</span></div></div>`;
 }
@@ -905,6 +909,7 @@ function viewScorecard(v,id){
   </div>
   <div class="scoreboard"><div class="sb-top">
     <div><div class="sb-eyebrow">${fmtDateW(m.date)} • ${esc(m.ground||"—")}${m.venueType?" ("+(m.venueType==="home"?"Home":m.venueType==="away"?"Away":"Neutral")+")":""}${m.format?" • "+esc(m.format):""}</div>
+      <div style="font-family:var(--mono);color:var(--gold);font-size:13px;letter-spacing:.05em;margin-bottom:2px">MATCH ${matchNoStr(m)}</div>
       <div class="sb-title" style="font-size:28px">Gold Hayat vs ${esc(m.opponent)}</div>
       <div class="sb-sub">${m.captain?'<span class="chip cap">© Captain: '+esc(m.captain)+'</span> ':""}Toss: ${esc(m.toss||"—")}${m.decision?" · chose to "+esc(m.decision):""}${m.motm?' · <span class="star">★</span> MOTM: '+esc(m.motm):""}</div></div>
     <div style="text-align:right"><span class="badge ${badge}" style="font-size:12px">${label}</span>
@@ -1547,6 +1552,8 @@ function saveMatch(){
     ourTotal:int(g("f-ourtotal")),ourWickets:int(g("f-ourwkts")),ourOvers:g("f-ourovers").trim(),
     oppTotal:int(g("f-opptotal")),oppWickets:int(g("f-oppwkts")),oppOvers:g("f-oppovers").trim(),
     result:g("f-result"),motm:g("f-motm").trim(),xi:(xi&&xi.length?xi:undefined),batting:bat,bowling:bowl,fielding:field};
+  const _ex=EDIT_ID?DATA.matches.find(m=>m.id===EDIT_ID):null;
+  match.seq=(_ex&&_ex.seq!=null)?_ex.seq:(DATA.matches.reduce((a,m)=>Math.max(a,m.seq||0),0)+1);
   if(EDIT_ID){ const i=DATA.matches.findIndex(m=>m.id===EDIT_ID); match.id=EDIT_ID; if(i>=0)DATA.matches[i]=match; else DATA.matches.push(match); EDIT_ID=null; }
   else { DATA.matches.push(match); }
   if(Array.isArray(DATA.fixtures)) DATA.fixtures=DATA.fixtures.filter(fx=>!(fx.date===match.date&&fx.opponent===match.opponent));
@@ -1924,7 +1931,7 @@ function posterInner(m){
   const _head=`
   <img class="plogo" src="${LOGO}" alt="">
   <h1>Gold Hayat Cricket</h1>
-  <div class="psub">Match summary • detailed performance</div>
+  <div class="psub">Match ${matchNoStr(m)} • detailed performance</div>
   <div class="pcard">
     <div class="pvs"><b>GHCT</b> &nbsp;vs&nbsp; ${esc(m.opponent||"")}</div>
     <div class="pmeta">
@@ -2264,7 +2271,7 @@ function viewLive(v){
   const m=LIVE.meta;
   const R=p=>p.ones+2*p.twos+3*p.threes+4*p.fours+6*p.sixes;
   const toolbar=`<div class="lv-toolbar">
-    <div class="lv-tag"><span class="lv-live-dot"></span>LIVE <span class="dim">· vs ${esc(m.opponent)}${m.ground?" · "+esc(m.ground):""}</span></div>
+    <div class="lv-tag"><span class="lv-live-dot"></span>LIVE <span class="dim">· Match #${String(nextMatchNo()).padStart(4,"0")} · vs ${esc(m.opponent)}${m.ground?" · "+esc(m.ground):""}</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn ghost sm" onclick="liveAddSubPrompt()">＋ Sub</button>
       <button class="btn ghost sm" onclick="liveEndInnings()">End innings ⇄</button>
@@ -2273,7 +2280,7 @@ function viewLive(v){
     </div></div>`;
 
   if(!(LIVE.xi&&LIVE.xi.length)){
-    v.innerHTML=`<div class="lv-toolbar"><div class="lv-tag"><span class="lv-live-dot"></span>SETUP <span class="dim">· vs ${esc(m.opponent)}${m.format?" · "+esc(m.format):""}</span></div><button class="btn danger sm" onclick="liveDiscard()">Discard</button></div>`+xiPickerHTML();
+    v.innerHTML=`<div class="lv-toolbar"><div class="lv-tag"><span class="lv-live-dot"></span>SETUP <span class="dim">· Match #${String(nextMatchNo()).padStart(4,"0")} · vs ${esc(m.opponent)}${m.format?" · "+esc(m.format):""}</span></div><button class="btn danger sm" onclick="liveDiscard()">Discard</button></div>`+xiPickerHTML();
     return;
   }
 
