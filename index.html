@@ -153,17 +153,19 @@ select{cursor:pointer}
 .form-section{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);padding:22px;margin-bottom:18px}
 .form-section h3{font-family:var(--mono);font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--cream);margin:0 0 16px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.entry-table{width:100%;border-collapse:collapse;font-size:13px}
+.entry-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:13px}
+.entry-table input.name{min-width:150px}
 .entry-table th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px;text-align:center;font-family:var(--mono);font-weight:500}
 .entry-table th.l{text-align:left}
 .entry-table td{padding:4px}
 .entry-table input,.entry-table select{width:100%;padding:7px 8px;text-align:center;font-size:13px}
 .entry-table input.name,.entry-table select{text-align:left}
-.entry-table .num{width:58px}
+.entry-table .num{width:50px}
 .calc{font-family:var(--mono);color:var(--gold);font-size:13px;text-align:center;white-space:nowrap}
 .row-del{background:none;border:none;color:var(--muted-2);font-size:16px;padding:2px 6px}
 .row-del:hover{color:var(--ball)}
-.total-line{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);font-family:var(--mono);color:var(--cream);font-size:14px}
+.total-line{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);font-family:var(--mono);color:var(--cream);font-size:14px}
+.total-line .extras-in{width:74px;padding:6px 8px;text-align:center;font-size:14px}
 .total-line .diff{color:var(--gold)}
 textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--text);border-radius:10px;padding:14px;font-family:ui-monospace,monospace;font-size:12.5px;resize:vertical}
 .hr{height:1px;background:var(--line-soft);margin:22px 0}
@@ -326,44 +328,50 @@ textarea{width:100%;min-height:220px;background:var(--bg-2);border:1px solid var
 .theme-row{display:flex;align-items:center;gap:10px;margin:16px 0 6px;flex-wrap:wrap}
 .theme-row>span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2)}
 .theme-switch{display:flex;gap:8px}
-.swatch{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:0 0 0 1px var(--line-soft)}
+.swatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(128,128,128,.45)}
 .swatch:hover{transform:scale(1.12)}
 .swatch.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--gold)}
 /* ================= THEMES ================= */
-html[data-theme="light"]{
-  --bg:#f3efe6;--bg-2:#e9e3d5;--surface:#fffdf8;--surface-2:#f4efe4;
-  --line:rgba(176,125,22,.30);--line-soft:rgba(20,20,20,.10);
-  --gold:#b07d16;--gold-2:#916312;--gold-soft:rgba(176,125,22,.13);
+html[data-theme="black"]{
+  --bg:#0a0a0b;--bg-2:#101012;--surface:#151517;--surface-2:#1c1c1f;
+  --line:rgba(255,255,255,.10);--line-soft:rgba(255,255,255,.055);
+  --gold:#e8b84b;--gold-2:#c8952e;--gold-soft:rgba(232,184,75,.12);
+  --ball:#d8483c;--pitch:#3fa66a;--sky:#5a97e0;
+  --cream:#f5f3ee;--text:#dcdce0;--muted:#8b8b92;--muted-2:#63636a;
+  --shadow:0 20px 55px -22px rgba(0,0,0,.85);
+}
+html[data-theme="black"] body{background:radial-gradient(1100px 560px at 82% -12%,rgba(232,184,75,.06),transparent 60%),var(--bg)}
+html[data-theme="grey"]{
+  --bg:#2a2e33;--bg-2:#23262b;--surface:#31353b;--surface-2:#394047;
+  --line:rgba(255,255,255,.12);--line-soft:rgba(255,255,255,.07);
+  --gold:#ecc673;--gold-2:#c9a24d;--gold-soft:rgba(236,198,115,.14);
+  --ball:#e5695c;--pitch:#54c98a;--sky:#77aef0;
+  --cream:#f4f6f8;--text:#d9dee3;--muted:#a2aab3;--muted-2:#79818a;
+  --shadow:0 20px 50px -24px rgba(0,0,0,.6);
+}
+html[data-theme="grey"] body{background:radial-gradient(1100px 560px at 82% -12%,rgba(236,198,115,.05),transparent 60%),var(--bg)}
+html[data-theme="cream"]{
+  --bg:#f4efe4;--bg-2:#ece5d6;--surface:#fffdf8;--surface-2:#f6f1e6;
+  --line:rgba(90,70,30,.18);--line-soft:rgba(20,20,20,.08);
+  --gold:#a9791a;--gold-2:#8a6314;--gold-soft:rgba(169,121,26,.14);
+  --ball:#b23a2e;--pitch:#2f8f57;--sky:#2f6fb0;
+  --cream:#191510;--text:#33302a;--muted:#726c60;--muted-2:#9c968a;
+  --shadow:0 18px 46px -24px rgba(0,0,0,.22);
+}
+html[data-theme="cream"] body{background:radial-gradient(1200px 600px at 80% -10%,rgba(169,121,26,.10),transparent 60%),var(--bg)}
+html[data-theme="white"]{
+  --bg:#ffffff;--bg-2:#f3f3f4;--surface:#ffffff;--surface-2:#f7f7f8;
+  --line:rgba(0,0,0,.12);--line-soft:rgba(0,0,0,.06);
+  --gold:#9c7714;--gold-2:#7e5f10;--gold-soft:rgba(156,119,20,.12);
   --ball:#c0392b;--pitch:#1e8a54;--sky:#2f6fb0;
-  --cream:#16201a;--text:#2b332c;--muted:#69726d;--muted-2:#9aa39b;
-  --shadow:0 18px 46px -24px rgba(0,0,0,.28);
+  --cream:#111114;--text:#2c2c30;--muted:#6c6c72;--muted-2:#9a9aa1;
+  --shadow:0 16px 40px -22px rgba(0,0,0,.16);
 }
-html[data-theme="light"] body{background:radial-gradient(1200px 600px at 80% -10%,rgba(176,125,22,.10),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(30,138,84,.07),transparent 55%),var(--bg)}
-html[data-theme="emerald"]{
-  --bg:#05130d;--bg-2:#081a12;--surface:#0b2117;--surface-2:#0f2b1e;
-  --line:rgba(62,224,160,.22);--line-soft:rgba(255,255,255,.06);
-  --gold:#3ee0a0;--gold-2:#1fa877;--gold-soft:rgba(62,224,160,.12);
-  --ball:#e3675a;--pitch:#3fd08a;--sky:#4a90d9;
-  --cream:#eafff5;--text:#cfe9dd;--muted:#7fa393;--muted-2:#5f8073;
-}
-html[data-theme="royal"]{
-  --bg:#080d1c;--bg-2:#0b1226;--surface:#101a33;--surface-2:#152241;
-  --line:rgba(120,160,240,.24);--line-soft:rgba(255,255,255,.06);
-  --gold:#f0c94b;--gold-2:#c99b2e;--gold-soft:rgba(240,201,75,.12);
-  --ball:#e3675a;--pitch:#3fbf7f;--sky:#6aa0f0;
-  --cream:#eef3ff;--text:#d3dcf0;--muted:#8892b4;--muted-2:#5f6a8f;
-}
-html[data-theme="maroon"]{
-  --bg:#170709;--bg-2:#210b0e;--surface:#2a1013;--surface-2:#351417;
-  --line:rgba(240,192,90,.22);--line-soft:rgba(255,255,255,.06);
-  --gold:#f0c05a;--gold-2:#c98f37;--gold-soft:rgba(240,192,90,.12);
-  --ball:#ff6f61;--pitch:#57c98a;--sky:#5a8de0;
-  --cream:#fdeee0;--text:#ecd7cf;--muted:#b78f89;--muted-2:#8a6560;
-}
+html[data-theme="white"] body{background:var(--bg)}
 </style>
 </head>
 <body>
-<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("goldhayat_theme")||"midnight");}catch(e){}</script>
+<script>try{var _t=localStorage.getItem("goldhayat_theme");if(["black","grey","cream","white"].indexOf(_t)<0)_t="cream";document.documentElement.setAttribute("data-theme",_t);}catch(e){document.documentElement.setAttribute("data-theme","cream");}</script>
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><div class="crest">GH</div><div><h1>Gold Hayat</h1><span>Cricket Team</span></div></div>
@@ -1366,11 +1374,9 @@ function viewAdd(v){
     <div class="field"><label>Format</label><select id="f-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
     <div class="field"><label>Toss</label><select id="f-toss"><option>won</option><option>lost</option></select></div>
     <div class="field"><label>We — first innings</label><select id="f-decision" onchange="onDecisionOrder()"><option value="bat">We batted first</option><option value="bowl">We bowled first</option></select></div>
-    <div class="field"><label>Extras (ours)</label><input type="number" id="f-extras" placeholder="0" oninput="recalcSummary()"></div>
     <div class="field"><label>Our total <span class="autotag">auto</span></label><input type="number" id="f-ourtotal" readonly placeholder="0"></div>
     <div class="field"><label>Our wickets <span class="autotag">auto</span></label><input type="number" id="f-ourwkts" readonly placeholder="0"></div>
     <div class="field"><label>Our overs <span class="autotag">auto</span></label><input id="f-ourovers" readonly placeholder="0"></div>
-    <div class="field"><label>Extras (opp.)</label><input type="number" id="f-oppextras" placeholder="0" oninput="recalcSummary()"></div>
     <div class="field"><label>Opponent total <span class="autotag">auto</span></label><input type="number" id="f-opptotal" readonly placeholder="0"></div>
     <div class="field"><label>Opponent wickets <span class="autotag">auto</span></label><input type="number" id="f-oppwkts" readonly placeholder="0"></div>
     <div class="field"><label>Opponent overs <span class="autotag">auto</span></label><input id="f-oppovers" readonly placeholder="0"></div>
@@ -1383,11 +1389,12 @@ function viewAdd(v){
     <thead><tr><th class="l">Batsman</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th class="l">How out</th><th class="l">Bowler/Fielder</th><th>R (B) SR</th><th></th></tr></thead>
     <tbody id="bat-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow()">+ Add batsman</button>
-    <div class="total-line">Batting runs: <span id="bat-total" class="diff">0</span></div></div>
+    <div class="total-line">Batting runs <span id="bat-total" class="diff">0</span> <span style="color:var(--muted)">+ Extras (wides/no-balls/byes to us)</span> <input type="number" id="f-extras" class="num extras-in" placeholder="0" oninput="recalcSummary()"> <span style="color:var(--muted)">=</span> Total <span id="bat-grand" style="color:var(--gold);font-weight:700">0</span></div></div>
   <div class="form-section" id="sec-bowl"><h3>Bowling card — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>LBW</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th>Econ</th><th></th></tr></thead>
     <tbody id="bowl-rows"></tbody></table></div>
-    <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button></div>
+    <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button>
+    <div class="total-line"><span style="color:var(--muted)">Extras conceded not on a bowler (byes/leg-byes)</span> <input type="number" id="f-oppextras" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div></div>
   <div class="form-section" id="sec-field"><h3>Fielding — Gold Hayat</h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
@@ -1512,6 +1519,7 @@ function recalcSummary(){
   const extras=int(($("#f-extras")||{}).value);
   const ourTotal=runs+extras;
   setVal("f-ourtotal",ourTotal); setVal("f-ourwkts",wkts); setVal("f-ourovers",ballsToOvers(balls));
+  { const bg=$("#bat-grand"); if(bg) bg.textContent=ourTotal; }
   let oppRuns=0,oppWkts=0,oppBalls=0;
   document.querySelectorAll("#bowl-rows tr").forEach(tr=>{ const g=k=>int((tr.querySelector("[data-k='"+k+"']")||{}).value);
     oppRuns+=g("runs"); oppWkts+=g("wickets"); oppBalls+=oversToBalls((tr.querySelector("[data-k='overs']")||{}).value);
@@ -1703,13 +1711,12 @@ function paintBrand(){
   document.querySelectorAll(".crest").forEach(c=>{ c.innerHTML='<img src="'+LOGO+'" alt="Gold Hayat">'; c.classList.add("has-img"); });
 }
 const THEMES=[
-  {id:"midnight",label:"Midnight Gold",dot:"#e8b84b"},
-  {id:"light",label:"Daylight",dot:"#efe9da"},
-  {id:"emerald",label:"Emerald",dot:"#2ecc8f"},
-  {id:"royal",label:"Royal Blue",dot:"#5a8de0"},
-  {id:"maroon",label:"Maroon",dot:"#c0392b"}
+  {id:"black",label:"Black",dot:"#0d0d0f"},
+  {id:"grey",label:"Grey",dot:"#2f343a"},
+  {id:"cream",label:"Cream",dot:"#efe6d3"},
+  {id:"white",label:"White",dot:"#ffffff"}
 ];
-function currentTheme(){ try{return localStorage.getItem("goldhayat_theme")||"midnight";}catch(e){return "midnight";} }
+function currentTheme(){ try{const t=localStorage.getItem("goldhayat_theme"); return ["black","grey","cream","white"].indexOf(t)>=0?t:"cream"; }catch(e){return "cream";} }
 function applyTheme(id){ document.documentElement.setAttribute("data-theme",id); try{localStorage.setItem("goldhayat_theme",id);}catch(e){} renderThemeSwitch(); }
 function renderThemeSwitch(){
   const cur=currentTheme();
