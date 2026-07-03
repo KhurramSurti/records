@@ -938,8 +938,11 @@ function viewScorecard(v,id){
       <div class="sb-sub">${m.captain?'<span class="chip cap">© Captain: '+esc(m.captain)+'</span> ':""}Toss: ${esc(m.toss||"—")}${m.decision?" · chose to "+esc(m.decision):""}${m.motm?' · <span class="star">★</span> MOTM: '+esc(m.motm):""}</div></div>
     <div style="text-align:right"><span class="badge ${badge}" style="font-size:12px">${label}</span>
       <div style="font-size:11px;color:var(--muted);margin-top:5px">Target ${tgt.target} · ${esc(tgt.chaser)} chasing</div>
-      <div class="sb-stat" style="margin-top:10px"><div class="n tnum">${m.ourTotal}/${m.ourWickets}</div><div class="l">Gold Hayat (${esc(m.ourOvers||"")} ov)</div></div>
-      <div class="sb-stat" style="margin-top:8px"><div class="n tnum" style="font-size:20px;color:var(--muted)">${m.oppTotal}/${m.oppWickets}</div><div class="l">${esc(m.opponent)} (${esc(m.oppOvers||"")} ov)</div></div></div>
+      ${(()=>{
+        const gh=(big)=>`<div class="sb-stat" style="margin-top:${big?10:8}px"><div class="n tnum"${big?"":' style="font-size:20px;color:var(--muted)"'}>${m.ourTotal}/${m.ourWickets}</div><div class="l">Gold Hayat (${esc(m.ourOvers||"")} ov)</div></div>`;
+        const opp=(big)=>`<div class="sb-stat" style="margin-top:${big?10:8}px"><div class="n tnum"${big?"":' style="font-size:20px;color:var(--muted)"'}>${m.oppTotal}/${m.oppWickets}</div><div class="l">${esc(m.opponent)} (${esc(m.oppOvers||"")} ov)</div></div>`;
+        return (m.decision==="bowl") ? (opp(true)+gh(false)) : (gh(true)+opp(false));
+      })()}</div>
   </div></div>
 
   ${inningsOrder}
@@ -1363,7 +1366,7 @@ function viewAdd(v){
     <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Tap to drop the players resting today — only the XI appear in the name boxes below. Add a guest/substitute if needed. Anyone in the XI who does not bat is saved as <b>DNB (did not bat)</b> on the scorecard.</p>
     <div id="xi-chips" class="xi-chips">${rosterNames().map(n=>`<button type="button" class="xi-chip on" data-name="${esc(n)}" onclick="onAddToggleXI(this)">${esc(n)}</button>`).join("")}</div>
     <div class="controls" style="margin-top:12px"><div class="field" style="flex:1;min-width:200px"><label>Add substitute / guest</label><input id="add-sub" placeholder="Player name" onkeydown="if(event.key===&apos;Enter&apos;){onAddSub();}"></div><button class="btn ghost" onclick="onAddSub()">+ Add</button></div>
-    <div class="dim" style="margin-top:8px;font-size:12px">Selected: <b id="xi-count" style="color:var(--gold)">${rosterNames().length}</b></div>
+    <div class="dim" style="margin-top:8px;font-size:12px">Selected: <b id="xi-count" style="color:var(--gold)">${rosterNames().length}</b> / 11 <span id="xi-hint" style="margin-left:4px"></span></div>
   </div>
   <div class="form-section"><h3>Match details</h3><div class="form-grid">
     <div class="field"><label>Date</label><input type="date" id="f-date"></div>
@@ -1425,7 +1428,7 @@ function viewAdd(v){
 function xiSelectedNames(){ const on=[...document.querySelectorAll("#xi-chips .xi-chip.on")].map(b=>b.getAttribute("data-name")); return on.length?on:allPlayers(); }
 function refreshXiList(){ let dl=$("#xi-list"); if(!dl){ dl=document.createElement("datalist"); dl.id="xi-list"; document.body.appendChild(dl); } dl.innerHTML=xiSelectedNames().map(n=>`<option value="${esc(n)}">`).join(""); }
 function ensureDatalist(){ refreshXiList(); }
-function updateXiCount(){ const el=$("#xi-count"); if(el) el.textContent=document.querySelectorAll("#xi-chips .xi-chip.on").length; }
+function updateXiCount(){ const n=document.querySelectorAll("#xi-chips .xi-chip.on").length; const el=$("#xi-count"); if(el){ el.textContent=n; el.style.color=(n===11)?"var(--pitch)":"var(--ball)"; } const h=$("#xi-hint"); if(h){ h.textContent=(n===11)?"✓ perfect XI":(n<11?("— pick "+(11-n)+" more"):("— "+(n-11)+" too many")); h.style.color=(n===11)?"var(--pitch)":"var(--muted)"; } }
 function addXiChip(nm,on){ const box=$("#xi-chips"); if(!box||[...box.querySelectorAll(".xi-chip")].some(c=>c.getAttribute("data-name")===nm))return; const b=document.createElement("button"); b.type="button"; b.className="xi-chip"+(on!==false?" on":""); b.setAttribute("data-name",nm); b.textContent=nm; b.setAttribute("onclick","onAddToggleXI(this)"); box.appendChild(b); }
 function onAddToggleXI(btn){ btn.classList.toggle("on"); updateXiCount(); refreshXiList(); }
 function onAddSub(){ const el=$("#add-sub"); if(!el)return; const nm=(el.value||"").trim(); if(!nm)return; addXiChip(nm,true); el.value=""; updateXiCount(); refreshXiList(); }
