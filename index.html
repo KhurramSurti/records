@@ -657,14 +657,24 @@ function battingAgg(ms){
 }
 function bowlingAgg(ms){
   ms=ms||DATA.matches; const map={};
-  ms.forEach(m=>(m.bowling||[]).forEach(raw=>{
-    const k=raw.name; if(!k)return; const balls=oversToBalls(raw.overs);
-    const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,lbw:0,caught:0,stumped:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
-    p.inns++;p.balls+=balls;p.runs+=int(raw.runs);p.wkts+=int(raw.wickets);p.wides+=int(raw.wides);p.noballs+=int(raw.noballs);p.dots+=int(raw.dots);p.fours+=int(raw.fours);p.sixes+=int(raw.sixes);p.bowled+=int(raw.bowled);p.lbw+=int(raw.lbw);p.caught+=int(raw.caught);p.stumped+=int(raw.stumped);
-    const w=int(raw.wickets),r=int(raw.runs);
-    if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
-    if(w>=5)p.fiveFer++;else if(w>=3)p.threeFer++;
-  }));
+  ms.forEach(m=>{
+    // combine each bowler's spells WITHIN this match first (one innings per match)
+    const perMatch={};
+    (m.bowling||[]).forEach(raw=>{
+      const k=raw.name; if(!k)return;
+      const pm=perMatch[k]||(perMatch[k]={balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0});
+      pm.balls+=oversToBalls(raw.overs);pm.runs+=int(raw.runs);pm.wkts+=int(raw.wickets);pm.wides+=int(raw.wides);pm.noballs+=int(raw.noballs);pm.dots+=int(raw.dots);pm.fours+=int(raw.fours);pm.sixes+=int(raw.sixes);pm.bowled+=int(raw.bowled);pm.caught+=int(raw.caught);pm.stumped+=int(raw.stumped);
+    });
+    Object.keys(perMatch).forEach(k=>{
+      const pm=perMatch[k];
+      if(pm.balls<=0&&pm.runs<=0&&pm.wkts<=0&&pm.wides<=0&&pm.noballs<=0)return; // gave no over this match -> no innings
+      const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
+      p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
+      const w=pm.wkts,r=pm.runs;
+      if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
+      if(w>=5)p.fiveFer++;else if(w>=3)p.threeFer++;
+    });
+  });
   return Object.values(map).map(p=>{
     p.overs=ballsToOvers(p.balls);
     p.econ=p.balls>0?p.runs/(p.balls/6):0;
