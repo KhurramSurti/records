@@ -2016,9 +2016,9 @@ body{font-family:'Inter',Arial,Helvetica,sans-serif;color:#1c1c1c}
 .poster .pcard{border:1.5px solid #e4dece;border-radius:13px;padding:15px 18px;margin-bottom:16px}
 .poster .pvs{text-align:center;font-family:'Oswald',sans-serif;font-size:22px;color:#1c1c1c;margin-bottom:12px}
 .poster .pvs b{color:#a9791a}
-.poster .pmeta{display:flex;flex-wrap:wrap;gap:12px 30px}
-.poster .pmeta .mi{font-size:11px;color:#8a8a8a}
-.poster .pmeta .mi b{display:block;color:#222;font-size:13px;margin-top:3px;font-weight:600}
+.poster .pmeta{display:block;font-size:0;margin-top:2px}
+.poster .pmeta .mi{display:inline-block;vertical-align:top;width:19.4%;min-width:92px;margin:0 0 8px;padding-right:12px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#9a9a9a}
+.poster .pmeta .mi b{display:block;color:#222;font-size:12.5px;margin-top:4px;font-weight:600;line-height:1.3;letter-spacing:0;text-transform:none}
 .poster .hl{display:flex;gap:14px;margin-bottom:8px}
 .poster .hl .hc{flex:1;border:1.5px solid #e4dece;border-radius:13px;padding:14px;text-align:center}
 .poster .hl .hc .n{font-family:'Oswald',sans-serif;font-size:21px;color:#a9791a;line-height:1.15}
@@ -2102,7 +2102,7 @@ function posterInner(m){
   const bat=(m.batting||[]).map(inn);
   const bt=bat.reduce((a,b)=>({r:a.r+b.runs,b:a.b+b.balls,f:a.f+b.fours,s:a.s+b.sixes}),{r:0,b:0,f:0,s:0});
   const ourExtras=Math.max(0,int(m.ourTotal)-bt.r);
-  const top=bat.slice().sort((a,b)=>b.runs-a.runs)[0];
+  const top=bat.slice().sort((a,b)=>(b.runs-a.runs)||(a.balls-b.balls))[0];
   const sixMan=bat.filter(x=>x.sixes>0).sort((a,b)=>b.sixes-a.sixes)[0];
   const ourBalls=oversToBalls(m.ourOvers)||bt.b;
   const teamSR=bt.b?(bt.r/bt.b*100):0;
@@ -2111,7 +2111,7 @@ function posterInner(m){
   (m.bowling||[]).forEach(b=>{const p=bmap[b.name]||(bmap[b.name]={name:b.name,balls:0,runs:0,wkts:0,dots:0,fours:0,sixes:0,ex:0});p.balls+=oversToBalls(b.overs);p.runs+=int(b.runs);p.wkts+=int(b.wickets);p.dots+=int(b.dots);p.fours+=int(b.fours);p.sixes+=int(b.sixes);p.ex+=int(b.wides)+int(b.noballs);});
   const bsum=Object.values(bmap).map(p=>Object.assign(p,{oversStr:ballsToOvers(p.balls),econ:p.balls?(p.runs/(p.balls/6)):0}));
   const bestEcon=bsum.filter(b=>b.balls>0).sort((a,b)=>a.econ-b.econ)[0];
-  const mostW=bsum.slice().sort((a,b)=>b.wkts-a.wkts)[0];
+  const mostW=bsum.slice().sort((a,b)=>(b.wkts-a.wkts)||(a.runs-b.runs)||(b.dots-a.dots))[0];
   const oppConceded=bsum.reduce((a,b)=>a+b.runs,0);
   const bowlWkts=bsum.reduce((a,b)=>a+b.wkts,0);
   const sixesConceded=bsum.reduce((a,b)=>a+b.sixes,0);
