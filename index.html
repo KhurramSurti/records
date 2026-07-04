@@ -2052,6 +2052,7 @@ body{font-family:'Inter',Arial,Helvetica,sans-serif;color:#1c1c1c}
 .poster .motm .l{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9a9a9a}
 .poster .motm .v{font-family:'Oswald',sans-serif;font-size:18px;color:#a9791a;margin-top:3px}
 .poster .hl,.poster .kv,.poster table,.poster .pcard,.poster .motm,.poster .banner,.poster .chips{page-break-inside:avoid}
+.poster .pg2{page-break-before:always;break-before:page}
 `;
 const POSTER_CSS=`
 .poster{background:#0c130f;color:#e9e4d6;font-family:'Inter',system-ui,-apple-system,sans-serif;max-width:720px;margin:0 auto;padding:28px;border-radius:16px}
@@ -2197,7 +2198,9 @@ function posterInner(m){
   <div class="banner ${mm.cls}"><div class="bl">🏆 Match result</div><div class="bb">GHCT ${mm.label.toUpperCase()}</div><div class="bs">Opponent ${int(m.oppTotal)}/${int(m.oppWickets)} · GHCT ${int(m.ourTotal)}/${int(m.ourWickets)}</div></div>
   `;
   const weChased=(m.decision==="bowl");
-  return _head + (weChased ? (_bowl+_tgt+_bat) : (_bat+_tgt+_bowl)) + _tail;
+  const _first = weChased ? _bowl : _bat;
+  const _second = weChased ? _bat : _bowl;
+  return _head + _first + _tgt + '<div class="pg2">' + _second + _tail + '</div>';
 }
 function viewSummary(v,id){
   const m=DATA.matches.find(x=>x.id===id);
