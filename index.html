@@ -2003,6 +2003,56 @@ function pdfRecords(){
 
 
 /* ============================================================ MATCH SUMMARY (shareable poster) ============================================================ */
+const POSTER_PRINT_CSS=`
+@page{size:A4 portrait;margin:11mm}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;background:#fff}
+body{font-family:'Inter',Arial,Helvetica,sans-serif;color:#1c1c1c}
+.poster{max-width:100%;margin:0;padding:0;background:#fff}
+.poster *{box-sizing:border-box}
+.poster .plogo{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 8px;border:2px solid #b8860b}
+.poster h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;color:#a9791a;text-align:center;margin:0;letter-spacing:.3px}
+.poster .psub{text-align:center;color:#777;font-size:12px;margin:6px 0 20px}
+.poster .pcard{border:1.5px solid #e4dece;border-radius:13px;padding:15px 18px;margin-bottom:16px}
+.poster .pvs{text-align:center;font-family:'Oswald',sans-serif;font-size:22px;color:#1c1c1c;margin-bottom:12px}
+.poster .pvs b{color:#a9791a}
+.poster .pmeta{display:flex;flex-wrap:wrap;gap:12px 30px}
+.poster .pmeta .mi{font-size:11px;color:#8a8a8a}
+.poster .pmeta .mi b{display:block;color:#222;font-size:13px;margin-top:3px;font-weight:600}
+.poster .hl{display:flex;gap:14px;margin-bottom:8px}
+.poster .hl .hc{flex:1;border:1.5px solid #e4dece;border-radius:13px;padding:14px;text-align:center}
+.poster .hl .hc .n{font-family:'Oswald',sans-serif;font-size:21px;color:#a9791a;line-height:1.15}
+.poster .hl .hc .k{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#9a9a9a;margin:7px 0 4px}
+.poster .hl .hc .s{font-size:11.5px;color:#666}
+.poster .sec-title{font-family:'Oswald',sans-serif;font-size:16px;color:#a9791a;margin:20px 0 9px;padding-bottom:5px;border-bottom:2px solid #efe9db;page-break-after:avoid}
+.poster table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:6px}
+.poster thead th{text-align:right;padding:8px;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:#9a9a9a;border-bottom:1.5px solid #ddd}
+.poster thead th.l,.poster td.l{text-align:left}
+.poster td{padding:7px 8px;text-align:right;border-bottom:1px solid #f1f1f1;color:#222}
+.poster tbody tr:last-child td{border-bottom:none}
+.poster .trow-tot td{font-weight:700;color:#a9791a;border-top:1.5px solid #ccc}
+.poster .trow-ex td{color:#777}
+.poster .no{color:#2f8f57}
+.poster .chips{display:flex;flex-wrap:wrap;gap:7px}
+.poster .chips .ch{border:1px solid #e0e0e0;border-radius:20px;padding:5px 12px;font-size:11.5px;color:#555}
+.poster .kv{display:flex;flex-wrap:wrap;gap:12px}
+.poster .kv .k{flex:1;min-width:96px;border:1.5px solid #e4dece;border-radius:11px;padding:13px;text-align:center}
+.poster .kv .k .v{font-family:'Oswald',sans-serif;font-size:23px;color:#a9791a}
+.poster .kv .k .l{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#9a9a9a;margin-top:4px}
+.poster .tblwrap{overflow:visible}
+.poster .banner{border-radius:13px;padding:15px;text-align:center;margin-top:15px;border:2.5px solid #ccc}
+.poster .banner .bl{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#8a8a8a}
+.poster .banner .bb{font-family:'Oswald',sans-serif;font-size:26px;margin-top:4px;letter-spacing:.3px}
+.poster .banner .bs{font-size:11.5px;color:#777;margin-top:4px}
+.poster .banner.tgt{border-color:#2563eb}.poster .banner.tgt .bb{color:#2563eb}
+.poster .banner.win{border-color:#22a559}.poster .banner.win .bb{color:#1a8f47}
+.poster .banner.loss{border-color:#dc2626}.poster .banner.loss .bb{color:#c62828}
+.poster .banner.tie .bb,.poster .banner.nr .bb{color:#9a7d1e}.poster .banner.tie,.poster .banner.nr{border-color:#c9ad4a}
+.poster .motm{border:1.5px solid #e4dece;border-radius:13px;padding:14px;text-align:center;margin-top:15px}
+.poster .motm .l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9a9a9a}
+.poster .motm .v{font-family:'Oswald',sans-serif;font-size:20px;color:#a9791a;margin-top:4px}
+.poster .hl,.poster .kv,.poster table,.poster .pcard,.poster .motm,.poster .banner,.poster .chips{page-break-inside:avoid}
+`;
 const POSTER_CSS=`
 .poster{background:#0c130f;color:#e9e4d6;font-family:'Inter',system-ui,-apple-system,sans-serif;max-width:720px;margin:0 auto;padding:28px;border-radius:16px}
 .poster *{box-sizing:border-box}
@@ -2162,9 +2212,8 @@ function printSummary(id){
   const w=window.open("","_blank"); if(!w){alert("Please allow pop-ups to download the summary.");return;}
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>GHCT vs ${esc(m.opponent||"")} — summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>@page{size:A4 portrait;margin:0}html,body{margin:0;background:#0c130f}${POSTER_CSS}.poster{border-radius:0;max-width:768px;padding:30px}#pgwrap{transform-origin:top center}</style>
-  </head><body><div id="pgwrap"><div class="poster">${posterInner(m)}</div></div>
-  <scr`+`ipt>window.onload=function(){try{var wrap=document.getElementById("pgwrap");var pageH=1123,pageW=794;var h=wrap.scrollHeight,wd=wrap.scrollWidth;var s=Math.min(1,pageH/h,pageW/wd);if(s<1){wrap.style.transform="scale("+s+")";document.body.style.height=(h*s)+"px";}}catch(e){}setTimeout(function(){window.focus();window.print();},450);};<\/scr`+`ipt></body></html>`);
+  <style>${POSTER_PRINT_CSS}</style></head><body><div class="poster">${posterInner(m)}</div>
+  <scr`+`ipt>window.onload=function(){setTimeout(function(){window.focus();window.print();},450);};<\/scr`+`ipt></body></html>`);
   w.document.close();
 }
 
