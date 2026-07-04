@@ -455,6 +455,18 @@ tbody td{padding:12.5px 14px}
 .cmp-fill.b{background:var(--muted);border-radius:0 6px 6px 0}
 .cmp-fill.a.win{background:linear-gradient(90deg,var(--gold-2),var(--gold))}
 .cmp-fill.b.win{background:linear-gradient(90deg,var(--gold),var(--gold-2))}
+
+/* ================= reports ================= */
+.rep-card{padding:20px 22px;margin-bottom:16px}
+.rep-h{font-family:var(--mono);font-weight:600;font-size:16px;color:var(--cream);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.rep-h .ic{font-size:18px}
+.rep-p{font-size:13px;margin:2px 0 14px}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.rep-btn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;cursor:pointer;transition:transform .14s ease,border-color .15s ease,background .15s ease}
+.rep-btn:hover{border-color:var(--gold);background:var(--gold-soft);transform:translateY(-2px)}
+.rep-btn:active{transform:scale(.97)}
+.rep-btn .rl{font-weight:600;font-size:13.5px;color:var(--cream)}
+.rep-btn .rs{font-size:11px;color:var(--muted);letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -778,6 +790,7 @@ const NAV=[
   {id:"matches",label:"Matches",section:"Overview",icon:"cal"},
   {id:"schedule",label:"Schedule",section:"Overview",icon:"clock"},
   {id:"live",label:"Live scoring",section:"Overview",icon:"live"},
+  {id:"reports",label:"Reports",section:"Overview",icon:"download"},
   {id:"batting",label:"Batting",section:"Leaderboards",icon:"bat"},
   {id:"bowling",label:"Bowling",section:"Leaderboards",icon:"ball"},
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
@@ -804,7 +817,8 @@ const ICONS={
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   pin:'<path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
   live:'<circle cx="12" cy="12" r="3.5"/><path d="M5.5 5.5a9 9 0 000 13M18.5 5.5a9 9 0 010 13M8 8a5 5 0 000 8M16 8a5 5 0 010 8"/>',
-  compare:'<path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3"/>'
+  compare:'<path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3"/>',
+  download:'<path d="M12 3v12M12 15l-4-4M12 15l4-4M5 19h14"/>'
 };
 function icon(n){ return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||"")+'</svg>'; }
 function renderNav(){
@@ -877,7 +891,7 @@ function router(){
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
     fielding:viewFielding,players:viewPlayers,compare:viewCompare,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
-    records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
+    records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,reports:viewReports,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
   try{ v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); if(typeof runCountUps==="function") runCountUps(); }catch(e){}
@@ -1809,7 +1823,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick});
+Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -2152,6 +2166,77 @@ function printSummary(id){
   </head><body><div id="pgwrap"><div class="poster">${posterInner(m)}</div></div>
   <scr`+`ipt>window.onload=function(){try{var wrap=document.getElementById("pgwrap");var pageH=1123,pageW=794;var h=wrap.scrollHeight,wd=wrap.scrollWidth;var s=Math.min(1,pageH/h,pageW/wd);if(s<1){wrap.style.transform="scale("+s+")";document.body.style.height=(h*s)+"px";}}catch(e){}setTimeout(function(){window.focus();window.print();},450);};<\/scr`+`ipt></body></html>`);
   w.document.close();
+}
+
+/* ============================================================ REPORTS ============================================================ */
+function pdfLeaders(title,sub,valueHead,rows){
+  const body='<table><thead><tr><th>#</th><th class="l">Player</th><th>'+valueHead+'</th><th class="l">Detail</th></tr></thead><tbody>'+
+    (rows.length?rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="l">'+esc(r.name)+'</td><td><b>'+r.value+'</b></td><td class="l">'+(r.sub||'')+'</td></tr>').join(''):'<tr><td colspan="4" class="l">No data yet</td></tr>')+
+    '</tbody></table>';
+  openPrint(title,sub,body);
+}
+window.battingReport=(key,label)=>{
+  const rows=battingAgg(DATA.matches).filter(p=>p.inns>0).sort((a,b)=>(b[key]||0)-(a[key]||0)).slice(0,10)
+    .map(p=>({name:p.name,value:(p[key]||0),sub:p.inns+" inns · "+p.runs+" runs · SR "+(p.sr||0).toFixed(0)}));
+  pdfLeaders("Top 10 — "+label+" (Batting)","Gold Hayat — career · all formats",label,rows);
+};
+window.battingReportRate=(key,label)=>{
+  const rows=battingAgg(DATA.matches).filter(p=>p.balls>=20).sort((a,b)=>(b[key]||0)-(a[key]||0)).slice(0,10)
+    .map(p=>({name:p.name,value:(p[key]||0).toFixed(0),sub:p.runs+" runs · "+p.balls+" balls"}));
+  pdfLeaders("Top 10 — "+label+" (Batting)","Gold Hayat — career · all formats · min 20 balls",label,rows);
+};
+window.bowlingReport=(key,label)=>{
+  const rows=bowlingAgg(DATA.matches).filter(p=>p.inns>0).sort((a,b)=>(b[key]||0)-(a[key]||0)).slice(0,10)
+    .map(p=>({name:p.name,value:(p[key]||0),sub:p.inns+" inns · "+p.wkts+" wkts · "+ballsToOvers(p.balls)+" ov"}));
+  pdfLeaders("Top 10 — "+label+" (Bowling)","Gold Hayat — career · all formats",label,rows);
+};
+window.bowlingReportRate=(key,label)=>{
+  const rows=bowlingAgg(DATA.matches).filter(p=>p.balls>=12).sort((a,b)=>(a[key]||0)-(b[key]||0)).slice(0,10)
+    .map(p=>({name:p.name,value:(p[key]||0).toFixed(2),sub:p.wkts+" wkts · "+ballsToOvers(p.balls)+" ov · "+p.runs+" runs"}));
+  pdfLeaders("Top 10 — "+label+" (Bowling)","Gold Hayat — career · all formats · min 2 overs",label,rows);
+};
+window.reportMatch=()=>{ const el=document.getElementById("rep-match"); if(el&&el.value) printSummary(el.value); };
+window.reportMatchPreview=()=>{ const el=document.getElementById("rep-match"); if(el&&el.value) location.hash="#/summary/"+el.value; };
+function viewReports(v){
+  const ms=DATA.matches.slice().sort((a,b)=>(a.date<b.date?1:a.date>b.date?-1:0)||((b.seq||0)-(a.seq||0)));
+  const matchOpts=ms.length?ms.map(m=>`<option value="${m.id}">Match ${matchNoStr(m)} · ${esc(fmtDate(m.date))} · vs ${esc(m.opponent||"")}</option>`).join(""):'<option value="">No matches yet</option>';
+  const rb=(fn,label,sub)=>`<button class="rep-btn" onclick="${fn}"><span class="rl">${label}</span><span class="rs">${sub}</span></button>`;
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Export</div><h2>Reports</h2><p>Generate and download reports — a full match summary, or top-10 leaderboards. Each opens as a one-page PDF you can save or share on WhatsApp.</p></div></div>
+  <div class="card rep-card">
+    <div class="rep-h"><span class="ic">📄</span> Match summary</div>
+    <p class="dim rep-p">Pick a match — the full detailed summary (batting, bowling + per-bowler summary, key stats, target &amp; result) downloads as the premium one-page poster.</p>
+    <div class="controls">
+      <div class="field" style="flex:1;min-width:220px"><label>Choose match</label><select id="rep-match">${matchOpts}</select></div>
+      <button class="btn primary" onclick="reportMatch()">⬇ Download summary</button>
+      <button class="btn ghost" onclick="reportMatchPreview()">👁 Preview</button>
+    </div>
+  </div>
+  <div class="card rep-card">
+    <div class="rep-h"><span class="ic">🏏</span> Batting — top 10 lists</div>
+    <div class="rep-grid">
+      ${rb("battingReport('runs','Runs')","Most runs","career runs")}
+      ${rb("battingReport('sixes','Sixes')","Most sixes","6s hit")}
+      ${rb("battingReport('fours','Fours')","Most fours","4s hit")}
+      ${rb("battingReport('ones','Singles')","Most singles","1s taken")}
+      ${rb("battingReport('twos','Doubles')","Most doubles","2s taken")}
+      ${rb("battingReport('threes','Threes')","Most threes","3s taken")}
+      ${rb("battingReport('fifties','Fifties')","Most fifties","50+ scores")}
+      ${rb("battingReportRate('sr','Strike rate')","Best strike rate","min 20 balls")}
+    </div>
+  </div>
+  <div class="card rep-card">
+    <div class="rep-h"><span class="ic">🎯</span> Bowling — top 10 lists</div>
+    <div class="rep-grid">
+      ${rb("bowlingReport('wkts','Wickets')","Most wickets","career wkts")}
+      ${rb("bowlingReport('wides','Wides')","Most wides","wides bowled")}
+      ${rb("bowlingReport('runs','Runs conceded')","Most runs conceded","runs given")}
+      ${rb("bowlingReport('sixes','Sixes conceded')","Most sixes conceded","6s conceded")}
+      ${rb("bowlingReport('fours','Fours conceded')","Most fours conceded","4s conceded")}
+      ${rb("bowlingReport('dots','Dot balls')","Most dot balls","dots bowled")}
+      ${rb("bowlingReport('noballs','No-balls')","Most no-balls","no-balls")}
+      ${rb("bowlingReportRate('econ','Economy')","Best economy","min 2 overs")}
+    </div>
+  </div>`;
 }
 
 /* ============================================================ SCHEDULE (fixtures) ============================================================ */
