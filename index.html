@@ -509,6 +509,16 @@ tbody td{padding:12.5px 14px}
 .ins-ic{width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:15px}
 .ins-t{font-weight:600;font-size:13.5px;color:var(--cream);line-height:1.3}
 .ins-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* ---- home vs away + venue ---- */
+.loc-legend{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.loc-legend span{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.loc-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.loc-row{display:flex;align-items:center;gap:12px;margin:11px 0}
+.loc-name{width:64px;flex:none;font-size:12.5px;color:var(--cream);font-weight:600}
+.loc-bar{flex:1;display:flex;height:18px;border-radius:8px;overflow:hidden;background:var(--line-soft)}
+.loc-seg{height:100%}
+.loc-counts{flex:none;font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -770,7 +780,7 @@ function sortRows(rows,key,dir){
 }
 
 /* ---------- SVG / HTML charts (self-contained) ---------- */
-function donut(segs,size=160){
+function donut(segs,size=160,centerLabel="MATCHES"){
   const total=segs.reduce((a,s)=>a+s.value,0);
   if(total<=0) return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${size/2*0.8}" fill="none" stroke="var(--line-soft)" stroke-width="${size*0.18}"/></svg>`;
   const nonzero=segs.filter(s=>s.value>0);
@@ -786,7 +796,7 @@ function donut(segs,size=160){
     paths+=`<path d="M${x1} ${y1} A${r} ${r} 0 ${large} 1 ${x2} ${y2} L${xi2} ${yi2} A${ir} ${ir} 0 ${large} 0 ${xi1} ${yi1} Z" fill="${s.color}"/>`;
     ang=a2;
   });
-  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" fill="var(--cream)" font-family="var(--mono)" font-size="26" font-weight="600">${total}</text><text x="${cx}" y="${cy+15}" text-anchor="middle" fill="var(--muted)" font-size="10" letter-spacing="1">MATCHES</text></svg>`;
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" fill="var(--cream)" font-family="var(--mono)" font-size="26" font-weight="600">${total}</text><text x="${cx}" y="${cy+15}" text-anchor="middle" fill="var(--muted)" font-size="10" letter-spacing="1">${centerLabel}</text></svg>`;
 }
 function legend(items){
   return `<div class="legend">${items.map(i=>`<div class="li"><span class="dot" style="background:${i.color}"></span>${esc(i.label)}<span class="val">${i.value}</span></div>`).join("")}</div>`;
@@ -1025,6 +1035,18 @@ function viewDashboard(v){
   const wktBars=bowl.filter(p=>p.wkts>0).map(p=>({label:p.name,value:p.wkts,display:p.wkts,href:"#/player/"+encodeURIComponent(p.name)}));
   const fmtsPresent=[...new Set(tms.map(m=>m.format).filter(Boolean))];
   const winFmt=fmtsPresent.map(ff=>{const fm=tms.filter(m=>m.format===ff);const ss=teamSummary(fm);return {label:fmtLabel(ff)+" ("+fm.length+")",value:ss.winPct,display:ss.winPct.toFixed(0)+"%"};});
+  // home vs away
+  const loc={home:{w:0,l:0,t:0,n:0},away:{w:0,l:0,t:0,n:0},neutral:{w:0,l:0,t:0,n:0}};
+  tms.forEach(m=>{const vt=(m.venueType==="away"||m.venueType==="neutral")?m.venueType:"home";const c=matchMargin(m).cls;const b=loc[vt];if(c==="win")b.w++;else if(c==="loss")b.l++;else if(c==="tie")b.t++;else b.n++;});
+  const locBar=(name,d)=>{const tot=(d.w+d.l+d.t+d.n)||1;return `<div class="loc-row"><div class="loc-name">${name}</div><div class="loc-bar">${d.w?`<div class="loc-seg" style="width:${(d.w/tot*100).toFixed(1)}%;background:var(--pitch)"></div>`:""}${d.l?`<div class="loc-seg" style="width:${(d.l/tot*100).toFixed(1)}%;background:var(--ball)"></div>`:""}${d.t?`<div class="loc-seg" style="width:${(d.t/tot*100).toFixed(1)}%;background:var(--gold)"></div>`:""}${d.n?`<div class="loc-seg" style="width:${(d.n/tot*100).toFixed(1)}%;background:var(--muted-2)"></div>`:""}</div><div class="loc-counts">${d.w}W · ${d.l}L${d.t?" · "+d.t+"T":""}${d.n?" · "+d.n+"NR":""}</div></div>`;};
+  const hasAny=(loc.home.w+loc.home.l+loc.home.t+loc.home.n+loc.away.w+loc.away.l+loc.away.t+loc.away.n+loc.neutral.w+loc.neutral.l+loc.neutral.t+loc.neutral.n)>0;
+  const neutralHas=(loc.neutral.w+loc.neutral.l+loc.neutral.t+loc.neutral.n)>0;
+  const locBlock=hasAny?`<div class="loc-legend"><span><i style="background:var(--pitch)"></i>Won</span><span><i style="background:var(--ball)"></i>Lost</span><span><i style="background:var(--gold)"></i>Tied</span></div>${locBar("Home",loc.home)}${locBar("Away",loc.away)}${neutralHas?locBar("Neutral",loc.neutral):""}`:emptyBlock("Add matches to compare home & away");
+  // wins by venue
+  const vPal=["var(--gold)","var(--sky)","var(--pitch)","var(--ball)","var(--gold-2)","var(--muted-2)","#8a63d2","#d2864a"];
+  const vAgg=venueAgg(tms).filter(x=>x.w>0).sort((a,b)=>b.w-a.w);
+  const vSeg=vAgg.map((x,i)=>({label:x.venue,value:x.w,color:vPal[i%vPal.length]}));
+  const venueBlock=vSeg.length?`<div class="donut-wrap">${donut(vSeg,160,"WINS")}${legendTable(vSeg)}</div>`:emptyBlock("No wins recorded yet");
   v.innerHTML=`
   <div class="scoreboard"><div class="sb-top">
     <div><div class="sb-eyebrow">Command center • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
@@ -1052,6 +1074,10 @@ function viewDashboard(v){
   <div class="dash-grid">
     <div class="chart-card"><div class="cc-h">Top run-scorers</div>${runBars.length?barsH(runBars):emptyBlock("No batting yet")}</div>
     <div class="chart-card"><div class="cc-h">Top wicket-takers</div>${wktBars.length?barsH(wktBars):emptyBlock("No bowling yet")}</div>
+  </div>
+  <div class="dash-grid">
+    <div class="chart-card"><div class="cc-h">Home vs Away</div>${locBlock}</div>
+    <div class="chart-card"><div class="cc-h">Wins by venue</div>${venueBlock}</div>
   </div>
   <div class="chart-card"><div class="cc-h">Recent matches</div>
   <div class="table-wrap">${recent.map(matchRow).join("")||emptyBlock("No matches yet")}</div></div>`;
