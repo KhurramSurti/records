@@ -481,6 +481,34 @@ tbody td{padding:12.5px 14px}
 .cmpm-val.win{color:var(--gold);font-weight:700}
 .cmp-rm{color:var(--ball);cursor:pointer;font-size:10px;margin-left:4px;font-weight:600}
 @media(max-width:560px){.cmpm-name{width:88px;font-size:11.5px}.cmpm-val{width:48px;font-size:13px}}
+
+/* ============ dashboard — command center ============ */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:0 0 22px}
+@media(max-width:1024px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 26px -18px rgba(0,0,0,.3);transition:transform .16s ease,box-shadow .16s ease}
+@media(hover:hover){.kpi:hover{transform:translateY(-3px);box-shadow:0 16px 36px -18px rgba(0,0,0,.4)}}
+.kpi::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;background:linear-gradient(90deg,var(--kc,var(--gold)),transparent 85%)}
+.kpi .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;background:var(--ks,var(--gold-soft));margin-bottom:11px}
+.kpi .lab{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-family:var(--mono);font-size:23px;font-weight:600;color:var(--cream);line-height:1.1;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .sub{font-size:10.5px;color:var(--muted-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:760px){.dash-grid{grid-template-columns:1fr}}
+.chart-card .cc-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:14px}
+
+/* ---- KPI sparkline + highlights + legend table ---- */
+.kpi .mspark{width:100%;height:28px;display:block;margin-top:10px}
+.leg-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.leg-tbl td{padding:6px 6px;border:none;white-space:nowrap}
+.leg-tbl td.l{text-align:left;color:var(--text)}
+.leg-tbl .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.leg-tbl td.tnum{font-family:var(--mono)}
+.insights{display:flex;flex-direction:column;gap:10px}
+.ins{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:12px}
+.ins-ic{width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:15px}
+.ins-t{font-weight:600;font-size:13.5px;color:var(--cream);line-height:1.3}
+.ins-s{font-size:11.5px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -808,6 +836,21 @@ function monthBars(pts,{color="var(--gold)",h=160,suffix=""}={}){
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" style="height:${h}px" preserveAspectRatio="xMidYMid meet">${base}${bars}</svg>`;
 }
 const DIS_META={caught:{c:"var(--sky)",l:"Caught"},bowled:{c:"var(--ball)",l:"Bowled"},lbw:{c:"#e0894b",l:"LBW"},runout:{c:"#b06bd0",l:"Run out"},stumped:{c:"#3fbf9f",l:"Stumped"},hitwicket:{c:"#d0607a",l:"Hit wicket"},retired:{c:"var(--muted-2)",l:"Retired"},notout:{c:"var(--pitch)",l:"Not out"}};
+function miniSpark(series,color){
+  color=color||"var(--gold)"; const pts=(series||[]).filter(x=>x!=null);
+  if(pts.length<2) return "";
+  const w=120,h=30,pad=3, max=Math.max(...pts),min=Math.min(...pts),range=(max-min)||1;
+  const X=i=>pad+(pts.length<=1?0:i/(pts.length-1)*(w-pad*2));
+  const Y=v=>pad+(h-pad*2)-((v-min)/range)*(h-pad*2);
+  const line=pts.map((v,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+  const area=line+` L${X(pts.length-1).toFixed(1)} ${h-pad} L${X(0).toFixed(1)} ${h-pad} Z`;
+  const gid="ms"+Math.random().toString(36).slice(2,7);
+  return `<svg class="mspark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function legendTable(segs){
+  const total=segs.reduce((a,s)=>a+s.value,0)||1;
+  return `<table class="leg-tbl"><tbody>${segs.map(s=>`<tr><td class="l"><span class="dot" style="background:${s.color}"></span>${esc(s.label)}</td><td class="tnum">${s.value}</td><td class="tnum dim">${(s.value/total*100).toFixed(0)}%</td></tr>`).join("")}</tbody></table>`;
+}
 /* ---------- Navigation ---------- */
 const NAV=[
   {id:"dashboard",label:"Dashboard",section:"Overview",icon:"grid"},
@@ -936,19 +979,55 @@ function viewDashboard(v){
   const fmt=teamFmt, ctx=fmtLabel(fmt);
   const tms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
   const s=teamSummary(tms);
-  const bat=sortRows(battingAgg(tms),"runs",-1).slice(0,5);
-  const bowl=sortRows(bowlingAgg(tms),"wkts",-1).slice(0,5);
-  const ordered=tms.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const recent=ordered.slice().reverse().slice(0,5);
+  const batAgg=battingAgg(tms), bowlAgg=bowlingAgg(tms);
+  const bat=sortRows(batAgg,"runs",-1).slice(0,6);
+  const bowl=sortRows(bowlAgg,"wkts",-1).slice(0,6);
+  const ordered=tms.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")||((a.seq||0)-(b.seq||0)));
+  const recent=ordered.slice().reverse().slice(0,6);
   const formPts=ordered.slice(-8).map(m=>({v:int(m.ourTotal),label:fmtDate(m.date).slice(0,6)}));
-  const monthMs=tms.filter(m=>inPeriod(m.date,"month"));
-  const mBat=sortRows(battingAgg(monthMs),"runs",-1)[0];
-  const mBowl=sortRows(bowlingAgg(monthMs),"wkts",-1)[0];
   const seg=[{label:"Won",value:s.w,color:"var(--pitch)"},{label:"Lost",value:s.l,color:"var(--ball)"},{label:"Tied",value:s.t,color:"var(--gold)"},{label:"No result",value:s.nr,color:"var(--muted-2)"}];
   const formPills=ordered.slice(-5).map(m=>{const c=matchMargin(m).cls;const ch=c==="win"?"W":c==="loss"?"L":c==="tie"?"T":"·";return '<span class="fp fp-'+c+'" title="'+esc(matchMargin(m).label)+' vs '+esc(m.opponent||"")+'">'+ch+'</span>';}).join("");
+  const totalRuns=tms.reduce((a,m)=>a+int(m.ourTotal),0);
+  const totalWkts=bowlAgg.reduce((a,p)=>a+p.wkts,0);
+  const bestBowl=sortRows(bowlAgg,"wkts",-1)[0];
+  const topBat=bat[0];
+  // per-match series for sparklines
+  const runsSeq=ordered.map(m=>int(m.ourTotal));
+  const wktsSeq=ordered.map(m=>(m.bowling||[]).reduce((a,b)=>a+int(b.wickets),0));
+  let _ww=0; const winSeq=ordered.map((m,i)=>{if(matchMargin(m).cls==="win")_ww++;return Math.round(_ww/(i+1)*100);});
+  const matchSeq=ordered.map((_,i)=>i+1);
+  let _hi=0; const hiSeq=ordered.map(m=>{_hi=Math.max(_hi,int(m.ourTotal));return _hi;});
+  // auto highlights
+  const insights=[];
+  if(ordered.length){
+    const lastC=matchMargin(ordered[ordered.length-1]).cls; let streak=0;
+    for(let i=ordered.length-1;i>=0;i--){ if(matchMargin(ordered[i]).cls===lastC)streak++; else break; }
+    if(lastC==="win") insights.push({ic:"🔥",c:"var(--pitch)",t:`On a ${streak}-match winning streak`,s:"Momentum is with the team"});
+    else if(lastC==="loss") insights.push({ic:"⚠️",c:"var(--ball)",t:`${streak} loss${streak>1?"es":""} in a row`,s:"A win will turn it around"});
+  }
+  if(topBat) insights.push({ic:"🏏",c:"var(--gold)",t:`${esc(topBat.name)} leads the batting`,s:`${topBat.runs} runs · avg ${topBat.avg==null?"—":topBat.avg.toFixed(1)} · SR ${topBat.sr.toFixed(0)}`});
+  const _topW=sortRows(bowlAgg,"wkts",-1)[0];
+  if(_topW&&_topW.wkts>0) insights.push({ic:"🎯",c:"var(--ball)",t:`${esc(_topW.name)} leads the bowling`,s:`${_topW.wkts} wkts · econ ${_topW.econ.toFixed(2)} · BBI ${_topW.bbi}`});
+  const _be=sortRows(bowlAgg.filter(p=>p.balls>=12),"econ",1)[0];
+  if(_be) insights.push({ic:"💎",c:"var(--sky)",t:`Best economy: ${esc(_be.name)}`,s:`${_be.econ.toFixed(2)} runs/over · ${ballsToOvers(_be.balls)} overs bowled`});
+  const _hiM=ordered.slice().sort((a,b)=>int(b.ourTotal)-int(a.ourTotal))[0];
+  if(_hiM) insights.push({ic:"⬆️",c:"var(--gold)",t:`Highest total: ${int(_hiM.ourTotal)}`,s:`vs ${esc(_hiM.opponent||"")} · ${esc(fmtDate(_hiM.date))}`});
+  const kpi=(c,ks,ic,lab,val,sub,spark)=>`<div class="kpi" style="--kc:${c};--ks:${ks}"><div class="ic">${ic}</div><div class="lab">${lab}</div><div class="val">${val}</div><div class="sub">${sub}</div>${spark||""}</div>`;
+  const kpis=[
+    kpi("var(--gold)","var(--gold-soft)","🏏","Matches",s.played,`${s.w}W · ${s.l}L · ${s.t}T`,miniSpark(matchSeq,"var(--gold)")),
+    kpi("var(--pitch)","rgba(63,166,106,.15)","🏆","Win rate",s.winPct.toFixed(0)+"%",`${s.w} of ${s.played} won`,miniSpark(winSeq,"var(--pitch)")),
+    kpi("var(--sky)","rgba(90,151,224,.15)","📊","Total runs",totalRuns,topBat?("top "+esc(topBat.name.split(" ")[0])+" "+topBat.runs):"our batting",miniSpark(runsSeq,"var(--sky)")),
+    kpi("var(--ball)","rgba(216,72,60,.15)","🎯","Total wickets",totalWkts,bestBowl?("top "+esc(bestBowl.name.split(" ")[0])+" "+bestBowl.wkts):"our bowling",miniSpark(wktsSeq,"var(--ball)")),
+    kpi("var(--gold)","var(--gold-soft)","⬆️","Highest total",s.hi,`lowest ${s.lo}`,miniSpark(hiSeq,"var(--gold)")),
+    kpi("var(--pitch)","rgba(63,166,106,.15)","🔥","Best bowling",bestBowl?bestBowl.bbi:"—",bestBowl?esc(bestBowl.name):"—",miniSpark(runsSeq,"var(--pitch)"))
+  ].join("");
+  const runBars=bat.filter(p=>p.runs>0).map(p=>({label:p.name,value:p.runs,display:p.runs,href:"#/player/"+encodeURIComponent(p.name)}));
+  const wktBars=bowl.filter(p=>p.wkts>0).map(p=>({label:p.name,value:p.wkts,display:p.wkts,href:"#/player/"+encodeURIComponent(p.name)}));
+  const fmtsPresent=[...new Set(tms.map(m=>m.format).filter(Boolean))];
+  const winFmt=fmtsPresent.map(ff=>{const fm=tms.filter(m=>m.format===ff);const ss=teamSummary(fm);return {label:fmtLabel(ff)+" ("+fm.length+")",value:ss.winPct,display:ss.winPct.toFixed(0)+"%"};});
   v.innerHTML=`
   <div class="scoreboard"><div class="sb-top">
-    <div><div class="sb-eyebrow">Team record • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
+    <div><div class="sb-eyebrow">Command center • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
       <div class="sb-sub">${s.played} ${s.played===1?"match":"matches"} · highest ${s.hi} · average ${s.avg.toFixed(0)}</div>
       ${formPills?`<div class="sb-form"><span class="fl">Recent form</span>${formPills}</div>`:""}</div>
     <div class="sb-stats">
@@ -958,35 +1037,24 @@ function viewDashboard(v){
       <div class="sb-div"></div>
       <div class="sb-stat"><div class="n tnum countup" data-to="${s.winPct.toFixed(0)}" data-suf="%">${s.winPct.toFixed(0)}%</div><div class="l">Win rate</div></div>
     </div></div></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">
     ${fmtTabs(fmt,"onTeamFmt")}
     <button class="btn ghost" onclick="pdfTeam()">⬇ Team report PDF</button>
   </div>
-
-  <div class="grid c2" style="margin-bottom:26px">
-    <div class="chart-card"><div class="eyebrow" style="margin-bottom:14px">Results — ${esc(ctx)}</div>
-      <div class="donut-wrap">${donut(seg)}${legend(seg)}</div></div>
-    <div class="chart-card"><div class="eyebrow" style="margin-bottom:14px">Team totals — last matches</div>${lineChart(formPts)||emptyBlock("Add matches to see form")}</div>
+  <div class="kpi-row">${kpis}</div>
+  <div class="dash-grid">
+    <div class="chart-card"><div class="cc-h">Results — ${esc(ctx)}</div><div class="donut-wrap">${donut(seg)}${legendTable(seg)}</div></div>
+    <div class="chart-card"><div class="cc-h">Team highlights</div><div class="insights">${insights.map(x=>`<div class="ins"><div class="ins-ic" style="background:${x.c}22;color:${x.c}">${x.ic}</div><div><div class="ins-t">${x.t}</div><div class="ins-s">${x.s}</div></div></div>`).join("")||emptyBlock("Add matches to see highlights")}</div></div>
   </div>
-
-  <div class="grid c4" style="margin-bottom:26px">
-    <div class="card stat-card"><div class="k">Matches</div><div class="v tnum">${s.played}</div><div class="sub">${s.w}W · ${s.l}L · ${s.t}T · ${s.nr}NR</div></div>
-    <div class="card stat-card"><div class="k">This month — top run</div><div class="v" style="font-size:19px">${mBat?esc(mBat.name):"—"}</div><div class="sub">${mBat?mBat.runs+" runs":"no matches yet"}</div></div>
-    <div class="card stat-card"><div class="k">This month — top wickets</div><div class="v" style="font-size:19px">${mBowl?esc(mBowl.name):"—"}</div><div class="sub">${mBowl?mBowl.wkts+" wickets":"no matches yet"}</div></div>
-    <div class="card stat-card"><div class="k">Highest total</div><div class="v tnum">${s.hi}</div><div class="sub">Lowest ${s.lo}</div></div>
+  ${winFmt.length>1
+    ? `<div class="dash-grid"><div class="chart-card"><div class="cc-h">Runs per match</div>${formPts.length?lineChart(formPts):emptyBlock("Add matches")}</div><div class="chart-card"><div class="cc-h">Win rate by format</div>${barsH(winFmt)}</div></div>`
+    : `<div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Runs per match</div>${formPts.length?lineChart(formPts):emptyBlock("Add matches to see the trend")}</div>`}
+  <div class="dash-grid">
+    <div class="chart-card"><div class="cc-h">Top run-scorers</div>${runBars.length?barsH(runBars):emptyBlock("No batting yet")}</div>
+    <div class="chart-card"><div class="cc-h">Top wicket-takers</div>${wktBars.length?barsH(wktBars):emptyBlock("No bowling yet")}</div>
   </div>
-
-  <div class="grid c2">
-    <div><div class="eyebrow">Most runs — ${esc(ctx)}</div><div class="table-wrap table-scroll"><table>
-      <thead><tr><th class="l">Batsman</th><th>Runs</th><th>Avg</th><th>SR</th></tr></thead>
-      <tbody>${bat.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(0)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
-    <div><div class="eyebrow">Most wickets — ${esc(ctx)}</div><div class="table-wrap table-scroll"><table>
-      <thead><tr><th class="l">Bowler</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
-      <tbody>${bowl.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(1)}</td><td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td></tr>`).join("")||emptyRow(4)}</tbody></table></div></div>
-  </div>
-
-  <div class="eyebrow" style="margin-top:26px">Recent matches</div>
-  <div class="table-wrap">${recent.map(matchRow).join("")||emptyBlock("No matches yet")}</div>`;
+  <div class="chart-card"><div class="cc-h">Recent matches</div>
+  <div class="table-wrap">${recent.map(matchRow).join("")||emptyBlock("No matches yet")}</div></div>`;
 }
 
 /* ============================================================ MATCHES + SCORECARD ============================================================ */
