@@ -2496,6 +2496,7 @@ function editMatch(id){
   FORMPREFILL={ editId:id, date:m.date,opponent:m.opponent,captain:m.captain,ground:m.ground,venueType:m.venueType,format:m.format,
     toss:m.toss,decision:m.decision,ourTotal:m.ourTotal,ourWickets:m.ourWickets,ourOvers:m.ourOvers,
     oppTotal:m.oppTotal,oppWickets:m.oppWickets,oppOvers:m.oppOvers,result:m.result,motm:m.motm,
+    xi:(m.xi&&m.xi.length?m.xi.slice():undefined),
     batting:(m.batting||[]).map(b=>({...b})), bowling:(m.bowling||[]).map(b=>({...b})), fielding:(m.fielding||[]).map(b=>({...b})) };
   location.hash="#/add";
 }
