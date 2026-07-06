@@ -747,9 +747,19 @@ function fieldingAgg(ms){
   ms=ms||DATA.matches; const map={};
   ms.forEach(m=>(m.fielding||[]).forEach(f=>{
     const k=f.name; if(!k)return;
-    const p=map[k]||(map[k]={name:k,catches:0,runouts:0,stumpings:0});
+    const p=map[k]||(map[k]={name:k,catches:0,runouts:0,stumpings:0,inns:0});
     p.catches+=int(f.catches);p.runouts+=int(f.runouts);p.stumpings+=int(f.stumpings);
   }));
+  // innings fielded = matches the player was on the field (in the XI; fallback: appeared in the match)
+  Object.keys(map).forEach(k=>{
+    let inn=0;
+    ms.forEach(m=>{
+      const onField=(m.xi&&m.xi.length)?m.xi.includes(k)
+        :((m.batting||[]).some(b=>b.name===k)||(m.bowling||[]).some(b=>b.name===k)||(m.fielding||[]).some(f=>f.name===k));
+      if(onField)inn++;
+    });
+    map[k].inns=inn;
+  });
   return Object.values(map).map(p=>{p.total=p.catches+p.runouts+p.stumpings;return p;});
 }
 function captainAgg(ms){
@@ -1230,9 +1240,9 @@ function viewFielding(v){
     <div class="field"><label>Period</label>${periodSelect("fielding",filterPeriod.fielding)}</div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("fielding","name","Fielder","l")}${th("fielding","catches","Ct")}${th("fielding","runouts","RO")}${th("fielding","stumpings","St")}${th("fielding","total","Tot")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("fielding","name","Fielder","l")}${th("fielding","inns","Inns")}${th("fielding","catches","Ct")}${th("fielding","runouts","RO")}${th("fielding","stumpings","St")}${th("fielding","total","Tot")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
-      <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td><td class="tnum">${p.catches}</td><td class="tnum">${p.runouts}</td><td class="tnum">${p.stumpings}</td><td class="hi tnum">${p.total}</td></tr>`).join("")||emptyRow(6)}</tbody>
+      <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.catches}</td><td class="tnum">${p.runouts}</td><td class="tnum">${p.stumpings}</td><td class="hi tnum">${p.total}</td></tr>`).join("")||emptyRow(7)}</tbody>
   </table></div>`;
 }
 
@@ -2131,7 +2141,7 @@ function pdfVenues(){
 }
 function pdfFielding(){
   const rows=sortRows(fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding})),"total",-1);
-  const body=pdfHead("Fielding")+pdfTbl(["#","Fielder","Catches","Run-outs","Stumpings","Total"],rows.map((p,i)=>[i+1,esc(p.name),p.catches,p.runouts,p.stumpings,p.total]),2);
+  const body=pdfHead("Fielding")+pdfTbl(["#","Fielder","Inns","Catches","Run-outs","Stumpings","Total"],rows.map((p,i)=>[i+1,esc(p.name),p.inns,p.catches,p.runouts,p.stumpings,p.total]),2);
   openPrint("Fielding leaderboard", filterLabelPDF("fielding"), body);
 }
 function pdfRecords(){
