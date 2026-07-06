@@ -1094,7 +1094,7 @@ function viewDashboard(v){
 function viewMatches(v){
   let ms=getMatches({opp:filterOpp.matches,period:filterPeriod.matches});
   if(matchDateFilter) ms=ms.filter(m=>m.date===matchDateFilter);
-  ms=ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  ms=ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||((b.seq||0)-(a.seq||0)));
   const total=DATA.matches.length;
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Full log</div><h2>Matches</h2><p>${total} recorded • filter by month or a specific date, then tap a match for its full scorecard</p></div>
     <a class="btn primary" href="#/add">+ Add match</a></div>
@@ -1785,7 +1785,7 @@ function recalcSummary(){
     const o=g("ones"),t=g("twos"),th=g("threes"),f=g("fours"),s=g("sixes"),d=g("dots");
     runs+=o+2*t+3*th+4*f+6*s; balls+=d+o+t+th+f+s;
     const dis=(tr.querySelector("[data-k='dismissal']")||{}).value;
-    if(nm && dis && dis!=="notout") wkts++;
+    if(nm && dis && dis!=="notout" && dis!=="retired") wkts++;
   });
   const extras=int(($("#f-extras")||{}).value);
   const ourTotal=runs+extras;
