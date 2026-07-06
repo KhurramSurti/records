@@ -731,7 +731,7 @@ function bowlingAgg(ms){
       p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
       const w=pm.wkts,r=pm.runs;
       if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
-      if(w>=3)p.threeFer++;if(w>=5)p.fiveFer++;
+      if(w>=5)p.fiveFer++;else if(w>=3)p.threeFer++;
     });
   });
   return Object.values(map).map(p=>{
@@ -1224,11 +1224,11 @@ function viewBowling(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fiveFer","5W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(16)}</tbody>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(15)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
@@ -1859,7 +1859,6 @@ function saveMatch(){
   match.seq=(_ex&&_ex.seq!=null)?_ex.seq:(DATA.matches.reduce((a,m)=>Math.max(a,m.seq||0),0)+1);
   if(EDIT_ID){ const i=DATA.matches.findIndex(m=>m.id===EDIT_ID); match.id=EDIT_ID; if(i>=0)DATA.matches[i]=match; else DATA.matches.push(match); EDIT_ID=null; }
   else { DATA.matches.push(match); }
-  if(Array.isArray(DATA.fixtures)) DATA.fixtures=DATA.fixtures.filter(fx=>!(fx.date===match.date&&fx.opponent===match.opponent));
   saveLocal();setDirty(true);renderNav();
   const el=$("#save-msg");if(el)el.textContent="✓ Saved. Go to Data & publish to export.";
   setTimeout(()=>{location.hash="#/match/"+match.id;},700);
@@ -2077,8 +2076,8 @@ function pdfBatting(){
 function pdfBowling(){
   const rows=sortRows(bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling})),"wkts",-1).slice(0,10);
   if(!rows.length){alert("No bowling data to export for this filter yet.");return;}
-  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>5W</th><th>Dots</th></tr></thead><tbody>'+
-    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.fiveFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
+  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>Dots</th></tr></thead><tbody>'+
+    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Bowlers", filterLabelPDF("bowling"), body);
 }
 /* ---- shared PDF table helper ---- */
@@ -2102,7 +2101,7 @@ function pdfPlayer(enc){
   const batByFmt=FORMATS.map(ff=>({ff,p:battingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
   const bowlByFmt=FORMATS.map(ff=>({ff,p:bowlingAgg(DATA.matches.filter(m=>m.format===ff)).find(x=>x.name===name)})).filter(r=>r.p&&r.p.inns>0);
   if(batByFmt.length) body+=pdfHead("Batting by format")+pdfTbl(["Format","Inns","Runs","HS","Avg","SR","50","100","4s","6s"],batByFmt.map(r=>[esc(r.ff),r.p.inns,r.p.runs,r.p.hs+(r.p.hsNo?"*":""),r.p.avg==null?"-":r.p.avg.toFixed(1),r.p.sr.toFixed(0),r.p.fifties,r.p.hundreds,r.p.fours,r.p.sixes]));
-  if(bowlByFmt.length) body+=pdfHead("Bowling by format")+pdfTbl(["Format","Inns","Overs","Runs","Wkts","Econ","Avg","BBI","3W","5W"],bowlByFmt.map(r=>[esc(r.ff),r.p.inns,r.p.overs,r.p.runs,r.p.wkts,r.p.econ.toFixed(2),r.p.avg==null?"-":r.p.avg.toFixed(1),r.p.bbi,r.p.threeFer,r.p.fiveFer]));
+  if(bowlByFmt.length) body+=pdfHead("Bowling by format")+pdfTbl(["Format","Inns","Overs","Runs","Wkts","Econ","Avg","BBI","3W"],bowlByFmt.map(r=>[esc(r.ff),r.p.inns,r.p.overs,r.p.runs,r.p.wkts,r.p.econ.toFixed(2),r.p.avg==null?"-":r.p.avg.toFixed(1),r.p.bbi,r.p.threeFer]));
   const log=pm.map(m=>({m,bx:(m.batting||[]).map(inn).find(x=>x.name===name),wx:(m.bowling||[]).find(x=>x.name===name)})).filter(r=>r.bx||r.wx).reverse();
   if(log.length) body+=pdfHead("Match by match — "+ctx)+pdfTbl(["Date","Format","Opponent","Batting","Bowling"],log.map(r=>[fmtDate(r.m.date),esc(r.m.format||""),esc(r.m.opponent),r.bx?r.bx.runs+" ("+r.bx.balls+")":"-",r.wx?r.wx.wickets+"/"+r.wx.runs+" ("+esc(r.wx.overs)+")":"-"]),3);
   openPrint("Player report — "+esc(name), "Format: "+ctx, body);
@@ -2461,32 +2460,44 @@ function viewReports(v){
 }
 
 /* ============================================================ SCHEDULE (fixtures) ============================================================ */
+let FIX_EDIT=null;
+window.editFixture=(id)=>{ FIX_EDIT=id; router(); try{window.scrollTo(0,0);}catch(e){} };
+window.cancelFixEdit=()=>{ FIX_EDIT=null; router(); };
+function fixtureRecorded(f){ const o=(f.opponent||"").trim().toLowerCase(); return (DATA.matches||[]).some(m=>m.date===f.date && (m.opponent||"").trim().toLowerCase()===o); }
 function viewSchedule(v){
   const today=new Date().toISOString().slice(0,10);
   const fx=((DATA.fixtures)||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const upcoming=fx.filter(f=>(f.date||"")>=today);
   const past=fx.filter(f=>(f.date||"")<today);
   const vt=t=>t==="home"?"Home":t==="away"?"Away":t==="neutral"?"Neutral":"";
-  const row=f=>`<tr>
+  const row=f=>{
+    const rec=fixtureRecorded(f);
+    const act = rec
+      ? `<button class="btn ghost sm" onclick="location.hash='#/matches'">View result</button>`
+      : `<button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button>`;
+    return `<tr>
      <td class="l">${fmtDateW(f.date)}</td>
-     <td class="l pname">vs ${esc(f.opponent||"—")}</td>
+     <td class="l pname">vs ${esc(f.opponent||"—")}${rec?' <span class="chip">recorded</span>':""}</td>
      <td class="l">${esc(f.venue||"—")}${f.venueType?' <span class="chip'+(f.venueType==="away"?" red":"")+'">'+vt(f.venueType)+'</span>':""}</td>
      <td class="l">${esc(f.format||"")}</td>
      <td class="l dim">${esc(f.note||"")}</td>
-     <td class="l" style="white-space:nowrap">${canEdit()?`<button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button> <button class="btn danger sm" onclick="removeFixture('${f.id}')">Remove</button>`:'<span class="dim">—</span>'}</td></tr>`;
+     <td class="l" style="white-space:nowrap">${canEdit()?act+` <button class="btn ghost sm" onclick="editFixture('${f.id}')">Edit</button> <button class="btn danger sm" onclick="removeFixture('${f.id}')">Remove</button>`:'<span class="dim">—</span>'}</td></tr>`;
+  };
   const head='<thead><tr><th class="l">Date</th><th class="l">Opponent</th><th class="l">Venue</th><th class="l">Format</th><th class="l">Note</th><th class="l">Actions</th></tr></thead>';
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Fixtures</div><h2>Schedule</h2><p>Add upcoming matches with venue. When a match is played, tap “Record result” to open a pre-filled scorecard.</p></div></div>
-  ${canEdit()?`<div class="form-section"><h3>Add a fixture</h3><div class="form-grid">
-    <div class="field"><label>Match date</label><input type="date" id="fx-date"></div>
-    <div class="field"><label>Opponent</label><input id="fx-opp" list="opp-list2" placeholder="Team"><datalist id="opp-list2">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
-    <div class="field"><label>Venue</label><input id="fx-venue" list="venue-list2" placeholder="Ground"><datalist id="venue-list2">${venues().map(gr=>`<option value="${esc(gr)}">`).join("")}</datalist></div>
-    <div class="field"><label>Match at</label><select id="fx-type"><option value="">—</option><option value="home">Our venue (Home)</option><option value="away">Their venue (Away)</option><option value="neutral">Neutral</option></select></div>
-    <div class="field"><label>Format</label><select id="fx-format">${FORMATS.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select></div>
-    <div class="field" style="flex:1;min-width:180px"><label>Note (optional)</label><input id="fx-note" placeholder="e.g. league semi-final"></div>
-  </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">+ Add fixture</button></div>`:""}
+  const fe=FIX_EDIT?((DATA.fixtures)||[]).find(x=>x.id===FIX_EDIT):null;
+  const selType=v0=>['','home','away','neutral'].map(o=>`<option value="${o}"${fe&&fe.venueType===o?" selected":o===""&&!fe?"":""}>${o===""?"—":o==="home"?"Our venue (Home)":o==="away"?"Their venue (Away)":"Neutral"}</option>`).join("");
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Fixtures</div><h2>Schedule</h2><p>Add upcoming matches with venue. Tap “Record result” to open a pre-filled scorecard; once recorded it becomes “View result”. Use Edit to change a fixture (e.g. opponent changed).</p></div></div>
+  ${canEdit()?`<div class="form-section"><h3>${fe?"Edit fixture":"Add a fixture"}</h3><div class="form-grid">
+    <div class="field"><label>Match date</label><input type="date" id="fx-date" value="${fe?esc(fe.date||""):""}"></div>
+    <div class="field"><label>Opponent</label><input id="fx-opp" list="opp-list2" placeholder="Team" value="${fe?esc(fe.opponent||""):""}"><datalist id="opp-list2">${opponents().map(o=>`<option value="${esc(o)}">`).join("")}</datalist></div>
+    <div class="field"><label>Venue</label><input id="fx-venue" list="venue-list2" placeholder="Ground" value="${fe?esc(fe.venue||""):""}"><datalist id="venue-list2">${venues().map(gr=>`<option value="${esc(gr)}">`).join("")}</datalist></div>
+    <div class="field"><label>Match at</label><select id="fx-type">${selType()}</select></div>
+    <div class="field"><label>Format</label><select id="fx-format">${FORMATS.map(f=>`<option value="${esc(f)}"${fe&&fe.format===f?" selected":""}>${esc(f)}</option>`).join("")}</select></div>
+    <div class="field" style="flex:1;min-width:180px"><label>Note (optional)</label><input id="fx-note" placeholder="e.g. league semi-final" value="${fe?esc(fe.note||""):""}"></div>
+  </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">${fe?"Save changes":"+ Add fixture"}</button>${fe?` <button class="btn ghost" style="margin-top:14px" onclick="cancelFixEdit()">Cancel</button>`:""}</div>`:""}
   <div class="eyebrow">Upcoming</div>
   <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map(row).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
-  ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures not yet recorded</div>
+  ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures</div>
   <div class="table-wrap table-scroll"><table>${head}<tbody>${past.map(row).join("")}</tbody></table></div>`:""}`;
 }
 function addFixture(){
@@ -2494,7 +2505,9 @@ function addFixture(){
   if(!g("fx-date")){alert("Please pick the match date.");return;}
   if(!g("fx-opp").trim()){alert("Please enter the opponent.");return;}
   if(!Array.isArray(DATA.fixtures))DATA.fixtures=[];
-  DATA.fixtures.push({id:"fx"+Date.now(),date:g("fx-date"),opponent:g("fx-opp").trim(),venue:g("fx-venue").trim(),venueType:g("fx-type"),format:g("fx-format"),note:g("fx-note").trim()});
+  const data={date:g("fx-date"),opponent:g("fx-opp").trim(),venue:g("fx-venue").trim(),venueType:g("fx-type"),format:g("fx-format"),note:g("fx-note").trim()};
+  if(FIX_EDIT){ const f=DATA.fixtures.find(x=>x.id===FIX_EDIT); if(f)Object.assign(f,data); FIX_EDIT=null; }
+  else DATA.fixtures.push({id:"fx"+Date.now(),...data});
   saveLocal();setDirty(true);router();
 }
 function removeFixture(id){ DATA.fixtures=((DATA.fixtures)||[]).filter(f=>f.id!==id); saveLocal(); setDirty(true); router(); }
