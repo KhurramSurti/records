@@ -576,7 +576,7 @@
       "toss": "won",
       "decision": "bowl",
       "ourTotal": 72,
-      "ourWickets": 2,
+      "ourWickets": 1,
       "ourOvers": "7.0",
       "oppTotal": 71,
       "oppWickets": 4,
@@ -584,19 +584,17 @@
       "result": "won",
       "motm": "",
       "xi": [
-        "Mehboob Yasin",
-        "Fayyaz Muhammad",
-        "Sami Khan",
         "Sher Muhammad",
         "Syed Zaheer",
         "Mudassir Hamdani",
         "Syed Mudassir",
-        "Umer Sohail",
         "Umair Suzuki",
         "Yousuf Nini",
         "Rameez Altaf",
         "Khurram Surti",
-        "Abdul Raziq"
+        "Shaheer c/o Umair Suzuki",
+        "Waseem Lala",
+        "Mauvia c/o Umair Suzuki"
       ],
       "batting": [
         {
