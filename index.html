@@ -1049,11 +1049,9 @@ function viewDashboard(v){
   const hasAny=(loc.home.w+loc.home.l+loc.home.t+loc.home.n+loc.away.w+loc.away.l+loc.away.t+loc.away.n+loc.neutral.w+loc.neutral.l+loc.neutral.t+loc.neutral.n)>0;
   const neutralHas=(loc.neutral.w+loc.neutral.l+loc.neutral.t+loc.neutral.n)>0;
   const locBlock=hasAny?`<div class="loc-legend"><span><i style="background:var(--pitch)"></i>Won</span><span><i style="background:var(--ball)"></i>Lost</span><span><i style="background:var(--gold)"></i>Tied</span></div>${locBar("Home",loc.home)}${locBar("Away",loc.away)}${neutralHas?locBar("Neutral",loc.neutral):""}`:emptyBlock("Add matches to compare home & away");
-  // wins by venue
-  const vPal=["var(--gold)","var(--sky)","var(--pitch)","var(--ball)","var(--gold-2)","var(--muted-2)","#8a63d2","#d2864a"];
-  const vAgg=venueAgg(tms).filter(x=>x.w>0).sort((a,b)=>b.w-a.w);
-  const vSeg=vAgg.map((x,i)=>({label:x.venue,value:x.w,color:vPal[i%vPal.length]}));
-  const venueBlock=vSeg.length?`<div class="donut-wrap">${donut(vSeg,160,"WINS")}${legendTable(vSeg)}</div>`:emptyBlock("No wins recorded yet");
+  // record by venue (W/L/win% per ground — clearer than a wins-only donut)
+  const vAgg=venueAgg(tms).sort((a,b)=>(b.winPct-a.winPct)||(b.played-a.played));
+  const venueBlock=vAgg.length?`<div class="loc-legend"><span><i style="background:var(--pitch)"></i>Won</span><span><i style="background:var(--ball)"></i>Lost</span><span><i style="background:var(--gold)"></i>Tied</span></div>`+vAgg.map(x=>{const tot=x.played||1;return `<div class="loc-row"><div class="loc-name" style="width:auto;min-width:60px;max-width:130px;overflow:hidden;text-overflow:ellipsis">${esc(x.venue)}</div><div class="loc-bar">${x.w?`<div class="loc-seg" style="width:${(x.w/tot*100).toFixed(1)}%;background:var(--pitch)"></div>`:""}${x.l?`<div class="loc-seg" style="width:${(x.l/tot*100).toFixed(1)}%;background:var(--ball)"></div>`:""}${x.t?`<div class="loc-seg" style="width:${(x.t/tot*100).toFixed(1)}%;background:var(--gold)"></div>`:""}${x.nr?`<div class="loc-seg" style="width:${(x.nr/tot*100).toFixed(1)}%;background:var(--muted-2)"></div>`:""}</div><div class="loc-counts">${x.w}W · ${x.l}L · ${x.winPct.toFixed(0)}%</div></div>`;}).join(""):emptyBlock("No matches yet");
   v.innerHTML=`
   <div class="scoreboard"><div class="sb-top">
     <div><div class="sb-eyebrow">Command center • ${esc(ctx)}</div><div class="sb-title">Gold Hayat Cricket Team</div>
@@ -1084,7 +1082,7 @@ function viewDashboard(v){
   </div>
   <div class="dash-grid">
     <div class="chart-card"><div class="cc-h">Home vs Away</div>${locBlock}</div>
-    <div class="chart-card"><div class="cc-h">Wins by venue</div>${venueBlock}</div>
+    <div class="chart-card"><div class="cc-h">Record by venue</div>${venueBlock}</div>
   </div>
   <div class="chart-card"><div class="cc-h">Recent matches</div>
   <div class="table-wrap">${recent.map(matchRow).join("")||emptyBlock("No matches yet")}</div></div>`;
@@ -1120,7 +1118,7 @@ function viewScorecard(v,id){
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">Batsman</th><th class="l">How out</th><th>R</th><th>B</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>SR</th></tr></thead>
     <tbody>${bat.map(b=>`<tr>
-      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}${b.out?"":' <span class="chip">not out</span>'}</td>
+      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}${b.dismissal==="notout"?' <span class="chip">not out</span>':""}</td>
       <td class="l dismissal">${dismissalText(b)}</td>
       <td class="hi tnum">${b.runs}</td><td class="tnum dim">${b.balls}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.ones}</td><td class="tnum dim">${b.twos}</td><td class="tnum dim">${b.threes}</td>
       <td class="tnum">${b.fours}</td><td class="tnum">${b.sixes}</td><td class="tnum">${b.balls?(b.runs/b.balls*100).toFixed(0):"—"}</td></tr>`).join("")}</tbody>
@@ -2041,7 +2039,7 @@ function filterLabelPDF(id){
 function pdfMatch(id){
   const m=DATA.matches.find(x=>x.id===id); if(!m)return;
   const bat=(m.batting||[]).map(inn);
-  const batRows=bat.map(b=>'<tr><td class="l">'+esc(b.name)+(b.out?"":" *")+'</td><td class="l">'+dismissalText(b)+'</td><td>'+b.runs+'</td><td>'+b.balls+'</td><td>'+b.dots+'</td><td>'+b.fours+'</td><td>'+b.sixes+'</td><td>'+(b.balls?(b.runs/b.balls*100).toFixed(0):"-")+'</td></tr>').join("");
+  const batRows=bat.map(b=>'<tr><td class="l">'+esc(b.name)+(b.dismissal==="notout"?" *":"")+'</td><td class="l">'+dismissalText(b)+'</td><td>'+b.runs+'</td><td>'+b.balls+'</td><td>'+b.dots+'</td><td>'+b.fours+'</td><td>'+b.sixes+'</td><td>'+(b.balls?(b.runs/b.balls*100).toFixed(0):"-")+'</td></tr>').join("");
   const bowlRows=(m.bowling||[]).map(b=>{const bl=oversToBalls(b.overs);const e=bl?int(b.runs)/(bl/6):0;return '<tr><td class="l">'+esc(b.name)+'</td><td>'+esc(b.overs)+'</td><td>'+b.runs+'</td><td>'+b.wickets+'</td><td>'+e.toFixed(1)+'</td><td>'+b.dots+'</td><td>'+b.wides+'</td><td>'+b.noballs+'</td></tr>';}).join("");
   const _bm={};(m.bowling||[]).forEach(b=>{const p=_bm[b.name]||(_bm[b.name]={name:b.name,balls:0,runs:0,wkts:0,fours:0,sixes:0,wides:0,noballs:0,dots:0});p.balls+=oversToBalls(b.overs);p.runs+=int(b.runs);p.wkts+=int(b.wickets);p.fours+=int(b.fours);p.sixes+=int(b.sixes);p.wides+=int(b.wides);p.noballs+=int(b.noballs);p.dots+=int(b.dots);});
   const bsumRows=Object.values(_bm).map(p=>{const e=p.balls?(p.runs/(p.balls/6)):0;return '<tr><td class="l">'+esc(p.name)+'</td><td>'+ballsToOvers(p.balls)+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.fours+'</td><td>'+p.sixes+'</td><td>'+(p.wides+p.noballs)+'</td><td>'+p.dots+'</td><td>'+e.toFixed(2)+'</td></tr>';}).join("");
