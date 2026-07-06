@@ -820,7 +820,7 @@
       "decision": "bat",
       "ourTotal": 81,
       "ourWickets": 4,
-      "ourOvers": "8.3",
+      "ourOvers": "8.0",
       "oppTotal": 82,
       "oppWickets": 4,
       "oppOvers": "7.0",
@@ -852,7 +852,7 @@
         },
         {
           "name": "Umair Suzuki",
-          "dots": 2,
+          "dots": 1,
           "ones": 1,
           "twos": 0,
           "threes": 0,
@@ -863,7 +863,7 @@
         },
         {
           "name": "Syed Zaheer",
-          "dots": 3,
+          "dots": 2,
           "ones": 0,
           "twos": 1,
           "threes": 0,
@@ -874,7 +874,7 @@
         },
         {
           "name": "Yousuf Nini",
-          "dots": 1,
+          "dots": 0,
           "ones": 8,
           "twos": 1,
           "threes": 0,
