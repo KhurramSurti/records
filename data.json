@@ -1077,6 +1077,60 @@
       "venueType": "away",
       "format": "OD",
       "note": ""
+    },
+    {
+      "id": "fx1783387241796",
+      "date": "2026-07-26",
+      "opponent": "Fareed Team",
+      "venue": "Sasi Arcade",
+      "venueType": "away",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1783387272460",
+      "date": "2026-08-02",
+      "opponent": "Bulls Strikers",
+      "venue": "Boat Basin",
+      "venueType": "away",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1783387288781",
+      "date": "2026-08-09",
+      "opponent": "Tiger Force",
+      "venue": "Uni Plaza",
+      "venueType": "home",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1783387311844",
+      "date": "2026-08-16",
+      "opponent": "Wahab Team",
+      "venue": "Nishter Park",
+      "venueType": "away",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1783387336732",
+      "date": "2026-08-23",
+      "opponent": "Jawwad Team",
+      "venue": "Tanki Ground",
+      "venueType": "away",
+      "format": "OD",
+      "note": ""
+    },
+    {
+      "id": "fx1783387350508",
+      "date": "2026-08-30",
+      "opponent": "Mulla XI",
+      "venue": "Uni Plaza",
+      "venueType": "home",
+      "format": "OD",
+      "note": ""
     }
   ],
   "config": {}
