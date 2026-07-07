@@ -526,6 +526,21 @@ tbody td{padding:12.5px 14px}
   .table-scroll td.l,.table-scroll .pname{white-space:normal;line-height:1.2}
   .table-scroll .pname{min-width:72px}
 }
+
+/* ---- next fixture pulse ---- */
+@keyframes fxPulse{0%,100%{background:transparent}50%{background:var(--gold-soft)}}
+@keyframes fxChip{0%,100%{opacity:1}50%{opacity:.45}}
+tr.fx-next td{animation:fxPulse 1.5s ease-in-out infinite}
+tr.fx-next td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.chip.next{background:var(--gold);color:#1a1206;font-weight:700;letter-spacing:.04em;animation:fxChip 1.5s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){tr.fx-next td{animation:none;background:var(--gold-soft)}.chip.next{animation:none}}
+
+/* ---- #1 leaderboard row pulse ---- */
+@keyframes lbTop{0%,100%{background:transparent}50%{background:var(--gold-soft)}}
+tr.lb-top td{animation:lbTop 1.8s ease-in-out infinite}
+tr.lb-top td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+tr.lb-top .pname{color:var(--gold)}
+@media(prefers-reduced-motion:reduce){tr.lb-top td{animation:none;background:var(--gold-soft)}}
 </style>
 </head>
 <body>
@@ -1206,7 +1221,7 @@ function viewBatting(v){
   </div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">#</th>${th("batting","name","Batsman","l")}${th("batting","inns","Inns")}${th("batting","no","NO")}${th("batting","runs","Runs")}${th("batting","hs","HS")}${th("batting","avg","Avg")}${th("batting","sr","SR")}${th("batting","fifties","50")}${th("batting","hundreds","100")}${th("batting","fours","4s")}${th("batting","sixes","6s")}${th("batting","dotPct","Dot%")}${th("batting","ducks","0s")}</tr></thead>
-    <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
+    <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.inns}</td><td class="tnum dim">${p.no}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.hs}${p.hsNo?"*":""}</td>
       <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(1)}</td>
@@ -1225,7 +1240,7 @@ function viewBowling(v){
   </div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
-    <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
+    <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
       <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(15)}</tbody>
@@ -1241,7 +1256,7 @@ function viewFielding(v){
   </div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">#</th>${th("fielding","name","Fielder","l")}${th("fielding","inns","Inns")}${th("fielding","catches","Ct")}${th("fielding","runouts","RO")}${th("fielding","stumpings","St")}${th("fielding","total","Tot")}</tr></thead>
-    <tbody>${rows.map((p,i)=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
+    <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.catches}</td><td class="tnum">${p.runouts}</td><td class="tnum">${p.stumpings}</td><td class="hi tnum">${p.total}</td></tr>`).join("")||emptyRow(7)}</tbody>
   </table></div>`;
 }
@@ -2472,14 +2487,14 @@ function viewSchedule(v){
   const upcoming=fx.filter(f=>(f.date||"")>=today);
   const past=fx.filter(f=>(f.date||"")<today);
   const vt=t=>t==="home"?"Home":t==="away"?"Away":t==="neutral"?"Neutral":"";
-  const row=f=>{
+  const row=(f,isNext)=>{
     const rec=fixtureRecorded(f);
     const act = rec
       ? `<button class="btn ghost sm" onclick="viewFixtureResults('${f.id}')">View result</button>`
       : `<button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button>`;
-    return `<tr>
+    return `<tr${isNext?' class="fx-next"':""}>
      <td class="l">${fmtDateW(f.date)}</td>
-     <td class="l pname">vs ${esc(f.opponent||"—")}${rec?' <span class="chip">recorded</span>':""}</td>
+     <td class="l pname">vs ${esc(f.opponent||"—")}${isNext?' <span class="chip next">NEXT</span>':""}${rec?' <span class="chip">recorded</span>':""}</td>
      <td class="l">${esc(f.venue||"—")}${f.venueType?' <span class="chip'+(f.venueType==="away"?" red":"")+'">'+vt(f.venueType)+'</span>':""}</td>
      <td class="l">${esc(f.format||"")}</td>
      <td class="l dim">${esc(f.note||"")}</td>
@@ -2498,9 +2513,9 @@ function viewSchedule(v){
     <div class="field" style="flex:1;min-width:180px"><label>Note (optional)</label><input id="fx-note" placeholder="e.g. league semi-final" value="${fe?esc(fe.note||""):""}"></div>
   </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">${fe?"Save changes":"+ Add fixture"}</button>${fe?` <button class="btn ghost" style="margin-top:14px" onclick="cancelFixEdit()">Cancel</button>`:""}</div>`:""}
   <div class="eyebrow">Upcoming</div>
-  <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map(row).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
+  <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map((f,i)=>row(f,i===0)).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
   ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures</div>
-  <div class="table-wrap table-scroll"><table>${head}<tbody>${past.map(row).join("")}</tbody></table></div>`:""}`;
+  <div class="table-wrap table-scroll"><table>${head}<tbody>${past.map(f=>row(f,false)).join("")}</tbody></table></div>`:""}`;
 }
 function addFixture(){
   const g=id=>($("#"+id)||{}).value||"";
