@@ -722,6 +722,7 @@ function battingAgg(ms){
     if(b.runs===0&&b.out)p.ducks++;
   }));
   return Object.values(map).map(p=>{
+    p.matches=xiCount(p.name,ms);
     const outs=p.inns-p.no;
     p.avg=outs>0?p.runs/outs:null;
     p.sr=p.balls>0?p.runs/p.balls*100:0;
@@ -750,6 +751,7 @@ function bowlingAgg(ms){
     });
   });
   return Object.values(map).map(p=>{
+    p.matches=xiCount(p.name,ms);
     p.overs=ballsToOvers(p.balls);
     p.econ=p.balls>0?p.runs/(p.balls/6):0;
     p.avg=p.wkts>0?p.runs/p.wkts:null;
@@ -892,6 +894,19 @@ function miniSpark(series,color){
 function legendTable(segs){
   const total=segs.reduce((a,s)=>a+s.value,0)||1;
   return `<table class="leg-tbl"><tbody>${segs.map(s=>`<tr><td class="l"><span class="dot" style="background:${s.color}"></span>${esc(s.label)}</td><td class="tnum">${s.value}</td><td class="tnum dim">${(s.value/total*100).toFixed(0)}%</td></tr>`).join("")}</tbody></table>`;
+}
+function xiCount(name,ms){ return (ms||DATA.matches).reduce((n,m)=>{ const on=(m.xi&&m.xi.length)?m.xi.includes(name):((m.batting||[]).some(b=>b.name===name)||(m.bowling||[]).some(b=>b.name===name)||(m.fielding||[]).some(f=>f.name===name)); return n+(on?1:0); },0); }
+function captainPlayerAudit(ms){
+  const map={}; const get=k=>map[k]||(map[k]={name:k,mat:0,batInns:0,bowlInns:0,balls:0,runs:0,conc:0,wkts:0});
+  (ms||[]).forEach(m=>{
+    const xi=(m.xi&&m.xi.length)?m.xi.slice():[...new Set([...(m.batting||[]).map(b=>b.name),...(m.bowling||[]).map(b=>b.name),...(m.fielding||[]).map(f=>f.name)])];
+    xi.forEach(nm=>{ if(nm)get(nm).mat++; });
+    (m.batting||[]).forEach(b=>{ if(!b.name)return; const p=get(b.name); p.batInns++; p.runs+=inn(b).runs; });
+    const bm={}; (m.bowling||[]).forEach(x=>{ if(!x.name)return; const q=bm[x.name]||(bm[x.name]={balls:0,runs:0,wkts:0}); q.balls+=oversToBalls(x.overs); q.runs+=int(x.runs); q.wkts+=int(x.wickets); });
+    Object.keys(bm).forEach(nm=>{ const p=get(nm); p.bowlInns++; p.balls+=bm[nm].balls; p.conc+=bm[nm].runs; p.wkts+=bm[nm].wkts; });
+  });
+  return Object.values(map).map(p=>{ p.overs=ballsToOvers(p.balls); p.chances=p.batInns+p.bowlInns; return p; })
+    .sort((a,b)=>(b.mat-a.mat)||(a.chances-b.chances)||a.name.localeCompare(b.name));
 }
 /* ---------- Navigation ---------- */
 const NAV=[
@@ -1220,12 +1235,12 @@ function viewBatting(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBatInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("batting","name","Batsman","l")}${th("batting","inns","Inns")}${th("batting","no","NO")}${th("batting","runs","Runs")}${th("batting","hs","HS")}${th("batting","avg","Avg")}${th("batting","sr","SR")}${th("batting","fifties","50")}${th("batting","hundreds","100")}${th("batting","fours","4s")}${th("batting","sixes","6s")}${th("batting","dotPct","Dot%")}${th("batting","ducks","0s")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("batting","name","Batsman","l")}${th("batting","matches","Mat")}${th("batting","inns","Inns")}${th("batting","no","NO")}${th("batting","runs","Runs")}${th("batting","hs","HS")}${th("batting","avg","Avg")}${th("batting","sr","SR")}${th("batting","fifties","50")}${th("batting","hundreds","100")}${th("batting","fours","4s")}${th("batting","sixes","6s")}${th("batting","dotPct","Dot%")}${th("batting","ducks","0s")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
-      <td class="tnum dim">${p.inns}</td><td class="tnum dim">${p.no}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.hs}${p.hsNo?"*":""}</td>
+      <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum dim">${p.no}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.hs}${p.hsNo?"*":""}</td>
       <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(1)}</td>
-      <td class="tnum dim">${p.fifties}</td><td class="tnum dim">${p.hundreds}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dotPct.toFixed(0)}</td><td class="tnum dim">${p.ducks}</td></tr>`).join("")||emptyRow(14)}</tbody>
+      <td class="tnum dim">${p.fifties}</td><td class="tnum dim">${p.hundreds}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dotPct.toFixed(0)}</td><td class="tnum dim">${p.ducks}</td></tr>`).join("")||emptyRow(16)}</tbody>
   </table></div>`;
 }
 function viewBowling(v){
@@ -1239,11 +1254,11 @@ function viewBowling(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","matches","Mat")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
-      <td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(15)}</tbody>
+      <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(16)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
@@ -1547,6 +1562,7 @@ function viewCaptain(v,name){
   const seg=[{label:"Won",value:agg.w,color:"var(--pitch)"},{label:"Lost",value:agg.l,color:"var(--ball)"},{label:"Tied",value:agg.t,color:"var(--gold)"},{label:"No result",value:agg.nr,color:"var(--muted-2)"}];
   const wm={}; ms.forEach(m=>{const k=(m.date||"").slice(0,7); if(!k)return; if(m.result==="won") wm[k]=(wm[k]||0)+1;});
   const winMonths=Object.keys(wm).sort().map(k=>({label:monthLabel(k),v:wm[k]}));
+  const audit=captainPlayerAudit(ms);
   v.innerHTML=backbar+`
   <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)} <span class="chip cap" style="font-size:12px;vertical-align:middle">Captain</span></h2><div class="role">${agg.played} matches led · ${esc(ctx)}</div></div></div>
   ${fmtTabs(fmt,"onCapFmt")}
@@ -1569,6 +1585,11 @@ function viewCaptain(v,name){
         <div class="card stat-card"><div class="k">Top bowler</div><div class="v" style="font-size:18px">${topBowl?esc(topBowl.name):"—"}</div><div class="sub">${topBowl?topBowl.wkts+" wkts":""}</div></div>
       </div>
     </div>
+    <div><div class="eyebrow">Player opportunities under ${esc(name)}</div>
+    <p class="dim" style="font-size:12px;margin:2px 0 10px">Times in the XI vs how often each player actually batted or bowled under this captain — sorted by most selected. Handy for spotting who was under-used.</p>
+    <div class="table-wrap table-scroll"><table>
+      <thead><tr><th class="l">Player</th><th>Mat</th><th>Bat</th><th>Bowl</th><th>Overs</th><th>Runs</th><th>Conc</th><th>Wkts</th></tr></thead>
+      <tbody>${audit.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="tnum dim">${p.mat}</td><td class="tnum">${p.batInns}</td><td class="tnum">${p.bowlInns}</td><td class="tnum dim">${p.overs}</td><td class="tnum">${p.runs}</td><td class="tnum dim">${p.conc}</td><td class="hi tnum">${p.wkts}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
     <div><div class="eyebrow">Matches led</div><div class="table-wrap">${ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(matchRow).join("")}</div></div>
   </div>`;
 }
@@ -2085,15 +2106,15 @@ function pdfMatch(id){
 function pdfBatting(){
   const rows=sortRows(battingAgg(getMatches({opp:filterOpp.batting,period:filterPeriod.batting})),"runs",-1).slice(0,10);
   if(!rows.length){alert("No batting data to export for this filter yet.");return;}
-  const body='<table><thead><tr><th class="l">#</th><th class="l">Batsman</th><th>Inns</th><th>NO</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th><th>4s</th><th>6s</th><th>0s</th></tr></thead><tbody>'+
-    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.no+'</td><td>'+p.runs+'</td><td>'+p.hs+(p.hsNo?"*":"")+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+p.sr.toFixed(1)+'</td><td>'+p.fifties+'</td><td>'+p.hundreds+'</td><td>'+p.fours+'</td><td>'+p.sixes+'</td><td>'+p.ducks+'</td></tr>').join("")+'</tbody></table>';
+  const body='<table><thead><tr><th class="l">#</th><th class="l">Batsman</th><th>Mat</th><th>Inns</th><th>NO</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th><th>4s</th><th>6s</th><th>0s</th></tr></thead><tbody>'+
+    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.matches+'</td><td>'+p.inns+'</td><td>'+p.no+'</td><td>'+p.runs+'</td><td>'+p.hs+(p.hsNo?"*":"")+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+p.sr.toFixed(1)+'</td><td>'+p.fifties+'</td><td>'+p.hundreds+'</td><td>'+p.fours+'</td><td>'+p.sixes+'</td><td>'+p.ducks+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Batsmen", filterLabelPDF("batting"), body);
 }
 function pdfBowling(){
   const rows=sortRows(bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling})),"wkts",-1).slice(0,10);
   if(!rows.length){alert("No bowling data to export for this filter yet.");return;}
-  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>Dots</th></tr></thead><tbody>'+
-    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
+  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Mat</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>5W</th><th>Dots</th></tr></thead><tbody>'+
+    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.matches+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.fiveFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Bowlers", filterLabelPDF("bowling"), body);
 }
 /* ---- shared PDF table helper ---- */
