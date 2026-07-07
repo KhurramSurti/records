@@ -1547,6 +1547,8 @@ function viewCaptains(v){
   </table></div>`;
 }
 let capFmt="all", capFmtFor=null; window.onCapFmt=(f)=>{capFmt=f;router();};
+let capAuditSort={key:"mat",dir:-1};
+window.onCapAuditSort=(key)=>{ if(capAuditSort.key===key)capAuditSort.dir*=-1; else{capAuditSort.key=key;capAuditSort.dir=-1;} router(); };
 function viewCaptain(v,name){
   if(capFmtFor!==name){ capFmt="all"; capFmtFor=name; }
   const fmt=capFmt, ctx=fmtLabel(fmt);
@@ -1563,6 +1565,9 @@ function viewCaptain(v,name){
   const wm={}; ms.forEach(m=>{const k=(m.date||"").slice(0,7); if(!k)return; if(m.result==="won") wm[k]=(wm[k]||0)+1;});
   const winMonths=Object.keys(wm).sort().map(k=>({label:monthLabel(k),v:wm[k]}));
   const audit=captainPlayerAudit(ms);
+  const _ck=capAuditSort.key==="overs"?"balls":capAuditSort.key;
+  const auditSorted=audit.slice().sort((a,b)=>{ const d=capAuditSort.dir; if(_ck==="name")return d<0?b.name.localeCompare(a.name):a.name.localeCompare(b.name); const av=+a[_ck]||0,bv=+b[_ck]||0; return d<0?(bv-av):(av-bv); });
+  const ath=(key,label,cls="")=>`<th class="sortable ${cls}" onclick="onCapAuditSort('${key}')">${label}<span class="arr">${capAuditSort.key===key?(capAuditSort.dir<0?"▼":"▲"):""}</span></th>`;
   v.innerHTML=backbar+`
   <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)} <span class="chip cap" style="font-size:12px;vertical-align:middle">Captain</span></h2><div class="role">${agg.played} matches led · ${esc(ctx)}</div></div></div>
   ${fmtTabs(fmt,"onCapFmt")}
@@ -1588,8 +1593,8 @@ function viewCaptain(v,name){
     <div><div class="eyebrow">Player opportunities under ${esc(name)}</div>
     <p class="dim" style="font-size:12px;margin:2px 0 10px">Times in the XI vs how often each player actually batted or bowled under this captain — sorted by most selected. Handy for spotting who was under-used.</p>
     <div class="table-wrap table-scroll"><table>
-      <thead><tr><th class="l">Player</th><th>Mat</th><th>Bat</th><th>Bowl</th><th>Overs</th><th>Runs</th><th>Conc</th><th>Wkts</th></tr></thead>
-      <tbody>${audit.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="tnum dim">${p.mat}</td><td class="tnum">${p.batInns}</td><td class="tnum">${p.bowlInns}</td><td class="tnum dim">${p.overs}</td><td class="tnum">${p.runs}</td><td class="tnum dim">${p.conc}</td><td class="hi tnum">${p.wkts}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
+      <thead><tr>${ath("name","Player","l")}${ath("mat","Mat")}${ath("batInns","Bat")}${ath("bowlInns","Bowl")}${ath("overs","Overs")}${ath("runs","Runs")}${ath("conc","Conc")}${ath("wkts","Wkts")}</tr></thead>
+      <tbody>${auditSorted.map(p=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'"><td class="l pname">${esc(p.name)}</td><td class="tnum dim">${p.mat}</td><td class="tnum">${p.batInns}</td><td class="tnum">${p.bowlInns}</td><td class="tnum dim">${p.overs}</td><td class="tnum">${p.runs}</td><td class="tnum dim">${p.conc}</td><td class="hi tnum">${p.wkts}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
     <div><div class="eyebrow">Matches led</div><div class="table-wrap">${ms.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(matchRow).join("")}</div></div>
   </div>`;
 }
