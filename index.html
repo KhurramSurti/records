@@ -919,32 +919,39 @@ function battingByPosition(ms){
 }
 function overWorm(m){
   const rows=(m.bowling||[]);
-  if(!rows.length) return "";
-  let balls=0,runs=0; const pts=[{x:0,y:0,w:0}];
-  rows.forEach(r=>{ balls+=oversToBalls(r.overs); runs+=int(r.runs); pts.push({x:balls/6,y:runs,w:int(r.wickets)}); });
-  const totOv=balls/6, oppTot=runs, ourTot=int(m.ourTotal);
-  if(totOv<=0) return "";
-  const maxX=Math.max(totOv,1), maxY=Math.max(oppTot,ourTot,10);
+  // opponent innings — actual over-by-over from our bowling
+  let balls=0,runs=0; const opp=[{x:0,y:0,w:0}];
+  rows.forEach(r=>{ balls+=oversToBalls(r.overs); runs+=int(r.runs); opp.push({x:balls/6,y:runs,w:int(r.wickets)}); });
+  const oppOv=balls/6, oppTot=runs, hasOpp=rows.length>0&&oppOv>0;
+  // our innings — even run-rate estimate (we log batting per batsman, not per over)
+  const ourOv=oversToBalls(m.ourOvers)/6, ourTot=int(m.ourTotal), hasOur=ourTot>0&&ourOv>0;
+  if(!hasOpp&&!hasOur) return "";
+  const maxX=Math.max(oppOv,ourOv,1), maxY=Math.max(oppTot,ourTot,10);
   const W=700,H=300,padL=42,padR=16,padT=18,padB=36, iw=W-padL-padR, ih=H-padT-padB;
   const X=v=>padL+(v/maxX)*iw, Y=v=>padT+ih-(v/maxY)*ih;
-  const yStep=maxY<=60?10:maxY<=140?25:maxY<=300?50:100;
-  const xStep=maxX<=6?1:maxX<=12?2:maxX<=24?4:6;
+  const yStep=maxY<=60?10:maxY<=140?25:maxY<=300?50:100, xStep=maxX<=6?1:maxX<=12?2:maxX<=24?4:6;
   let grid="",yl="",xl="";
   for(let y=0;y<=maxY;y+=yStep){ grid+=`<line x1="${padL}" y1="${Y(y).toFixed(1)}" x2="${W-padR}" y2="${Y(y).toFixed(1)}" stroke="var(--line-soft)" stroke-width="1"/>`; yl+=`<text x="${padL-6}" y="${(Y(y)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">${y}</text>`; }
   for(let x=0;x<=maxX+0.001;x+=xStep){ xl+=`<text x="${X(x).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--mono)">${x}</text>`; }
-  const line=pts.map((p,i)=>`${i?"L":"M"}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
-  const area=line+` L${X(pts[pts.length-1].x).toFixed(1)} ${Y(0).toFixed(1)} L${X(0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
-  const wkMarks=pts.filter(p=>p.w>0).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="4.5" fill="var(--ball)" stroke="#fff" stroke-width="1.5"><title>Wicket at ${p.x.toFixed(0)} ov · ${p.y}</title></circle>`).join("");
-  const dots=pts.slice(1).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="2.4" fill="var(--sky)"/>`).join("");
-  const ref=ourTot>0?`<line x1="${padL}" y1="${Y(ourTot).toFixed(1)}" x2="${W-padR}" y2="${Y(ourTot).toFixed(1)}" stroke="var(--gold)" stroke-dasharray="5 4" stroke-width="1.4"/><text x="${W-padR}" y="${(Y(ourTot)-5).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--gold)" font-family="var(--mono)">Gold Hayat ${ourTot}</text>`:"";
   const gid="wg"+Math.random().toString(36).slice(2,6);
+  // opponent worm
+  let oppSvg="";
+  if(hasOpp){
+    const line=opp.map((p,i)=>`${i?"L":"M"}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
+    const area=line+` L${X(oppOv).toFixed(1)} ${Y(0).toFixed(1)} L${X(0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+    const dots=opp.slice(1).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="2.3" fill="var(--sky)"/>`).join("");
+    const wk=opp.filter(p=>p.w>0).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="4.5" fill="var(--ball)" stroke="#fff" stroke-width="1.5"><title>Wicket · ${p.x.toFixed(0)} ov · ${p.y}</title></circle>`).join("");
+    oppSvg=`<path d="${area}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="var(--sky)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${wk}`;
+  }
+  // our even-rate line
+  let ourSvg="";
+  if(hasOur){
+    ourSvg=`<path d="M${X(0).toFixed(1)} ${Y(0).toFixed(1)} L${X(ourOv).toFixed(1)} ${Y(ourTot).toFixed(1)}" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-dasharray="6 4" stroke-linecap="round"/><circle cx="${X(ourOv).toFixed(1)}" cy="${Y(ourTot).toFixed(1)}" r="3.5" fill="var(--gold)"/>`;
+  }
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky)" stop-opacity=".18"/><stop offset="1" stop-color="var(--sky)" stop-opacity="0"/></linearGradient></defs>
-    ${grid}${ref}
-    <path d="${area}" fill="url(#${gid})"/>
-    <path d="${line}" fill="none" stroke="var(--sky)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}${wkMarks}${yl}${xl}
-    <text x="${padL}" y="${H-4}" font-size="10" fill="var(--muted)">Overs →</text>
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky)" stop-opacity=".16"/><stop offset="1" stop-color="var(--sky)" stop-opacity="0"/></linearGradient></defs>
+    ${grid}${ourSvg}${oppSvg}${yl}${xl}
+    <text x="${padL}" y="${H-4}" font-size="10" fill="var(--muted)">Overs \u2192</text>
   </svg>`;
 }
 /* ---------- Navigation ---------- */
@@ -1259,7 +1266,7 @@ function viewScorecard(v,id){
 
   ${inningsOrder}
 
-  ${(m.bowling&&m.bowling.length)?`<div class="chart-card" style="margin:16px 0"><div class="cc-h">${esc(m.opponent||"Opponent")} innings — over by over</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:10px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>Runs</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>Wicket fell</span><span><i style="display:inline-block;width:16px;border-top:1.4px dashed var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat total</span></div>${overWorm(m)}</div>`:""}
+  ${(m.bowling&&m.bowling.length)?`<div class="chart-card" style="margin:16px 0"><div class="cc-h">Scoring comparison — over by over</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:4px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>${esc(m.opponent||"Opponent")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>wicket</span><span><i style="display:inline-block;width:16px;border-top:2px dashed var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat (even rate)</span></div><p class="dim" style="font-size:10.5px;margin:0 0 8px">The opponent line is our actual over-by-over bowling; Gold Hayat's is an even run-rate line (we log our batting per batsman, not per over).</p>${overWorm(m)}</div>`:""}
 
   ${(m.fielding&&m.fielding.length)?`<div class="sc-section-title">Gold Hayat — Fielding</div>
   <div class="table-wrap table-scroll"><table>
