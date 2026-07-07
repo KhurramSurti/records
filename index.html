@@ -1416,13 +1416,14 @@ function viewPlayer(v,name){
   pmatches.forEach(m=>(m.batting||[]).forEach(x=>{ if(x.name!==name)return; const d=x.dismissal||"caught"; dis[d]=(dis[d]||0)+1; }));
   const disSegs=Object.keys(dis).map(k=>({label:(DIS_META[k]||{l:k}).l,value:dis[k],color:(DIS_META[k]||{c:"var(--muted-2)"}).c}));
 
-  // per-innings series
+  // per-innings series (combine a bowler's spells within each match)
+  const combineBowl=(m,nm)=>{ const rows=(m.bowling||[]).filter(x=>x.name===nm); if(!rows.length)return null; let balls=0,runs=0,wkts=0; rows.forEach(x=>{balls+=oversToBalls(x.overs);runs+=int(x.runs);wkts+=int(x.wickets);}); return {wickets:wkts,runs:runs,overs:ballsToOvers(balls)}; };
   const runsSeries=[]; const wktSeries=[];
   pmatches.forEach(m=>{ const bx=(m.batting||[]).map(inn).find(x=>x.name===name); if(bx)runsSeries.push(bx.runs);
-    const wx=(m.bowling||[]).find(x=>x.name===name); if(wx)wktSeries.push(int(wx.wickets)); });
+    const wc=combineBowl(m,name); if(wc)wktSeries.push(wc.wickets); });
 
   // match log + vs team (selected format)
-  const log=pmatches.map(m=>({m,bat:(m.batting||[]).map(inn).find(x=>x.name===name),bw:(m.bowling||[]).find(x=>x.name===name)})).filter(r=>r.bat||r.bw).reverse();
+  const log=pmatches.map(m=>({m,bat:(m.batting||[]).map(inn).find(x=>x.name===name),bw:combineBowl(m,name)})).filter(r=>r.bat||r.bw).reverse();
   const vsMap={};
   pmatches.forEach(m=>{
     (m.batting||[]).map(inn).forEach(x=>{if(x.name!==name)return;const t=vsMap[m.opponent]||(vsMap[m.opponent]={opp:m.opponent,inns:0,runs:0,wkts:0,balls:0});t.inns++;t.runs+=x.runs;t.balls+=x.balls;});
@@ -2464,6 +2465,7 @@ let FIX_EDIT=null;
 window.editFixture=(id)=>{ FIX_EDIT=id; router(); try{window.scrollTo(0,0);}catch(e){} };
 window.cancelFixEdit=()=>{ FIX_EDIT=null; router(); };
 function fixtureRecorded(f){ const o=(f.opponent||"").trim().toLowerCase(); return (DATA.matches||[]).some(m=>m.date===f.date && (m.opponent||"").trim().toLowerCase()===o); }
+window.viewFixtureResults=(fid)=>{ const f=((DATA.fixtures)||[]).find(x=>x.id===fid); if(f){ const o=(f.opponent||"").trim().toLowerCase(); const m=(DATA.matches||[]).find(mm=>mm.date===f.date&&(mm.opponent||"").trim().toLowerCase()===o); try{ filterOpp.matches = m?m.opponent:f.opponent; filterPeriod.matches="all"; }catch(e){} } location.hash="#/matches"; };
 function viewSchedule(v){
   const today=new Date().toISOString().slice(0,10);
   const fx=((DATA.fixtures)||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
@@ -2473,7 +2475,7 @@ function viewSchedule(v){
   const row=f=>{
     const rec=fixtureRecorded(f);
     const act = rec
-      ? `<button class="btn ghost sm" onclick="location.hash='#/matches'">View result</button>`
+      ? `<button class="btn ghost sm" onclick="viewFixtureResults('${f.id}')">View result</button>`
       : `<button class="btn primary sm" onclick="playFixture('${f.id}')">Record result</button>`;
     return `<tr>
      <td class="l">${fmtDateW(f.date)}</td>
