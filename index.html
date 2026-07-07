@@ -920,13 +920,18 @@ function battingByPosition(ms){
 function overWorm(m){
   const rows=(m.bowling||[]);
   // opponent innings — actual over-by-over from our bowling
-  let balls=0,runs=0; const opp=[{x:0,y:0,w:0}];
-  rows.forEach(r=>{ balls+=oversToBalls(r.overs); runs+=int(r.runs); opp.push({x:balls/6,y:runs,w:int(r.wickets)}); });
-  const oppOv=balls/6, oppTot=runs, hasOpp=rows.length>0&&oppOv>0;
-  // our innings — even run-rate estimate (we log batting per batsman, not per over)
-  const ourOv=oversToBalls(m.ourOvers)/6, ourTot=int(m.ourTotal), hasOur=ourTot>0&&ourOv>0;
-  if(!hasOpp&&!hasOur) return "";
-  const maxX=Math.max(oppOv,ourOv,1), maxY=Math.max(oppTot,ourTot,10);
+  let ob=0,orn=0; const opp=[{x:0,y:0,w:0}];
+  rows.forEach(r=>{ ob+=oversToBalls(r.overs); orn+=int(r.runs); opp.push({x:ob/6,y:orn,w:int(r.wickets)}); });
+  const oppOv=ob/6, oppTot=orn, hasOpp=rows.length>0&&oppOv>0;
+  // our innings — actual over-by-over from opponent bowling (if entered)
+  const orows=(m.oppBowling||[]);
+  let ub=0,urn=0; const our=[{x:0,y:0,w:0}];
+  orows.forEach(r=>{ ub+=oversToBalls(r.overs); urn+=int(r.runs); our.push({x:ub/6,y:urn,w:int(r.wickets)}); });
+  const ourWormOv=ub/6, hasOurWorm=orows.length>0&&ourWormOv>0;
+  // fallback: even run-rate from total+overs
+  const ourOv=oversToBalls(m.ourOvers)/6, ourTot=int(m.ourTotal), hasOurRate=ourTot>0&&ourOv>0;
+  if(!hasOpp&&!hasOurWorm&&!hasOurRate) return "";
+  const maxX=Math.max(oppOv,ourWormOv,ourOv,1), maxY=Math.max(oppTot,ourTot,hasOurWorm?urn:0,10);
   const W=700,H=300,padL=42,padR=16,padT=18,padB=36, iw=W-padL-padR, ih=H-padT-padB;
   const X=v=>padL+(v/maxX)*iw, Y=v=>padT+ih-(v/maxY)*ih;
   const yStep=maxY<=60?10:maxY<=140?25:maxY<=300?50:100, xStep=maxX<=6?1:maxX<=12?2:maxX<=24?4:6;
@@ -934,20 +939,15 @@ function overWorm(m){
   for(let y=0;y<=maxY;y+=yStep){ grid+=`<line x1="${padL}" y1="${Y(y).toFixed(1)}" x2="${W-padR}" y2="${Y(y).toFixed(1)}" stroke="var(--line-soft)" stroke-width="1"/>`; yl+=`<text x="${padL-6}" y="${(Y(y)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">${y}</text>`; }
   for(let x=0;x<=maxX+0.001;x+=xStep){ xl+=`<text x="${X(x).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--mono)">${x}</text>`; }
   const gid="wg"+Math.random().toString(36).slice(2,6);
-  // opponent worm
-  let oppSvg="";
-  if(hasOpp){
-    const line=opp.map((p,i)=>`${i?"L":"M"}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
-    const area=line+` L${X(oppOv).toFixed(1)} ${Y(0).toFixed(1)} L${X(0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
-    const dots=opp.slice(1).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="2.3" fill="var(--sky)"/>`).join("");
-    const wk=opp.filter(p=>p.w>0).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="4.5" fill="var(--ball)" stroke="#fff" stroke-width="1.5"><title>Wicket · ${p.x.toFixed(0)} ov · ${p.y}</title></circle>`).join("");
-    oppSvg=`<path d="${area}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="var(--sky)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${wk}`;
-  }
-  // our even-rate line
+  const worm=(arr,color,fillId)=>{ const line=arr.map((p,i)=>`${i?"L":"M"}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
+    const area=fillId?line+` L${X(arr[arr.length-1].x).toFixed(1)} ${Y(0).toFixed(1)} L${X(0).toFixed(1)} ${Y(0).toFixed(1)} Z`:"";
+    const dots=arr.slice(1).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="2.3" fill="${color}"/>`).join("");
+    const wk=arr.filter(p=>p.w>0).map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="4.5" fill="var(--ball)" stroke="#fff" stroke-width="1.5"><title>Wicket · ${p.x.toFixed(0)} ov · ${p.y}</title></circle>`).join("");
+    return (fillId?`<path d="${area}" fill="url(#${fillId})"/>`:"")+`<path d="${line}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${wk}`; };
   let ourSvg="";
-  if(hasOur){
-    ourSvg=`<path d="M${X(0).toFixed(1)} ${Y(0).toFixed(1)} L${X(ourOv).toFixed(1)} ${Y(ourTot).toFixed(1)}" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-dasharray="6 4" stroke-linecap="round"/><circle cx="${X(ourOv).toFixed(1)}" cy="${Y(ourTot).toFixed(1)}" r="3.5" fill="var(--gold)"/>`;
-  }
+  if(hasOurWorm){ ourSvg=worm(our,"var(--gold)",""); }
+  else if(hasOurRate){ ourSvg=`<path d="M${X(0).toFixed(1)} ${Y(0).toFixed(1)} L${X(ourOv).toFixed(1)} ${Y(ourTot).toFixed(1)}" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-dasharray="6 4" stroke-linecap="round"/><circle cx="${X(ourOv).toFixed(1)}" cy="${Y(ourTot).toFixed(1)}" r="3.5" fill="var(--gold)"/>`; }
+  const oppSvg=hasOpp?worm(opp,"var(--sky)",gid):"";
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky)" stop-opacity=".16"/><stop offset="1" stop-color="var(--sky)" stop-opacity="0"/></linearGradient></defs>
     ${grid}${ourSvg}${oppSvg}${yl}${xl}
@@ -1266,7 +1266,7 @@ function viewScorecard(v,id){
 
   ${inningsOrder}
 
-  ${(m.bowling&&m.bowling.length)?`<div class="chart-card" style="margin:16px 0"><div class="cc-h">Scoring comparison — over by over</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:4px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>${esc(m.opponent||"Opponent")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>wicket</span><span><i style="display:inline-block;width:16px;border-top:2px dashed var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat (even rate)</span></div><p class="dim" style="font-size:10.5px;margin:0 0 8px">The opponent line is our actual over-by-over bowling; Gold Hayat's is an even run-rate line (we log our batting per batsman, not per over).</p>${overWorm(m)}</div>`:""}
+  ${(m.bowling&&m.bowling.length)?(()=>{const realOur=(m.oppBowling&&m.oppBowling.length);return `<div class="chart-card" style="margin:16px 0"><div class="cc-h">Scoring comparison — over by over</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:4px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>${esc(m.opponent||"Opponent")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>wicket</span><span><i style="display:inline-block;width:16px;border-top:2px ${realOur?"solid":"dashed"} var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat${realOur?"":" (even rate)"}</span></div><p class="dim" style="font-size:10.5px;margin:0 0 8px">${realOur?"Both lines are actual over-by-over, with dots where each side's wickets fell.":"The opponent line is our actual over-by-over bowling; Gold Hayat's is an even run-rate line. Add \u201cOpponent bowling\u201d when editing the match to draw our real over-by-over line and fall of wickets."}</p>${overWorm(m)}</div>`;})():""}
 
   ${(m.fielding&&m.fielding.length)?`<div class="sc-section-title">Gold Hayat — Fielding</div>
   <div class="table-wrap table-scroll"><table>
@@ -1787,6 +1787,11 @@ function viewAdd(v){
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow()">+ Add fielder</button></div>
+  <div class="form-section" id="sec-oppbowl"><h3>Opponent bowling <span style="font-weight:400;font-size:12px;color:var(--muted)">— optional · only feeds the worm graph (kept out of all stats & reports)</span></h3><div class="table-scroll"><table class="entry-table">
+    <thead><tr><th class="l">Opp. bowler (optional)</th><th>Overs</th><th>Runs</th><th>Wkts</th><th></th></tr></thead>
+    <tbody id="oppbowl-rows"></tbody></table></div>
+    <button class="btn ghost sm" style="margin-top:10px" onclick="addOppBowlRow()">+ Add over/spell</button>
+    <p class="dim" style="font-size:11px;margin-top:8px">Enter each over (or spell) the opposition bowled at us, in order — the runs we scored off it and any of our wickets that fell. This draws Gold Hayat's real over-by-over line and fall of wickets on the worm graph. Nothing here is stored in any bowling stat or report.</p></div>
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">
     <button class="btn primary" id="save-btn" onclick="saveMatch()">Save match</button>
@@ -1795,6 +1800,7 @@ function viewAdd(v){
   const P=FORMPREFILL; FORMPREFILL=null; EDIT_ID=(P&&P.editId)||null;
   if(P&&P.batting&&P.batting.length){ P.batting.forEach(b=>addBatRow(b)); } else { for(let i=0;i<5;i++)addBatRow(); }
   if(P&&P.bowling&&P.bowling.length){ P.bowling.forEach(b=>addBowlRow(b)); } else { for(let i=0;i<5;i++)addBowlRow(); }
+  if(P&&P.oppBowling&&P.oppBowling.length){ P.oppBowling.forEach(b=>addOppBowlRow(b)); } else { for(let i=0;i<3;i++)addOppBowlRow(); }
   if(P&&P.fielding&&P.fielding.length){ P.fielding.forEach(b=>addFieldRow(b)); } else { for(let i=0;i<3;i++)addFieldRow(); }
   if(P){
     const setv=(id,val)=>{const el=$("#"+id); if(el&&val!=null&&val!=="")el.value=val;};
@@ -1834,6 +1840,16 @@ function addBatRow(d){
   if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
     set("name",d.name);set("dots",d.dots);set("ones",d.ones);set("twos",d.twos);set("threes",d.threes);set("fours",d.fours);set("sixes",d.sixes);
     set("dismissal",d.dismissal); set("who",d.fielder||d.bowler||""); recalcBat(id); }
+}
+function addOppBowlRow(d){
+  const id="ow"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
+  tr.innerHTML=`<td><input class="name" data-k="name" placeholder="e.g. Bowler 1 (optional)"></td>
+    <td><input class="num" data-k="overs" placeholder="1"></td>
+    <td><input class="num" type="number" data-k="runs" placeholder="0"></td>
+    <td><input class="num" type="number" data-k="wickets" placeholder="0"></td>
+    <td><button class="row-del" onclick="this.closest('tr').remove()">\u00d7</button></td>`;
+  $("#oppbowl-rows").appendChild(tr);
+  if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;}; set("name",d.name);set("overs",d.overs);set("runs",d.runs);set("wickets",d.wickets); }
 }
 function addBowlRow(d){
   const id="w"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
@@ -1958,12 +1974,13 @@ function saveMatch(){
   });
   if(!g("f-opp").trim()){alert("Please enter the opponent name.");return;}
   if(bat.length===0){alert("Add at least one batsman.");return;}
+  const oppBowling=[];document.querySelectorAll("#oppbowl-rows tr").forEach(tr=>{ const gv=k=>((tr.querySelector("[data-k='"+k+"']")||{}).value||""); const ov=gv("overs").trim(),rn=gv("runs").trim(),wk=gv("wickets").trim(); if(ov!==""||rn!==""||wk!==""){ oppBowling.push({name:gv("name").trim(),overs:ov||"0",runs:int(rn),wickets:int(wk)}); } });
   const match={id:"m"+Date.now(),date:g("f-date")||new Date().toISOString().slice(0,10),
     opponent:g("f-opp").trim(),captain:g("f-captain").trim(),ground:g("f-ground").trim(),venueType:g("f-venuetype"),format:g("f-format").trim(),
     toss:g("f-toss"),decision:g("f-decision"),
     ourTotal:int(g("f-ourtotal")),ourWickets:int(g("f-ourwkts")),ourOvers:g("f-ourovers").trim(),
     oppTotal:int(g("f-opptotal")),oppWickets:int(g("f-oppwkts")),oppOvers:g("f-oppovers").trim(),
-    result:g("f-result"),motm:g("f-motm").trim(),xi:(xi&&xi.length?xi:undefined),batting:bat,bowling:bowl,fielding:field};
+    result:g("f-result"),motm:g("f-motm").trim(),xi:(xi&&xi.length?xi:undefined),batting:bat,bowling:bowl,fielding:field,oppBowling:(oppBowling.length?oppBowling:undefined)};
   const _ex=EDIT_ID?DATA.matches.find(m=>m.id===EDIT_ID):null;
   match.seq=(_ex&&_ex.seq!=null)?_ex.seq:(DATA.matches.reduce((a,m)=>Math.max(a,m.seq||0),0)+1);
   if(EDIT_ID){ const i=DATA.matches.findIndex(m=>m.id===EDIT_ID); match.id=EDIT_ID; if(i>=0)DATA.matches[i]=match; else DATA.matches.push(match); EDIT_ID=null; }
@@ -2090,7 +2107,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
+Object.assign(window,{addBatRow,addBowlRow,addOppBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
@@ -2628,7 +2645,7 @@ function editMatch(id){
     toss:m.toss,decision:m.decision,ourTotal:m.ourTotal,ourWickets:m.ourWickets,ourOvers:m.ourOvers,
     oppTotal:m.oppTotal,oppWickets:m.oppWickets,oppOvers:m.oppOvers,result:m.result,motm:m.motm,
     xi:(m.xi&&m.xi.length?m.xi.slice():undefined),
-    batting:(m.batting||[]).map(b=>({...b})), bowling:(m.bowling||[]).map(b=>({...b})), fielding:(m.fielding||[]).map(b=>({...b})) };
+    batting:(m.batting||[]).map(b=>({...b})), bowling:(m.bowling||[]).map(b=>({...b})), fielding:(m.fielding||[]).map(b=>({...b})), oppBowling:(m.oppBowling&&m.oppBowling.length?m.oppBowling.map(b=>({...b})):undefined) };
   location.hash="#/add";
 }
 function deleteMatch(id){
