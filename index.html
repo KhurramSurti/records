@@ -842,8 +842,8 @@ function barsH(items){
 }
 function sparkBars(series){
   const max=Math.max(...series,1),w=Math.max(320,series.length*40),h=120,bw=Math.min(30,(w-20)/series.length-8);
-  const bars=series.map((val,i)=>{const bh=Math.max(2,val/max*(h-28));const x=10+i*((w-20)/series.length);const y=h-bh-18;
-    return `<rect class="bar" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="3"/><text x="${x+bw/2}" y="${y-4}" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="var(--mono)">${val}</text>`;}).join("");
+  const bars=series.map((val,i)=>{const bh=Math.max(2,val/max*(h-44));const x=10+i*((w-20)/series.length);const y=h-bh-18;
+    return `<rect class="bar" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="3"/><text x="${x+bw/2}" y="${y-5}" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="var(--mono)">${val}</text>`;}).join("");
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${bars}</svg>`;
 }
 function monthLabel(ym){ const d=new Date(ym+"-01T00:00"); return isNaN(d)?ym:d.toLocaleDateString("en-GB",{month:"short",year:"2-digit"}); }
