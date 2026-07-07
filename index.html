@@ -908,6 +908,15 @@ function captainPlayerAudit(ms){
   return Object.values(map).map(p=>{ p.overs=ballsToOvers(p.balls); p.chances=p.batInns+p.bowlInns; return p; })
     .sort((a,b)=>(b.mat-a.mat)||(a.chances-b.chances)||a.name.localeCompare(b.name));
 }
+function battingByPosition(ms){
+  const pos={};
+  (ms||DATA.matches).forEach(m=>{ (m.batting||[]).forEach((raw,i)=>{ const b=inn(raw); if(!b.name)return; const p=raw.position||(i+1);
+    const bucket=pos[p]||(pos[p]={}); const e=bucket[b.name]||(bucket[b.name]={name:b.name,runs:0,inns:0,hs:0,balls:0});
+    e.runs+=b.runs; e.inns++; e.balls+=b.balls; if(b.runs>e.hs)e.hs=b.runs; }); });
+  const out={};
+  Object.keys(pos).forEach(p=>{ out[p]=Object.values(pos[p]).map(e=>{e.avg=e.inns?e.runs/e.inns:0; e.sr=e.balls?e.runs/e.balls*100:0; return e;}).sort((a,b)=>(b.runs-a.runs)||(b.hs-a.hs)); });
+  return out;
+}
 /* ---------- Navigation ---------- */
 const NAV=[
   {id:"dashboard",label:"Dashboard",section:"Overview",icon:"grid"},
@@ -920,6 +929,7 @@ const NAV=[
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
   {id:"players",label:"Players",section:"Leaderboards",icon:"user"},
   {id:"compare",label:"Compare",section:"Leaderboards",icon:"compare"},
+  {id:"positions",label:"By position",section:"Leaderboards",icon:"bat"},
   {id:"captains",label:"Captains",section:"Team",icon:"star"},
   {id:"venues",label:"Venues",section:"Team",icon:"pin"},
   {id:"records",label:"Records",section:"Team",icon:"trophy"},
@@ -1014,7 +1024,7 @@ function router(){
   setActive(route);
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
-    fielding:viewFielding,players:viewPlayers,compare:viewCompare,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
+    fielding:viewFielding,players:viewPlayers,compare:viewCompare,positions:viewPositions,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
     records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,reports:viewReports,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
@@ -1047,6 +1057,8 @@ function viewDashboard(v){
   const totalRuns=tms.reduce((a,m)=>a+int(m.ourTotal),0);
   const totalWkts=bowlAgg.reduce((a,p)=>a+p.wkts,0);
   const bestBowl=sortRows(bowlAgg,"wkts",-1)[0];
+  let bestSpell=null;
+  bowlAgg.forEach(p=>{ if(p.best&&p.best.w>=0){ if(!bestSpell||p.best.w>bestSpell.w||(p.best.w===bestSpell.w&&p.best.r<bestSpell.r)) bestSpell={name:p.name,w:p.best.w,r:p.best.r}; } });
   const topBat=bat[0];
   // per-match series for sparklines
   const runsSeq=ordered.map(m=>int(m.ourTotal));
@@ -1076,7 +1088,7 @@ function viewDashboard(v){
     kpi("var(--sky)","rgba(90,151,224,.15)","📊","Total runs",totalRuns,topBat?("top "+esc(topBat.name.split(" ")[0])+" "+topBat.runs):"our batting",miniSpark(runsSeq,"var(--sky)")),
     kpi("var(--ball)","rgba(216,72,60,.15)","🎯","Total wickets",totalWkts,bestBowl?("top "+esc(bestBowl.name.split(" ")[0])+" "+bestBowl.wkts):"our bowling",miniSpark(wktsSeq,"var(--ball)")),
     kpi("var(--gold)","var(--gold-soft)","⬆️","Highest total",s.hi,`lowest ${s.lo}`,miniSpark(hiSeq,"var(--gold)")),
-    kpi("var(--pitch)","rgba(63,166,106,.15)","🔥","Best bowling",bestBowl?bestBowl.bbi:"—",bestBowl?esc(bestBowl.name):"—",miniSpark(runsSeq,"var(--pitch)"))
+    kpi("var(--pitch)","rgba(63,166,106,.15)","🔥","Best bowling",bestSpell?bestSpell.w+"/"+bestSpell.r:"—",bestSpell?esc(bestSpell.name):"—",miniSpark(runsSeq,"var(--pitch)"))
   ].join("");
   const runBars=bat.filter(p=>p.runs>0).map(p=>({label:p.name,value:p.runs,display:p.runs,href:"#/player/"+encodeURIComponent(p.name)}));
   const wktBars=bowl.filter(p=>p.wkts>0).map(p=>({label:p.name,value:p.wkts,display:p.wkts,href:"#/player/"+encodeURIComponent(p.name)}));
@@ -1632,6 +1644,22 @@ function viewRecords(v){
     <thead><tr><th class="l">Opponent</th><th>Played</th><th>Won</th><th>Lost</th><th>Win%</th></tr></thead>
     <tbody>${opponents().map(o=>{const ms=DATA.matches.filter(m=>m.opponent===o);const w=ms.filter(m=>m.result==="won").length;const l=ms.filter(m=>m.result==="lost").length;const dec=w+l+ms.filter(m=>m.result==="tie").length;return `<tr><td class="l pname">${esc(o)}</td><td class="tnum dim">${ms.length}</td><td class="tnum" style="color:var(--pitch)">${w}</td><td class="tnum" style="color:#e37a70">${l}</td><td class="tnum hi">${dec?(w/dec*100).toFixed(0):"—"}%</td></tr>`;}).join("")||emptyRow(5)}</tbody>
   </table></div>`;
+}
+let posFmt="all";
+window.onPosFmt=(f)=>{ posFmt=f; router(); };
+function viewPositions(v){
+  const fmt=posFmt, ctx=fmtLabel(fmt);
+  const ms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
+  const byPos=battingByPosition(ms);
+  const keys=Object.keys(byPos).map(Number).sort((a,b)=>a-b);
+  const body=keys.length?keys.map(p=>{
+    const rows=byPos[p];
+    const leader=rows[0];
+    return `<div class="chart-card" style="margin-bottom:14px"><div class="cc-h" style="display:flex;justify-content:space-between"><span>Position ${p}</span>${leader?`<span style="color:var(--gold);text-transform:none;letter-spacing:0">${esc(leader.name)} · ${leader.runs}</span>`:""}</div>
+      <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Batsman</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th></tr></thead>
+      <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="hi tnum">${e.runs}</td><td class="tnum">${e.hs}</td><td class="tnum">${e.avg.toFixed(1)}</td><td class="tnum dim">${e.sr.toFixed(0)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }).join(""):`<div class="notice">No batting recorded in ${esc(ctx)} yet.</div>`;
+  v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Runs by batting position</h2><p>Which batsman scores most at each spot in the order — compare who's done best at 1, 2, 3 and so on. Tap a name for the full profile.</p></div>${fmtTabs(fmt,"onPosFmt")}${body}`;
 }
 let FORMPREFILL=null; let EDIT_ID=null; let LIVE=null;
 /* ============================================================ SQUAD (roster) ============================================================ */
@@ -2638,7 +2666,29 @@ async function refreshData(){
   }catch(e){ toast("Couldn't refresh — check your connection"); }
   set("↻ Refresh data",false);
 }
-(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json",{cache:"no-store"});if(res.ok){const j=await res.json();applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();bindSounds();})();
+let _lastSig="", _autoTimer=null;
+function _dataSig(d){ try{ return JSON.stringify({m:d&&d.matches, f:d&&d.fixtures, c:d&&d.config}); }catch(e){ return String(Math.random()); } }
+async function autoRefresh(){
+  try{
+    if(canEdit() && isDirty()) return;                                   // don't clobber unsaved owner edits
+    const route=(location.hash||"").replace(/^#\//,"").split("/")[0];
+    if(["add","squad","data","live"].indexOf(route)>=0) return;          // don't disrupt editing / live scoring
+    const res=await fetch("data.json?t="+Date.now(),{cache:"no-store"});
+    if(!res.ok) return;
+    const j=await res.json();
+    const sig=_dataSig(j);
+    if(sig===_lastSig) return;                                            // nothing changed -> no re-render
+    _lastSig=sig;
+    DATA=normalize(j);
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA)); }catch(e){}
+    applyRemoteConfig((j&&j.config)||{});
+    try{ const u=localStorage.getItem(LS_UNLOCK); EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash); }catch(e){}
+    renderNav(); router();
+    toast("Updated to the latest data \u2713");
+  }catch(e){}
+}
+function startAutoRefresh(){ if(_autoTimer)clearInterval(_autoTimer); _lastSig=_dataSig(DATA); _autoTimer=setInterval(autoRefresh, 5*60*1000); }
+(async function(){DATA=await loadData();try{LIVE=JSON.parse(localStorage.getItem("goldhayat_live")||"null");}catch(e){LIVE=null;}try{const res=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(res.ok){const j=await res.json();if(!isDirty()){DATA=normalize(j);try{localStorage.setItem(LS_KEY,JSON.stringify(DATA));}catch(e){}}applyRemoteConfig((j&&j.config)||{});}}catch(e){}try{const u=localStorage.getItem(LS_UNLOCK);EDIT_UNLOCKED=!!(u&&DATA.config&&u===DATA.config.editHash);}catch(e){EDIT_UNLOCKED=false;}paintBrand();applyTheme(currentTheme());renderNav();router();bindSounds();startAutoRefresh();})();
 /* ============================================================ LIVE SCORING ============================================================
    Ball-by-ball, offline, auto-saved to this browser after every tap.
    We only score OUR team: our batting (per-batter shots) and our bowling
