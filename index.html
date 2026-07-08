@@ -1291,7 +1291,7 @@ function viewBatting(v){
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum dim">${p.no}</td><td class="hi tnum">${p.runs}</td><td class="tnum">${p.hs}${p.hsNo?"*":""}</td>
       <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr.toFixed(1)}</td>
-      <td class="tnum dim">${p.fifties}</td><td class="tnum dim">${p.hundreds}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dotPct.toFixed(0)}</td><td class="tnum dim">${p.ducks}</td></tr>`).join("")||emptyRow(16)}</tbody>
+      <td class="tnum dim">${p.fifties}</td><td class="tnum dim">${p.hundreds}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dotPct.toFixed(0)}</td><td class="tnum dim">${p.ducks}</td></tr>`).join("")||emptyRow(15)}</tbody>
   </table></div>`;
 }
 function viewBowling(v){
@@ -1305,11 +1305,11 @@ function viewBowling(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","matches","Mat")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","matches","Mat")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fiveFer","5W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(16)}</tbody>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(17)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
