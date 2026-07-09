@@ -957,11 +957,17 @@ function overWorm(m){
 function bowlingByPosition(ms){
   const pos={};
   (ms||DATA.matches).forEach(m=>{
-    const order=[],seen={};
-    (m.bowling||[]).forEach(r=>{ if(r.name&&!seen[r.name]){ seen[r.name]=true; order.push(r.name); } });
-    const per={};
-    (m.bowling||[]).forEach(r=>{ if(!r.name)return; const q=per[r.name]||(per[r.name]={balls:0,runs:0,wkts:0}); q.balls+=oversToBalls(r.overs); q.runs+=int(r.runs); q.wkts+=int(r.wickets); });
-    order.forEach((nm,i)=>{ const p=i+1, bucket=pos[p]||(pos[p]={}); const e=bucket[nm]||(bucket[nm]={name:nm,balls:0,runs:0,wkts:0,inns:0}); const q=per[nm]; e.balls+=q.balls; e.runs+=q.runs; e.wkts+=q.wkts; e.inns++; });
+    let overNo=0;               // overs bowled so far in this match
+    (m.bowling||[]).forEach(r=>{
+      const ov=oversToBalls(r.overs)/6;
+      if(r.name){
+        const p=Math.floor(overNo)+1;   // the over-number this spell starts at (1st over, 2nd over, ...)
+        const bucket=pos[p]||(pos[p]={});
+        const e=bucket[r.name]||(bucket[r.name]={name:r.name,balls:0,runs:0,wkts:0,inns:0});
+        e.balls+=oversToBalls(r.overs); e.runs+=int(r.runs); e.wkts+=int(r.wickets); e.inns++;
+      }
+      overNo+=ov||0;
+    });
   });
   const out={};
   Object.keys(pos).forEach(p=>{ out[p]=Object.values(pos[p]).map(e=>{ e.overs=ballsToOvers(e.balls); e.econ=e.balls?e.runs/(e.balls/6):0; e.avg=e.wkts?e.runs/e.wkts:null; return e; }).sort((a,b)=>(b.wkts-a.wkts)||(a.econ-b.econ)); });
@@ -1721,14 +1727,14 @@ function viewBowlPositions(v){
   const ms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
   const byPos=bowlingByPosition(ms);
   const keys=Object.keys(byPos).map(Number).sort((a,b)=>a-b);
-  const roleName=p=>p===1?"opening bowler":p===2?"first change":p===3?"second change":p+"th change";
+  const ordn=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}; const roleName=p=>ordn(p)+" over";
   const body=keys.length?keys.map(p=>{
     const rows=byPos[p]; const leader=rows[0];
-    return `<div class="chart-card" style="margin-bottom:14px"><div class="cc-h" style="display:flex;justify-content:space-between"><span>Position ${p} <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400">· ${roleName(p)}</span></span>${leader?`<span style="color:var(--gold);text-transform:none;letter-spacing:0">${esc(leader.name)} · ${leader.wkts}w</span>`:""}</div>
+    return `<div class="chart-card" style="margin-bottom:14px"><div class="cc-h" style="display:flex;justify-content:space-between"><span>${roleName(p)} <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400">· over ${p}</span></span>${leader?`<span style="color:var(--gold);text-transform:none;letter-spacing:0">${esc(leader.name)} · ${leader.wkts}w</span>`:""}</div>
       <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="tnum dim">${e.overs}</td><td class="tnum">${e.runs}</td><td class="hi tnum">${e.wkts}</td><td class="tnum">${e.econ.toFixed(2)}</td><td class="tnum dim">${e.avg==null?"—":e.avg.toFixed(1)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No bowling recorded in ${esc(ctx)} yet.</div>`;
-  v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler performs best at each spot in the bowling order — position 1 is whoever opened the bowling, 2 is first change, and so on. Sorted by wickets. Tap a name for the full profile.</p></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
+  v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
 }
 let FORMPREFILL=null; let EDIT_ID=null; let LIVE=null;
 /* ============================================================ SQUAD (roster) ============================================================ */
