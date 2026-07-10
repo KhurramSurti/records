@@ -747,7 +747,7 @@ function bowlingAgg(ms){
       p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
       const w=pm.wkts,r=pm.runs;
       if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
-      if(w>=5)p.fiveFer++;else if(w>=3)p.threeFer++;
+      if(w>=3)p.threeFer++;if(w>=5)p.fiveFer++;
     });
   });
   return Object.values(map).map(p=>{
