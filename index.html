@@ -544,7 +544,8 @@ tr.lb-top .pname{color:var(--gold)}
 
 /* ---- bat-first-vs-chase split tables (premium) ---- */
 .split-tbl thead tr:first-child th[colspan]{font-size:9.5px;letter-spacing:.1em;color:var(--gold);font-weight:700;padding:10px 8px 6px}
-.split-tbl thead tr:last-child th{font-size:9.5px;color:var(--muted);font-weight:600;padding-top:4px;padding-bottom:8px}
+.split-tbl thead tr:last-child th{font-size:9.5px;color:var(--muted);font-weight:600;padding-top:4px;padding-bottom:8px;text-align:right}
+.split-tbl thead tr:last-child th.l{text-align:left}
 .split-tbl .dv{border-right:1px solid var(--line-soft)}
 .split-tbl thead tr:first-child th.grp{text-align:center}
 .split-tbl th.sortable{cursor:pointer;white-space:nowrap}
@@ -1781,6 +1782,7 @@ function viewSplits(v){
   const sortBy=(rows,st)=>rows.sort((a,b)=>{ const av=gv(a,st.col),bv=gv(b,st.col); if(st.col==="name")return st.dir<0?String(bv).localeCompare(String(av)):String(av).localeCompare(String(bv)); return st.dir<0?(bv-av):(av-bv); });
   const sar=(tbl,col)=>{ const st=splitSort[tbl]; return st.col===col?(st.dir<0?'<span class="arr">▼</span>':'<span class="arr">▲</span>'):'<span class="arr"></span>'; };
   const sh=(tbl,col,label,cls)=>`<th class="sortable ${cls||''}" onclick="onSplitSort('${tbl}','${col}')">${label}${sar(tbl,col)}</th>`;
+  const shN=(tbl,label)=>`<th class="l sortable" rowspan="2" style="vertical-align:bottom;padding-bottom:8px" onclick="onSplitSort('${tbl}','name')">${label}${sar(tbl,"name")}</th>`;
   const num=(o,k,dp)=>{ if(!o)return "—"; const val=o[k]; if(val==null)return "—"; return dp!=null?val.toFixed(dp):val; };
   // batsmen split
   const bfA=battingAgg(batFirst), chA=battingAgg(chase); const bmap={};
@@ -1788,7 +1790,7 @@ function viewSplits(v){
   let batRows=Object.values(bmap).map(x=>({name:x.name,f:x.f,c:x.c,tot:(x.f?x.f.runs:0)+(x.c?x.c.runs:0)})).filter(x=>x.tot>0);
   sortBy(batRows,splitSort.bat);
   const batTable=batRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">${sh("bat","name","Batsman","l")}</th><th colspan="4" class="grp dv">Batting first</th><th colspan="4" class="grp">Chasing</th></tr>
+    <thead><tr>${shN("bat","Batsman")}<th colspan="4" class="grp dv">Batting first</th><th colspan="4" class="grp">Chasing</th></tr>
     <tr>${sh("bat","f.inns","Inns")}${sh("bat","f.runs","Runs")}${sh("bat","f.avg","Avg")}${sh("bat","f.sr","SR","dv")}${sh("bat","c.inns","Inns")}${sh("bat","c.runs","Runs")}${sh("bat","c.avg","Avg")}${sh("bat","c.sr","SR")}</tr></thead>
     <tbody>${batRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${num(r.f,"inns")}</td><td class="tnum"${hl(r.f?r.f.runs:0,r.c?r.c.runs:0)}>${num(r.f,"runs")}</td><td class="tnum dim">${num(r.f,"avg",1)}</td><td class="tnum dim dv">${num(r.f,"sr",0)}</td><td class="tnum dim">${num(r.c,"inns")}</td><td class="tnum"${hl(r.c?r.c.runs:0,r.f?r.f.runs:0)}>${num(r.c,"runs")}</td><td class="tnum dim">${num(r.c,"avg",1)}</td><td class="tnum dim">${num(r.c,"sr",0)}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No batting yet");
   // bowlers split
@@ -1797,14 +1799,14 @@ function viewSplits(v){
   let bowlRows=Object.values(wmap).map(x=>({name:x.name,f:x.f,d:x.d,tot:(x.f?x.f.wkts:0)+(x.d?x.d.wkts:0)})).filter(x=>x.tot>0);
   sortBy(bowlRows,splitSort.bowl);
   const bowlTable=bowlRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">${sh("bowl","name","Bowler","l")}</th><th colspan="4" class="grp dv">Bowling first</th><th colspan="4" class="grp">Defending a total</th></tr>
+    <thead><tr>${shN("bowl","Bowler")}<th colspan="4" class="grp dv">Bowling first</th><th colspan="4" class="grp">Defending a total</th></tr>
     <tr>${sh("bowl","f.overs","Overs")}${sh("bowl","f.runs","Runs")}${sh("bowl","f.wkts","Wkts")}${sh("bowl","f.econ","Econ","dv")}${sh("bowl","d.overs","Overs")}${sh("bowl","d.runs","Runs")}${sh("bowl","d.wkts","Wkts")}${sh("bowl","d.econ","Econ")}</tr></thead>
     <tbody>${bowlRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.f?r.f.overs:"—"}</td><td class="tnum dim">${num(r.f,"runs")}</td><td class="tnum"${hl(r.f?r.f.wkts:0,r.d?r.d.wkts:0)}>${num(r.f,"wkts")}</td><td class="tnum dim dv">${r.f?r.f.econ.toFixed(2):"—"}</td><td class="tnum dim">${r.d?r.d.overs:"—"}</td><td class="tnum dim">${num(r.d,"runs")}</td><td class="tnum"${hl(r.d?r.d.wkts:0,r.f?r.f.wkts:0)}>${num(r.d,"wkts")}</td><td class="tnum dim">${r.d?r.d.econ.toFixed(2):"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No bowling yet");
   // captains split
   let capRows=captains(all).map(c=>{ const cm=all.filter(m=>m.captain===c); const ch=teamSummary(cm.filter(m=>m.decision==="bowl")); const df=teamSummary(cm.filter(m=>m.decision==="bat")); return {name:c,ch,df,tot:(ch.played+df.played)}; }).filter(r=>r.ch.played||r.df.played);
   sortBy(capRows,splitSort.cap);
   const capTable=capRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">${sh("cap","name","Captain","l")}</th><th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp">Defending a total</th></tr>
+    <thead><tr>${shN("cap","Captain")}<th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp">Defending a total</th></tr>
     <tr>${sh("cap","ch.played","Played")}${sh("cap","ch.w","Won-Lost")}${sh("cap","ch.winPct","Win rate","dv")}${sh("cap","df.played","Played")}${sh("cap","df.w","Won-Lost")}${sh("cap","df.winPct","Win rate")}</tr></thead>
     <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum dv"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
   v.innerHTML=`<div class="page-head"><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div>${fmtTabs(fmt,"onSplitFmt")}
