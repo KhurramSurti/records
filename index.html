@@ -545,9 +545,10 @@ tr.lb-top .pname{color:var(--gold)}
 /* ---- bat-first-vs-chase split tables (premium) ---- */
 .split-tbl thead tr:first-child th[colspan]{font-size:9.5px;letter-spacing:.1em;color:var(--gold);font-weight:700;padding:10px 8px 6px}
 .split-tbl thead tr:last-child th{font-size:9.5px;color:var(--muted);font-weight:600;padding-top:4px;padding-bottom:8px}
-.split-tbl tbody td:nth-child(4){border-right:1px solid var(--line-soft)}
-.split-tbl thead tr:first-child th:nth-child(2){border-right:1px solid var(--line-soft)}
-.split-tbl thead tr:last-child th:nth-child(3){border-right:1px solid var(--line-soft)}
+.split-tbl .dv{border-right:1px solid var(--line-soft)}
+.split-tbl thead tr:first-child th.grp{text-align:center}
+.split-tbl th.sortable{cursor:pointer;white-space:nowrap}
+.split-tbl th.sortable .arr{margin-left:3px;font-size:8px;color:var(--gold)}
 .split-tbl tbody tr:hover td{background:var(--row-hover,rgba(0,0,0,.02))}
 </style>
 </head>
@@ -1076,7 +1077,7 @@ function updateBanner(){
 }
 
 /* ---------- Shared filter state ---------- */
-const sortState={batting:{key:"runs",dir:-1},bowling:{key:"wkts",dir:-1},fielding:{key:"total",dir:-1},captains:{key:"winPct",dir:-1}};
+const sortState={batting:{key:"runs",dir:-1},bowling:{key:"wkts",dir:-1},fielding:{key:"total",dir:-1},captains:{key:"winPct",dir:-1},venues:{key:"played",dir:-1}};
 let filterOpp={batting:"all",bowling:"all",fielding:"all",captains:"all",venues:"all",matches:"all"};
 let filterPeriod={batting:"all",bowling:"all",fielding:"all",matches:"all"};
 let matchDateFilter="";
@@ -1764,51 +1765,55 @@ function viewBowlPositions(v){
   v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
 }
 let splitFmt="all";
+let splitSort={bat:{col:"tot",dir:-1},bowl:{col:"tot",dir:-1},cap:{col:"tot",dir:-1}};
+window.onSplitSort=(tbl,col)=>{ const st=splitSort[tbl]; if(st.col===col)st.dir*=-1; else{st.col=col;st.dir=-1;} router(); };
 window.onSplitFmt=(f)=>{ splitFmt=f; router(); };
 function viewSplits(v){
   const fmt=splitFmt, ctx=fmtLabel(fmt);
   const all=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
-  const batFirst=all.filter(m=>m.decision==="bat");   // we set a target, then defend
-  const chase=all.filter(m=>m.decision==="bowl");     // we chase their target
+  const batFirst=all.filter(m=>m.decision==="bat");
+  const chase=all.filter(m=>m.decision==="bowl");
   const sBF=teamSummary(batFirst), sCH=teamSummary(chase);
   const seg=s0=>[{label:"Won",value:s0.w,color:"var(--pitch)"},{label:"Lost",value:s0.l,color:"var(--ball)"},{label:"Tied",value:s0.t,color:"var(--gold)"},{label:"No result",value:s0.nr,color:"var(--muted-2)"}];
   const donutCard=(title,sub,s0)=> s0.played?`<div class="chart-card"><div class="cc-h">${title}</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">${sub}</div><div class="donut-wrap">${donut(seg(s0),150,"PLAYED")}${legendTable(seg(s0))}</div><div style="margin-top:8px;font-size:13px;color:var(--cream)">Win rate <b style="color:var(--gold);font-family:var(--mono)">${s0.winPct.toFixed(0)}%</b> · ${s0.w} of ${s0.played} won</div></div>`:`<div class="chart-card"><div class="cc-h">${title}</div>${emptyBlock("No matches yet")}</div>`;
-  // form line chart: top 3 run-scorers, cumulative runs innings-by-innings
-  const ordered=all.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")||((a.seq||0)-(b.seq||0)));
-  const topBat=sortRows(battingAgg(all),"runs",-1).filter(p=>p.runs>0).slice(0,3);
-  const formLines=topBat.map((p,i)=>{ let cum=0; const pts=[]; ordered.forEach(m=>{ const b=(m.batting||[]).map(inn).find(x=>x.name===p.name); if(b){ cum+=b.runs; pts.push(cum); } }); return {name:p.name,color:FORM_COLORS[i],pts}; }).filter(l=>l.pts.length);
-  // batsmen split table
+  const hl=(a,b)=>(a>b)?' style="color:var(--gold);font-weight:700"':'';
+  const gv=(r,col)=>{ if(col==="name")return (r.name||"").toLowerCase(); if(col==="tot")return r.tot||0; const parts=col.split("."),g=parts[0],k=parts[1]; const o=r[g]; if(!o)return -1; if(k==="overs")return parseFloat(o.overs)||0; return o[k]!=null?o[k]:-1; };
+  const sortBy=(rows,st)=>rows.sort((a,b)=>{ const av=gv(a,st.col),bv=gv(b,st.col); if(st.col==="name")return st.dir<0?String(bv).localeCompare(String(av)):String(av).localeCompare(String(bv)); return st.dir<0?(bv-av):(av-bv); });
+  const sar=(tbl,col)=>{ const st=splitSort[tbl]; return st.col===col?(st.dir<0?'<span class="arr">▼</span>':'<span class="arr">▲</span>'):'<span class="arr"></span>'; };
+  const sh=(tbl,col,label,cls)=>`<th class="sortable ${cls||''}" onclick="onSplitSort('${tbl}','${col}')">${label}${sar(tbl,col)}</th>`;
+  const num=(o,k,dp)=>{ if(!o)return "—"; const val=o[k]; if(val==null)return "—"; return dp!=null?val.toFixed(dp):val; };
+  // batsmen split
   const bfA=battingAgg(batFirst), chA=battingAgg(chase); const bmap={};
   bfA.forEach(p=>{ (bmap[p.name]||(bmap[p.name]={name:p.name})).f=p; }); chA.forEach(p=>{ (bmap[p.name]||(bmap[p.name]={name:p.name})).c=p; });
-  const batRows=Object.values(bmap).map(x=>({name:x.name,f:x.f,c:x.c,tot:(x.f?x.f.runs:0)+(x.c?x.c.runs:0)})).filter(x=>x.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  const num=(o,k,dp)=>{ if(!o)return "—"; const val=o[k]; if(val==null)return "—"; return dp!=null?val.toFixed(dp):val; };
-  const hl=(a,b)=>(a>b)?' style="color:var(--gold);font-weight:700"':'';
+  let batRows=Object.values(bmap).map(x=>({name:x.name,f:x.f,c:x.c,tot:(x.f?x.f.runs:0)+(x.c?x.c.runs:0)})).filter(x=>x.tot>0);
+  sortBy(batRows,splitSort.bat);
   const batTable=batRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">Batsman</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Batting first</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Chasing</th></tr>
-    <tr><th>Inns</th><th>Runs</th><th>SR</th><th>Inns</th><th>Runs</th><th>SR</th></tr></thead>
-    <tbody>${batRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${num(r.f,"inns")}</td><td class="tnum"${hl(r.f?r.f.runs:0,r.c?r.c.runs:0)}>${num(r.f,"runs")}</td><td class="tnum dim">${num(r.f,"sr",0)}</td><td class="tnum dim">${num(r.c,"inns")}</td><td class="tnum"${hl(r.c?r.c.runs:0,r.f?r.f.runs:0)}>${num(r.c,"runs")}</td><td class="tnum dim">${num(r.c,"sr",0)}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No batting yet");
-  // bowlers split table (bowling first = chase matches; defending = batFirst matches)
+    <thead><tr><th class="l" rowspan="2">${sh("bat","name","Batsman","l")}</th><th colspan="4" class="grp dv">Batting first</th><th colspan="4" class="grp">Chasing</th></tr>
+    <tr>${sh("bat","f.inns","Inns")}${sh("bat","f.runs","Runs")}${sh("bat","f.avg","Avg")}${sh("bat","f.sr","SR","dv")}${sh("bat","c.inns","Inns")}${sh("bat","c.runs","Runs")}${sh("bat","c.avg","Avg")}${sh("bat","c.sr","SR")}</tr></thead>
+    <tbody>${batRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${num(r.f,"inns")}</td><td class="tnum"${hl(r.f?r.f.runs:0,r.c?r.c.runs:0)}>${num(r.f,"runs")}</td><td class="tnum dim">${num(r.f,"avg",1)}</td><td class="tnum dim dv">${num(r.f,"sr",0)}</td><td class="tnum dim">${num(r.c,"inns")}</td><td class="tnum"${hl(r.c?r.c.runs:0,r.f?r.f.runs:0)}>${num(r.c,"runs")}</td><td class="tnum dim">${num(r.c,"avg",1)}</td><td class="tnum dim">${num(r.c,"sr",0)}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No batting yet");
+  // bowlers split
   const bfBowl=bowlingAgg(chase), dfBowl=bowlingAgg(batFirst); const wmap={};
   bfBowl.forEach(p=>{ (wmap[p.name]||(wmap[p.name]={name:p.name})).f=p; }); dfBowl.forEach(p=>{ (wmap[p.name]||(wmap[p.name]={name:p.name})).d=p; });
-  const bowlRows=Object.values(wmap).map(x=>({name:x.name,f:x.f,d:x.d,tot:(x.f?x.f.wkts:0)+(x.d?x.d.wkts:0)})).filter(x=>x.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,10);
+  let bowlRows=Object.values(wmap).map(x=>({name:x.name,f:x.f,d:x.d,tot:(x.f?x.f.wkts:0)+(x.d?x.d.wkts:0)})).filter(x=>x.tot>0);
+  sortBy(bowlRows,splitSort.bowl);
   const bowlTable=bowlRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">Bowler</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Bowling first</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Defending a total</th></tr>
-    <tr><th>Overs</th><th>Wkts</th><th>Econ</th><th>Overs</th><th>Wkts</th><th>Econ</th></tr></thead>
-    <tbody>${bowlRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.f?r.f.overs:"—"}</td><td class="tnum"${hl(r.f?r.f.wkts:0,r.d?r.d.wkts:0)}>${num(r.f,"wkts")}</td><td class="tnum dim">${r.f?r.f.econ.toFixed(2):"—"}</td><td class="tnum dim">${r.d?r.d.overs:"—"}</td><td class="tnum"${hl(r.d?r.d.wkts:0,r.f?r.f.wkts:0)}>${num(r.d,"wkts")}</td><td class="tnum dim">${r.d?r.d.econ.toFixed(2):"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No bowling yet");
-  // captains split table (plain language + grouped)
-  const capRows=captains(all).map(c=>{ const cm=all.filter(m=>m.captain===c); const ch=teamSummary(cm.filter(m=>m.decision==="bowl")); const df=teamSummary(cm.filter(m=>m.decision==="bat")); return {name:c,ch,df}; }).filter(r=>r.ch.played||r.df.played).sort((a,b)=>(b.ch.played+b.df.played)-(a.ch.played+a.df.played));
+    <thead><tr><th class="l" rowspan="2">${sh("bowl","name","Bowler","l")}</th><th colspan="4" class="grp dv">Bowling first</th><th colspan="4" class="grp">Defending a total</th></tr>
+    <tr>${sh("bowl","f.overs","Overs")}${sh("bowl","f.runs","Runs")}${sh("bowl","f.wkts","Wkts")}${sh("bowl","f.econ","Econ","dv")}${sh("bowl","d.overs","Overs")}${sh("bowl","d.runs","Runs")}${sh("bowl","d.wkts","Wkts")}${sh("bowl","d.econ","Econ")}</tr></thead>
+    <tbody>${bowlRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.f?r.f.overs:"—"}</td><td class="tnum dim">${num(r.f,"runs")}</td><td class="tnum"${hl(r.f?r.f.wkts:0,r.d?r.d.wkts:0)}>${num(r.f,"wkts")}</td><td class="tnum dim dv">${r.f?r.f.econ.toFixed(2):"—"}</td><td class="tnum dim">${r.d?r.d.overs:"—"}</td><td class="tnum dim">${num(r.d,"runs")}</td><td class="tnum"${hl(r.d?r.d.wkts:0,r.f?r.f.wkts:0)}>${num(r.d,"wkts")}</td><td class="tnum dim">${r.d?r.d.econ.toFixed(2):"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No bowling yet");
+  // captains split
+  let capRows=captains(all).map(c=>{ const cm=all.filter(m=>m.captain===c); const ch=teamSummary(cm.filter(m=>m.decision==="bowl")); const df=teamSummary(cm.filter(m=>m.decision==="bat")); return {name:c,ch,df,tot:(ch.played+df.played)}; }).filter(r=>r.ch.played||r.df.played);
+  sortBy(capRows,splitSort.cap);
   const capTable=capRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr><th class="l" rowspan="2">Captain</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Chasing a target</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line-soft)">Defending a total</th></tr>
-    <tr><th>Played</th><th>Won-Lost</th><th>Win rate</th><th>Played</th><th>Won-Lost</th><th>Win rate</th></tr></thead>
-    <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
-  v.innerHTML=`<div class="page-head"><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Numbers are split into those two situations throughout this page.</p></div>${fmtTabs(fmt,"onSplitFmt")}
+    <thead><tr><th class="l" rowspan="2">${sh("cap","name","Captain","l")}</th><th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp">Defending a total</th></tr>
+    <tr>${sh("cap","ch.played","Played")}${sh("cap","ch.w","Won-Lost")}${sh("cap","ch.winPct","Win rate","dv")}${sh("cap","df.played","Played")}${sh("cap","df.w","Won-Lost")}${sh("cap","df.winPct","Win rate")}</tr></thead>
+    <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum dv"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
+  v.innerHTML=`<div class="page-head"><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div>${fmtTabs(fmt,"onSplitFmt")}
   <div class="dash-grid">
     ${donutCard("When we bat first","We set a target, then defend it",sBF)}
     ${donutCard("When we chase","Opponent sets a target, we chase it",sCH)}
   </div>
-  ${formLines.length?`<div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Run-scoring form — top batsmen</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Each line is a batsman's running total of runs, innings by innings (left to right = earliest to latest).</div>${multiLineChart(formLines)}</div>`:""}
-  <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Batsmen — batting first vs chasing</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Runs (with strike rate) in each situation. The higher run tally is highlighted in gold. Tap a name for the full profile.</div>${batTable}</div>
-  <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Bowlers — bowling first vs defending</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Wickets (with economy) in each situation. The higher wicket tally is highlighted in gold.</div>${bowlTable}</div>
+  <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Batsmen — batting first vs chasing</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Runs, average and strike rate in each situation. The higher run tally is highlighted in gold. Tap a column to sort; tap a name for the profile.</div>${batTable}</div>
+  <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Bowlers — bowling first vs defending</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Overs, runs conceded, wickets and economy in each situation. The higher wicket tally is highlighted in gold.</div>${bowlTable}</div>
   <div class="chart-card"><div class="cc-h">Captains — chasing vs defending</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Chasing = we bowled first and chased. Defending = we batted first and defended our total. The better win rate is highlighted.</div>${capTable}</div>`;
 }
 let FORMPREFILL=null; let EDIT_ID=null; let LIVE=null;
@@ -2769,13 +2774,13 @@ function deleteMatch(id){
 /* ============================================================ VENUES ============================================================ */
 function viewVenues(v){
   const oppF=filterOpp.venues||"all";
-  const vAgg=sortRows(venueAgg(),"played",-1);
+  const _vs=sortState.venues; const vAgg=sortRows(venueAgg(),_vs.key,_vs.dir);
   let ov=oppVenueAgg(getMatches({opp:oppF}));
   ov=ov.sort((a,b)=>a.opponent.localeCompare(b.opponent)||(b.played-a.played)||a.venue.localeCompare(b.venue));
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Grounds</div><h2>Venues</h2><p>Where we play, and how many times we have beaten each team at each ground</p></div><button class="btn primary" onclick="pdfVenues()">⬇ PDF</button></div>
   <div class="eyebrow">Results by venue</div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">Venue</th><th>P</th><th>W</th><th>L</th><th>T</th><th>NR</th><th>Win%</th></tr></thead>
+    <thead><tr>${th("venues","venue","Venue","l")}${th("venues","played","P")}${th("venues","w","W")}${th("venues","l","L")}${th("venues","t","T")}${th("venues","nr","NR")}${th("venues","winPct","Win%")}</tr></thead>
     <tbody>${vAgg.map(r=>`<tr><td class="l pname">${esc(r.venue)}</td><td class="tnum dim">${r.played}</td><td class="tnum" style="color:var(--pitch)">${r.w}</td><td class="tnum" style="color:#e37a70">${r.l}</td><td class="tnum dim">${r.t}</td><td class="tnum dim">${r.nr}</td><td class="hi tnum">${r.winPct.toFixed(0)}%</td></tr>`).join("")||emptyRow(7)}</tbody></table></div>
   <div class="controls" style="margin-top:24px"><div class="field"><label>Opponent</label>${oppSelect("venues",oppF)}</div></div>
   <div class="eyebrow">Head-to-head by venue${oppF!=="all"?" — vs "+esc(oppF):""}</div>
