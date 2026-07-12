@@ -1747,7 +1747,7 @@ function viewPositions(v){
       <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Batsman</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th></tr></thead>
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="hi tnum">${e.runs}</td><td class="tnum">${e.hs}</td><td class="tnum">${e.avg.toFixed(1)}</td><td class="tnum dim">${e.sr.toFixed(0)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No batting recorded in ${esc(ctx)} yet.</div>`;
-  v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Runs by batting position</h2><p>Which batsman scores most at each spot in the order — compare who's done best at 1, 2, 3 and so on. Tap a name for the full profile.</p></div>${fmtTabs(fmt,"onPosFmt")}${body}`;
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboards</div><h2>Runs by batting position</h2><p>Which batsman scores most at each spot in the order — compare who's done best at 1, 2, 3 and so on. Tap a name for the full profile.</p></div></div>${fmtTabs(fmt,"onPosFmt")}${body}`;
 }
 let bposFmt="all";
 window.onBPosFmt=(f)=>{ bposFmt=f; router(); };
@@ -1763,7 +1763,7 @@ function viewBowlPositions(v){
       <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="tnum dim">${e.overs}</td><td class="tnum">${e.runs}</td><td class="hi tnum">${e.wkts}</td><td class="tnum">${e.econ.toFixed(2)}</td><td class="tnum dim">${e.avg==null?"—":e.avg.toFixed(1)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No bowling recorded in ${esc(ctx)} yet.</div>`;
-  v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
 }
 let splitFmt="all";
 let splitSort={bat:{col:"tot",dir:-1},bowl:{col:"tot",dir:-1},cap:{col:"tot",dir:-1}};
@@ -1809,7 +1809,7 @@ function viewSplits(v){
     <thead><tr>${shN("cap","Captain")}<th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp">Defending a total</th></tr>
     <tr>${sh("cap","ch.played","Played")}${sh("cap","ch.w","Won-Lost")}${sh("cap","ch.winPct","Win rate","dv")}${sh("cap","df.played","Played")}${sh("cap","df.w","Won-Lost")}${sh("cap","df.winPct","Win rate")}</tr></thead>
     <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum dv"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
-  v.innerHTML=`<div class="page-head"><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div>${fmtTabs(fmt,"onSplitFmt")}
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div></div>${fmtTabs(fmt,"onSplitFmt")}
   <div class="dash-grid">
     ${donutCard("When we bat first","We set a target, then defend it",sBF)}
     ${donutCard("When we chase","Opponent sets a target, we chase it",sCH)}
