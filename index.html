@@ -988,6 +988,7 @@ const NAV=[
   {id:"positions",label:"Batting order",section:"Leaderboards",icon:"bat"},
   {id:"bowlpos",label:"Bowling order",section:"Leaderboards",icon:"ball"},
   {id:"captains",label:"Captains",section:"Team",icon:"star"},
+  {id:"splits",label:"Bat 1st vs Chase",section:"Team",icon:"compare"},
   {id:"venues",label:"Venues",section:"Team",icon:"pin"},
   {id:"records",label:"Records",section:"Team",icon:"trophy"},
   {id:"squad",label:"Squad",section:"Manage",icon:"user"},
@@ -1081,7 +1082,7 @@ function router(){
   setActive(route);
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
-    fielding:viewFielding,players:viewPlayers,compare:viewCompare,positions:viewPositions,bowlpos:viewBowlPositions,player:viewPlayer,captains:viewCaptains,captain:viewCaptain,
+    fielding:viewFielding,players:viewPlayers,compare:viewCompare,positions:viewPositions,bowlpos:viewBowlPositions,player:viewPlayer,captains:viewCaptains,splits:viewSplits,captain:viewCaptain,
     records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,reports:viewReports,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
@@ -1735,6 +1736,38 @@ function viewBowlPositions(v){
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="tnum dim">${e.overs}</td><td class="tnum">${e.runs}</td><td class="hi tnum">${e.wkts}</td><td class="tnum">${e.econ.toFixed(2)}</td><td class="tnum dim">${e.avg==null?"—":e.avg.toFixed(1)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No bowling recorded in ${esc(ctx)} yet.</div>`;
   v.innerHTML=`<div class="page-head"><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
+}
+let splitFmt="all";
+window.onSplitFmt=(f)=>{ splitFmt=f; router(); };
+function viewSplits(v){
+  const fmt=splitFmt, ctx=fmtLabel(fmt);
+  const all=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
+  const batFirst=all.filter(m=>m.decision==="bat");   // we set a target, then defend
+  const chase=all.filter(m=>m.decision==="bowl");     // we chase
+  const sBF=teamSummary(batFirst), sCH=teamSummary(chase);
+  const runBars=agg=>sortRows(agg,"runs",-1).filter(p=>p.runs>0).slice(0,6).map(p=>({label:p.name,value:p.runs,display:p.runs,href:"#/player/"+encodeURIComponent(p.name)}));
+  const wktBars=agg=>sortRows(agg,"wkts",-1).filter(p=>p.wkts>0).slice(0,6).map(p=>({label:p.name,value:p.wkts,display:p.wkts,href:"#/player/"+encodeURIComponent(p.name)}));
+  const batBF=runBars(battingAgg(batFirst)), batCH=runBars(battingAgg(chase));
+  const bowlFirst=wktBars(bowlingAgg(chase)), bowlDef=wktBars(bowlingAgg(batFirst));
+  const wlRow=(label,s)=>{const tot=(s.w+s.l+s.t+s.nr)||1;return `<div class="loc-row"><div class="loc-name" style="width:104px">${label}</div><div class="loc-bar">${s.w?`<div class="loc-seg" style="width:${(s.w/tot*100).toFixed(1)}%;background:var(--pitch)"></div>`:""}${s.l?`<div class="loc-seg" style="width:${(s.l/tot*100).toFixed(1)}%;background:var(--ball)"></div>`:""}${s.t?`<div class="loc-seg" style="width:${(s.t/tot*100).toFixed(1)}%;background:var(--gold)"></div>`:""}${s.nr?`<div class="loc-seg" style="width:${(s.nr/tot*100).toFixed(1)}%;background:var(--muted-2)"></div>`:""}</div><div class="loc-counts">${s.w}W · ${s.l}L · ${s.winPct.toFixed(0)}%</div></div>`;};
+  // captains split
+  const capRows=captains(all).map(c=>{ const cm=all.filter(m=>m.captain===c); const ch=teamSummary(cm.filter(m=>m.decision==="bowl")); const df=teamSummary(cm.filter(m=>m.decision==="bat")); return {name:c,ch,df}; }).filter(r=>r.ch.played||r.df.played).sort((a,b)=>(b.ch.played+b.df.played)-(a.ch.played+a.df.played));
+  const better=(a,b)=>a>b?' style="color:var(--gold);font-weight:700"':'';
+  const capTable=capRows.length?`<div class="table-wrap table-scroll"><table>
+    <thead><tr><th class="l">Captain</th><th>Chase P</th><th>Chase W-L</th><th>Chase %</th><th>Defend P</th><th>Defend W-L</th><th>Defend %</th></tr></thead>
+    <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum"${better(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${better(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
+  const insight=`Batting first: <b style="color:var(--cream)">${sBF.w}W-${sBF.l}L</b> (${sBF.winPct.toFixed(0)}%) · Chasing: <b style="color:var(--cream)">${sCH.w}W-${sCH.l}L</b> (${sCH.winPct.toFixed(0)}%)`;
+  v.innerHTML=`<div class="page-head"><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How the team, batsmen, bowlers and captains do when setting a target versus chasing one. ${insight}</p></div>${fmtTabs(fmt,"onSplitFmt")}
+  <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Team record</div><div class="loc-legend"><span><i style="background:var(--pitch)"></i>Won</span><span><i style="background:var(--ball)"></i>Lost</span><span><i style="background:var(--gold)"></i>Tied</span></div>${wlRow("Batting first",sBF)}${wlRow("Chasing",sCH)}</div>
+  <div class="dash-grid">
+    <div class="chart-card"><div class="cc-h">Best batting first</div>${batBF.length?barsH(batBF):emptyBlock("No bat-first innings yet")}</div>
+    <div class="chart-card"><div class="cc-h">Best chasing</div>${batCH.length?barsH(batCH):emptyBlock("No chase innings yet")}</div>
+  </div>
+  <div class="dash-grid">
+    <div class="chart-card"><div class="cc-h">Best bowling first</div>${bowlFirst.length?barsH(bowlFirst):emptyBlock("No bowl-first innings yet")}</div>
+    <div class="chart-card"><div class="cc-h">Best defending a total</div>${bowlDef.length?barsH(bowlDef):emptyBlock("No defending innings yet")}</div>
+  </div>
+  <div class="chart-card"><div class="cc-h">Captains — chase vs defend</div>${capTable}</div>`;
 }
 let FORMPREFILL=null; let EDIT_ID=null; let LIVE=null;
 /* ============================================================ SQUAD (roster) ============================================================ */
