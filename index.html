@@ -546,8 +546,15 @@ tr.lb-top .pname{color:var(--gold)}
 .split-tbl thead tr:first-child th[colspan]{font-size:9.5px;letter-spacing:.1em;color:var(--gold);font-weight:700;padding:10px 8px 6px}
 .split-tbl thead tr:last-child th{font-size:9.5px;color:var(--muted);font-weight:600;padding-top:4px;padding-bottom:8px;text-align:right}
 .split-tbl thead tr:last-child th.l{text-align:left}
-.split-tbl .dv{border-right:1px solid var(--line-soft)}
+.split-tbl{position:relative}
+.split-tbl .g2{background:rgba(232,184,75,.09)}
+.split-tbl .dv{border-right:2px solid rgba(150,112,48,.55)}
 .split-tbl thead tr:first-child th.grp{text-align:center}
+.split-tbl thead tr:first-child th.grp.g2{background:rgba(232,184,75,.14)}
+/* sticky first (name) column so it stays visible while scrolling stats */
+.split-tbl th.l:first-child,.split-tbl td:first-child{position:sticky;left:0;z-index:2;background:var(--surface)}
+.split-tbl thead th.l:first-child{z-index:3}
+.split-tbl th.l:first-child::after,.split-tbl td:first-child::after{content:"";position:absolute;top:0;right:0;bottom:0;width:6px;pointer-events:none;background:linear-gradient(to right,rgba(0,0,0,.10),transparent)}
 .split-tbl th.sortable{cursor:pointer;white-space:nowrap}
 .split-tbl th.sortable .arr{margin-left:3px;font-size:8px;color:var(--gold)}
 .split-tbl tbody tr:hover td{background:var(--row-hover,rgba(0,0,0,.02))}
@@ -1790,25 +1797,25 @@ function viewSplits(v){
   let batRows=Object.values(bmap).map(x=>({name:x.name,f:x.f,c:x.c,tot:(x.f?x.f.runs:0)+(x.c?x.c.runs:0)})).filter(x=>x.tot>0);
   sortBy(batRows,splitSort.bat);
   const batTable=batRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr>${shN("bat","Batsman")}<th colspan="4" class="grp dv">Batting first</th><th colspan="4" class="grp">Chasing</th></tr>
-    <tr>${sh("bat","f.inns","Inns")}${sh("bat","f.runs","Runs")}${sh("bat","f.avg","Avg")}${sh("bat","f.sr","SR","dv")}${sh("bat","c.inns","Inns")}${sh("bat","c.runs","Runs")}${sh("bat","c.avg","Avg")}${sh("bat","c.sr","SR")}</tr></thead>
-    <tbody>${batRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${num(r.f,"inns")}</td><td class="tnum"${hl(r.f?r.f.runs:0,r.c?r.c.runs:0)}>${num(r.f,"runs")}</td><td class="tnum dim">${num(r.f,"avg",1)}</td><td class="tnum dim dv">${num(r.f,"sr",0)}</td><td class="tnum dim">${num(r.c,"inns")}</td><td class="tnum"${hl(r.c?r.c.runs:0,r.f?r.f.runs:0)}>${num(r.c,"runs")}</td><td class="tnum dim">${num(r.c,"avg",1)}</td><td class="tnum dim">${num(r.c,"sr",0)}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No batting yet");
+    <thead><tr>${shN("bat","Batsman")}<th colspan="4" class="grp dv">Batting first</th><th colspan="4" class="grp g2">Chasing</th></tr>
+    <tr>${sh("bat","f.inns","Inns")}${sh("bat","f.runs","Runs")}${sh("bat","f.avg","Avg")}${sh("bat","f.sr","SR","dv")}${sh("bat","c.inns","Inns","g2")}${sh("bat","c.runs","Runs","g2")}${sh("bat","c.avg","Avg","g2")}${sh("bat","c.sr","SR","g2")}</tr></thead>
+    <tbody>${batRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${num(r.f,"inns")}</td><td class="tnum"${hl(r.f?r.f.runs:0,r.c?r.c.runs:0)}>${num(r.f,"runs")}</td><td class="tnum dim">${num(r.f,"avg",1)}</td><td class="tnum dim dv">${num(r.f,"sr",0)}</td><td class="tnum dim g2">${num(r.c,"inns")}</td><td class="tnum g2"${hl(r.c?r.c.runs:0,r.f?r.f.runs:0)}>${num(r.c,"runs")}</td><td class="tnum dim g2">${num(r.c,"avg",1)}</td><td class="tnum dim g2">${num(r.c,"sr",0)}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No batting yet");
   // bowlers split
   const bfBowl=bowlingAgg(chase), dfBowl=bowlingAgg(batFirst); const wmap={};
   bfBowl.forEach(p=>{ (wmap[p.name]||(wmap[p.name]={name:p.name})).f=p; }); dfBowl.forEach(p=>{ (wmap[p.name]||(wmap[p.name]={name:p.name})).d=p; });
   let bowlRows=Object.values(wmap).map(x=>({name:x.name,f:x.f,d:x.d,tot:(x.f?x.f.wkts:0)+(x.d?x.d.wkts:0)})).filter(x=>x.tot>0);
   sortBy(bowlRows,splitSort.bowl);
   const bowlTable=bowlRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr>${shN("bowl","Bowler")}<th colspan="4" class="grp dv">Bowling first</th><th colspan="4" class="grp">Defending a total</th></tr>
-    <tr>${sh("bowl","f.overs","Overs")}${sh("bowl","f.runs","Runs")}${sh("bowl","f.wkts","Wkts")}${sh("bowl","f.econ","Econ","dv")}${sh("bowl","d.overs","Overs")}${sh("bowl","d.runs","Runs")}${sh("bowl","d.wkts","Wkts")}${sh("bowl","d.econ","Econ")}</tr></thead>
-    <tbody>${bowlRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.f?r.f.overs:"—"}</td><td class="tnum dim">${num(r.f,"runs")}</td><td class="tnum"${hl(r.f?r.f.wkts:0,r.d?r.d.wkts:0)}>${num(r.f,"wkts")}</td><td class="tnum dim dv">${r.f?r.f.econ.toFixed(2):"—"}</td><td class="tnum dim">${r.d?r.d.overs:"—"}</td><td class="tnum dim">${num(r.d,"runs")}</td><td class="tnum"${hl(r.d?r.d.wkts:0,r.f?r.f.wkts:0)}>${num(r.d,"wkts")}</td><td class="tnum dim">${r.d?r.d.econ.toFixed(2):"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No bowling yet");
+    <thead><tr>${shN("bowl","Bowler")}<th colspan="4" class="grp dv">Bowling first</th><th colspan="4" class="grp g2">Defending a total</th></tr>
+    <tr>${sh("bowl","f.overs","Overs")}${sh("bowl","f.runs","Runs")}${sh("bowl","f.wkts","Wkts")}${sh("bowl","f.econ","Econ","dv")}${sh("bowl","d.overs","Overs","g2")}${sh("bowl","d.runs","Runs","g2")}${sh("bowl","d.wkts","Wkts","g2")}${sh("bowl","d.econ","Econ","g2")}</tr></thead>
+    <tbody>${bowlRows.map(r=>`<tr class="clickable" onclick="location.hash='#/player/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.f?r.f.overs:"—"}</td><td class="tnum dim">${num(r.f,"runs")}</td><td class="tnum"${hl(r.f?r.f.wkts:0,r.d?r.d.wkts:0)}>${num(r.f,"wkts")}</td><td class="tnum dim dv">${r.f?r.f.econ.toFixed(2):"—"}</td><td class="tnum dim g2">${r.d?r.d.overs:"—"}</td><td class="tnum dim g2">${num(r.d,"runs")}</td><td class="tnum g2"${hl(r.d?r.d.wkts:0,r.f?r.f.wkts:0)}>${num(r.d,"wkts")}</td><td class="tnum dim g2">${r.d?r.d.econ.toFixed(2):"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No bowling yet");
   // captains split
   let capRows=captains(all).map(c=>{ const cm=all.filter(m=>m.captain===c); const ch=teamSummary(cm.filter(m=>m.decision==="bowl")); const df=teamSummary(cm.filter(m=>m.decision==="bat")); return {name:c,ch,df,tot:(ch.played+df.played)}; }).filter(r=>r.ch.played||r.df.played);
   sortBy(capRows,splitSort.cap);
   const capTable=capRows.length?`<div class="table-wrap table-scroll"><table class="split-tbl">
-    <thead><tr>${shN("cap","Captain")}<th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp">Defending a total</th></tr>
-    <tr>${sh("cap","ch.played","Played")}${sh("cap","ch.w","Won-Lost")}${sh("cap","ch.winPct","Win rate","dv")}${sh("cap","df.played","Played")}${sh("cap","df.w","Won-Lost")}${sh("cap","df.winPct","Win rate")}</tr></thead>
-    <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum dv"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim">${r.df.played}</td><td class="tnum">${r.df.w}-${r.df.l}</td><td class="tnum"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
+    <thead><tr>${shN("cap","Captain")}<th colspan="3" class="grp dv">Chasing a target</th><th colspan="3" class="grp g2">Defending a total</th></tr>
+    <tr>${sh("cap","ch.played","Played")}${sh("cap","ch.w","Won-Lost")}${sh("cap","ch.winPct","Win rate","dv")}${sh("cap","df.played","Played","g2")}${sh("cap","df.w","Won-Lost","g2")}${sh("cap","df.winPct","Win rate","g2")}</tr></thead>
+    <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim">${r.ch.played}</td><td class="tnum">${r.ch.w}-${r.ch.l}</td><td class="tnum dv"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim g2">${r.df.played}</td><td class="tnum g2">${r.df.w}-${r.df.l}</td><td class="tnum g2"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div></div>${fmtTabs(fmt,"onSplitFmt")}
   <div class="dash-grid">
     ${donutCard("When we bat first","We set a target, then defend it",sBF)}
@@ -1909,7 +1916,7 @@ function viewAdd(v){
     <thead><tr><th class="l">Opp. bowler (optional)</th><th>Overs</th><th>Runs</th><th>Wkts</th><th></th></tr></thead>
     <tbody id="oppbowl-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addOppBowlRow()">+ Add over/spell</button>
-    <p class="dim" style="font-size:11px;margin-top:8px">Enter each over (or spell) the opposition bowled at us, in order — the runs we scored off it and any of our wickets that fell. This draws Gold Hayat's real over-by-over line and fall of wickets on the worm graph. Nothing here is stored in any bowling stat or report.</p></div>
+    <p class="dim" style="font-size:11px;margin-top:8px">Enter each over (or spell) the opposition bowled at us, in order. <b>Runs</b> = runs we scored that over. <b>Wkts</b> = <u>our</u> wickets that fell that over — <b>include run-outs</b> (any dismissal counts here, since this only draws the worm's fall-of-wickets, not any bowling stat).</p></div>
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">
     <button class="btn primary" id="save-btn" onclick="saveMatch()">Save match</button>
