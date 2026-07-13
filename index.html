@@ -78,6 +78,8 @@ thead th{text-align:right;padding:13px 12px;font-family:var(--mono);font-weight:
 thead th.sortable{cursor:pointer;user-select:none;transition:color .15s}
 thead th.sortable:hover{color:var(--gold)}
 thead th .arr{color:var(--gold);margin-left:3px}
+th.sortable:not(.active) .arr,.arr.idle{color:var(--muted);opacity:.4;font-weight:400}
+th.sortable.active .arr{color:var(--gold);opacity:1}
 th.l,td.l{text-align:left}
 tbody td,tfoot td{padding:12px;border-bottom:1px solid rgba(255,255,255,.03);text-align:right;white-space:nowrap;color:var(--text)}
 tfoot td{border-bottom:none;border-top:2px solid var(--line-soft)}
@@ -1093,8 +1095,8 @@ function fmtLabel(x){ return x==="all"?"All formats":(x==="Test Match"?"Test":x)
 function fmtTabs(cur,handler){ return '<div class="tabs">'+["all"].concat(FORMATS).map(x=>'<button class="tab'+(x===cur?" on":"")+'" onclick="'+handler+'(\''+x+'\')">'+fmtLabel(x)+'</button>').join("")+'</div>'; }
 window.onFilter=(id,val)=>{filterOpp[id]=val;router();};
 window.onPeriod=(id,val)=>{filterPeriod[id]=val;router();};
-window.onSort=(tbl,key)=>{const s=sortState[tbl];if(s.key===key)s.dir*=-1;else{s.key=key;s.dir=(key==="name"?1:-1);}router();};
-function th(tbl,key,label,cls=""){const s=sortState[tbl];const arr=s.key===key?(s.dir<0?"▼":"▲"):"";return `<th class="sortable ${cls}" onclick="onSort('${tbl}','${key}')">${label}<span class="arr">${arr}</span></th>`;}
+window.onSort=(tbl,key)=>{const s=sortState[tbl];if(s.key===key)s.dir*=-1;else{s.key=key;s.dir=((key==="name"||key==="venue")?1:-1);}router();};
+function th(tbl,key,label,cls=""){const s=sortState[tbl];const active=s.key===key;const arr=active?(s.dir<0?"▼":"▲"):"↕";return `<th class="sortable ${cls}${active?" active":""}" onclick="onSort('${tbl}','${key}')">${label}<span class="arr">${arr}</span></th>`;}
 function opt(val,label,cur){return `<option value="${esc(val)}"${val===cur?" selected":""}>${label}</option>`;}
 function oppSelect(id,cur){return `<select onchange="onFilter('${id}',this.value)">${opt("all","All opponents",cur)}${opponents().map(o=>opt(o,"vs "+o,cur)).join("")}</select>`;}
 function periodSelect(id,cur){
@@ -1739,39 +1741,47 @@ function viewRecords(v){
 }
 let posFmt="all";
 window.onPosFmt=(f)=>{ posFmt=f; router(); };
+let posSort={key:"runs",dir:-1};
+window.onPosSort=(k)=>{ if(posSort.key===k)posSort.dir*=-1; else{posSort.key=k;posSort.dir=(k==="name")?1:-1;} router(); };
 function viewPositions(v){
   const fmt=posFmt, ctx=fmtLabel(fmt);
   const ms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
   const byPos=battingByPosition(ms);
   const keys=Object.keys(byPos).map(Number).sort((a,b)=>a-b);
+  const _cmp=(a,b)=>{const k=posSort.key,d=posSort.dir,x=a[k],y=b[k];if(typeof x==="string")return d*String(x).localeCompare(String(y));return d*((x==null?-1e9:x)-(y==null?-1e9:y));};
+  const psh=(key,label,cls)=>`<th class="sortable ${cls||''}${posSort.key===key?" active":""}" onclick="onPosSort('${key}')">${label}<span class="arr">${posSort.key===key?(posSort.dir<0?"▼":"▲"):"↕"}</span></th>`;
   const body=keys.length?keys.map(p=>{
-    const rows=byPos[p];
-    const leader=rows[0];
+    const leader=byPos[p][0];
+    const rows=byPos[p].slice().sort(_cmp);
     return `<div class="chart-card" style="margin-bottom:14px"><div class="cc-h" style="display:flex;justify-content:space-between"><span>Position ${p}</span>${leader?`<span style="color:var(--gold);text-transform:none;letter-spacing:0">${esc(leader.name)} · ${leader.runs}</span>`:""}</div>
-      <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Batsman</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th></tr></thead>
+      <div class="table-wrap table-scroll"><table><thead><tr>${psh("name","Batsman","l")}${psh("inns","Inns")}${psh("runs","Runs")}${psh("hs","HS")}${psh("avg","Avg")}${psh("sr","SR")}</tr></thead>
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="hi tnum">${e.runs}</td><td class="tnum">${e.hs}</td><td class="tnum">${e.avg.toFixed(1)}</td><td class="tnum dim">${e.sr.toFixed(0)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No batting recorded in ${esc(ctx)} yet.</div>`;
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboards</div><h2>Runs by batting position</h2><p>Which batsman scores most at each spot in the order — compare who's done best at 1, 2, 3 and so on. Tap a name for the full profile.</p></div></div>${fmtTabs(fmt,"onPosFmt")}${body}`;
 }
 let bposFmt="all";
 window.onBPosFmt=(f)=>{ bposFmt=f; router(); };
+let bposSort={key:"wkts",dir:-1};
+window.onBPosSort=(k)=>{ if(bposSort.key===k)bposSort.dir*=-1; else{bposSort.key=k;bposSort.dir=(k==="name")?1:-1;} router(); };
 function viewBowlPositions(v){
   const fmt=bposFmt, ctx=fmtLabel(fmt);
   const ms=(fmt==="all"?DATA.matches:DATA.matches.filter(m=>m.format===fmt));
   const byPos=bowlingByPosition(ms);
   const keys=Object.keys(byPos).map(Number).sort((a,b)=>a-b);
   const ordn=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}; const roleName=p=>ordn(p)+" over";
+  const _cmp=(a,b)=>{const k=bposSort.key,d=bposSort.dir,x=a[k],y=b[k];if(typeof x==="string")return d*String(x).localeCompare(String(y));return d*((x==null?-1e9:x)-(y==null?-1e9:y));};
+  const bsh=(key,label,cls)=>`<th class="sortable ${cls||''}${bposSort.key===key?" active":""}" onclick="onBPosSort('${key}')">${label}<span class="arr">${bposSort.key===key?(bposSort.dir<0?"▼":"▲"):"↕"}</span></th>`;
   const body=keys.length?keys.map(p=>{
-    const rows=byPos[p]; const leader=rows[0];
+    const leader=byPos[p][0]; const rows=byPos[p].slice().sort(_cmp);
     return `<div class="chart-card" style="margin-bottom:14px"><div class="cc-h" style="display:flex;justify-content:space-between"><span>${roleName(p)} <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400">· over ${p}</span></span>${leader?`<span style="color:var(--gold);text-transform:none;letter-spacing:0">${esc(leader.name)} · ${leader.wkts}w</span>`:""}</div>
-      <div class="table-wrap table-scroll"><table><thead><tr><th class="l">Bowler</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th></tr></thead>
+      <div class="table-wrap table-scroll"><table><thead><tr>${bsh("name","Bowler","l")}${bsh("inns","Inns")}${bsh("overs","Overs")}${bsh("runs","Runs")}${bsh("wkts","Wkts")}${bsh("econ","Econ")}${bsh("avg","Avg")}</tr></thead>
       <tbody>${rows.map((e,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(e.name)}'"><td class="l pname">${esc(e.name)}</td><td class="tnum dim">${e.inns}</td><td class="tnum dim">${e.overs}</td><td class="tnum">${e.runs}</td><td class="hi tnum">${e.wkts}</td><td class="tnum">${e.econ.toFixed(2)}</td><td class="tnum dim">${e.avg==null?"—":e.avg.toFixed(1)}</td></tr>`).join("")}</tbody></table></div></div>`;
   }).join(""):`<div class="notice">No bowling recorded in ${esc(ctx)} yet.</div>`;
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboards</div><h2>Bowling by order</h2><p>Which bowler bowled each over of our bowling innings, and how they did there — the 1st over, 2nd over and so on, across all matches. Enter bowling over-by-over for this to line up. Sorted by wickets; tap a name for the full profile.</p></div></div>${fmtTabs(fmt,"onBPosFmt")}${body}`;
 }
 let splitFmt="all";
 let splitSort={bat:{col:"tot",dir:-1},bowl:{col:"tot",dir:-1},cap:{col:"tot",dir:-1}};
-window.onSplitSort=(tbl,col)=>{ const st=splitSort[tbl]; if(st.col===col)st.dir*=-1; else{st.col=col;st.dir=-1;} router(); };
+window.onSplitSort=(tbl,col)=>{ const st=splitSort[tbl]; if(st.col===col)st.dir*=-1; else{st.col=col;st.dir=(col==="name")?1:-1;} router(); };
 window.onSplitFmt=(f)=>{ splitFmt=f; router(); };
 function viewSplits(v){
   const fmt=splitFmt, ctx=fmtLabel(fmt);
@@ -1784,7 +1794,7 @@ function viewSplits(v){
   const hl=(a,b)=>(a>b)?' style="color:var(--gold);font-weight:700"':'';
   const gv=(r,col)=>{ if(col==="name")return (r.name||"").toLowerCase(); if(col==="tot")return r.tot||0; const parts=col.split("."),g=parts[0],k=parts[1]; const o=r[g]; if(!o)return -1; if(k==="overs")return parseFloat(o.overs)||0; return o[k]!=null?o[k]:-1; };
   const sortBy=(rows,st)=>rows.sort((a,b)=>{ const av=gv(a,st.col),bv=gv(b,st.col); if(st.col==="name")return st.dir<0?String(bv).localeCompare(String(av)):String(av).localeCompare(String(bv)); return st.dir<0?(bv-av):(av-bv); });
-  const sar=(tbl,col)=>{ const st=splitSort[tbl]; return st.col===col?(st.dir<0?'<span class="arr">▼</span>':'<span class="arr">▲</span>'):'<span class="arr"></span>'; };
+  const sar=(tbl,col)=>{ const st=splitSort[tbl]; return st.col===col?(st.dir<0?'<span class="arr">▼</span>':'<span class="arr">▲</span>'):'<span class="arr idle">↕</span>'; };
   const sh=(tbl,col,label,cls)=>`<th class="sortable ${cls||''}" onclick="onSplitSort('${tbl}','${col}')">${label}${sar(tbl,col)}</th>`;
   const shN=(tbl,label)=>`<th class="l sortable" rowspan="2" style="vertical-align:bottom;padding-bottom:8px" onclick="onSplitSort('${tbl}','name')">${label}${sar(tbl,"name")}</th>`;
   const num=(o,k,dp)=>{ if(!o)return "—"; const val=o[k]; if(val==null)return "—"; return dp!=null?val.toFixed(dp):val; };
