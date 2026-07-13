@@ -2713,13 +2713,25 @@ window.editFixture=(id)=>{ FIX_EDIT=id; router(); try{window.scrollTo(0,0);}catc
 window.cancelFixEdit=()=>{ FIX_EDIT=null; router(); };
 function fixtureRecorded(f){ const o=(f.opponent||"").trim().toLowerCase(); return (DATA.matches||[]).some(m=>m.date===f.date && (m.opponent||"").trim().toLowerCase()===o); }
 window.viewFixtureResults=(fid)=>{ const f=((DATA.fixtures)||[]).find(x=>x.id===fid); if(f){ const o=(f.opponent||"").trim().toLowerCase(); const m=(DATA.matches||[]).find(mm=>mm.date===f.date&&(mm.opponent||"").trim().toLowerCase()===o); try{ filterOpp.matches = m?m.opponent:f.opponent; filterPeriod.matches="all"; }catch(e){} } location.hash="#/matches"; };
+let PAST_LIMIT=6;
+window.loadMorePast=()=>{ PAST_LIMIT+=10; router(); };
+window.viewSeriesResults=(opp)=>{ try{ filterOpp.matches=decodeURIComponent(opp); filterPeriod.matches="all"; }catch(e){} location.hash="#/matches"; };
 function viewSchedule(v){
   const today=new Date().toISOString().slice(0,10);
   const fx=((DATA.fixtures)||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const upcoming=fx.filter(f=>(f.date||"")>=today);
   const past=fx.filter(f=>(f.date||"")<today);
   const vt=t=>t==="home"?"Home":t==="away"?"Away":t==="neutral"?"Neutral":"";
-  const row=(f,isNext)=>{
+  const row=(f,isNext,synthetic)=>{
+    if(synthetic){
+      return `<tr>
+     <td class="l">${fmtDateW(f.date)}</td>
+     <td class="l pname">vs ${esc(f.opponent||"—")} <span class="chip">recorded</span></td>
+     <td class="l">${esc(f.venue||"—")}${f.venueType?' <span class="chip'+(f.venueType==="away"?" red":"")+'">'+vt(f.venueType)+'</span>':""}</td>
+     <td class="l">${esc(f.format||"")}</td>
+     <td class="l dim">—</td>
+     <td class="l" style="white-space:nowrap"><button class="btn ghost sm" onclick="viewSeriesResults('${encodeURIComponent(f.opponent||"")}')">View result</button></td></tr>`;
+    }
     const rec=fixtureRecorded(f);
     const act = rec
       ? `<button class="btn ghost sm" onclick="viewFixtureResults('${f.id}')">View result</button>`
@@ -2746,8 +2758,18 @@ function viewSchedule(v){
   </div><button class="btn primary" style="margin-top:14px" onclick="addFixture()">${fe?"Save changes":"+ Add fixture"}</button>${fe?` <button class="btn ghost" style="margin-top:14px" onclick="cancelFixEdit()">Cancel</button>`:""}</div>`:""}
   <div class="eyebrow">Upcoming</div>
   <div class="table-wrap table-scroll"><table>${head}<tbody>${upcoming.map((f,i)=>row(f,i===0)).join("")||`<tr><td class="l dim" colspan="6">No upcoming fixtures — add one above.</td></tr>`}</tbody></table></div>
-  ${past.length?`<div class="eyebrow" style="margin-top:24px">Past fixtures</div>
-  <div class="table-wrap table-scroll"><table>${head}<tbody>${past.map(f=>row(f,false)).join("")}</tbody></table></div>`:""}`;
+  ${(()=>{
+    const norm=x=>(x||"").trim().toLowerCase();
+    const fxKeys={}; fx.forEach(f=>{ fxKeys[(f.date||"")+"|"+norm(f.opponent)]=1; });
+    const seriesMap={};
+    (DATA.matches||[]).forEach(m=>{ if((m.date||"")>=today)return; const k=(m.date||"")+"|"+norm(m.opponent); if(fxKeys[k])return; if(!seriesMap[k])seriesMap[k]={date:m.date,opponent:m.opponent,venue:m.ground||"",venueType:m.venueType,format:m.format,synthetic:true}; });
+    const pastAll=past.concat(Object.values(seriesMap)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+    if(!pastAll.length)return "";
+    const shown=pastAll.slice(0,PAST_LIMIT);
+    const more=pastAll.length>PAST_LIMIT?`<div style="text-align:center;margin-top:14px"><button class="btn ghost" onclick="loadMorePast()">Load more (${pastAll.length-PAST_LIMIT} older)</button></div>`:"";
+    return `<div class="eyebrow" style="margin-top:24px">Past fixtures & results</div>
+    <div class="table-wrap table-scroll"><table>${head}<tbody>${shown.map(f=>row(f,false,f.synthetic)).join("")}</tbody></table></div>${more}`;
+  })()}`;
 }
 function addFixture(){
   const g=id=>($("#"+id)||{}).value||"";
