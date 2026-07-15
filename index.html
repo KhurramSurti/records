@@ -1017,6 +1017,7 @@ const NAV=[
   {id:"schedule",label:"Schedule",section:"Overview",icon:"clock"},
   {id:"live",label:"Live scoring",section:"Overview",icon:"live"},
   {id:"reports",label:"Reports",section:"Overview",icon:"download"},
+  {id:"visitors",label:"Visitors",section:"Overview",icon:"compare"},
   {id:"batting",label:"Batting",section:"Leaderboards",icon:"bat"},
   {id:"bowling",label:"Bowling",section:"Leaderboards",icon:"ball"},
   {id:"fielding",label:"Fielding",section:"Leaderboards",icon:"hand"},
@@ -1120,7 +1121,7 @@ function router(){
   const v=$("#view"); window.scrollTo(0,0);
   ({dashboard:viewDashboard,matches:viewMatches,match:viewScorecard,batting:viewBatting,bowling:viewBowling,
     fielding:viewFielding,players:viewPlayers,compare:viewCompare,positions:viewPositions,bowlpos:viewBowlPositions,player:viewPlayer,captains:viewCaptains,splits:viewSplits,captain:viewCaptain,
-    records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,reports:viewReports,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
+    records:viewRecords,venues:viewVenues,schedule:viewSchedule,live:viewLive,reports:viewReports,visitors:viewVisitors,summary:viewSummary,squad:viewSquad,add:viewAdd,data:viewData}[route]||viewDashboard)(v,decodeURIComponent(arg||""));
   updateBanner();
   $("#drawer").classList.remove("open");
   try{ v.classList.remove("view-in"); void v.offsetWidth; v.classList.add("view-in"); if(typeof runCountUps==="function") runCountUps(); }catch(e){}
@@ -2830,6 +2831,52 @@ function viewVenues(v){
     <tbody>${ov.map(r=>{const dec=r.w+r.l;const pct=dec?(r.w/dec*100).toFixed(0)+"%":"—";return `<tr><td class="l pname">${esc(r.opponent)}</td><td class="l">${esc(r.venue)}</td><td class="tnum dim">${r.played}</td><td class="tnum" style="color:var(--pitch)">${r.w}</td><td class="tnum" style="color:#e37a70">${r.l}</td><td class="hi tnum">${pct}</td></tr>`;}).join("")||emptyRow(6)}</tbody></table></div>`;
 }
 
+/* ---------- Visitors (GoatCounter public counter) ---------- */
+const GC_SITE="https://goldhayat.goatcounter.com";
+let VIS_CACHE=null, VIS_TOKEN=0;
+async function gcCount(start,end){
+  const q=[]; if(start)q.push("start="+encodeURIComponent(start)); if(end)q.push("end="+encodeURIComponent(end));
+  const res=await fetch(GC_SITE+"/counter/TOTAL.json"+(q.length?"?"+q.join("&"):""),{cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const j=await res.json();
+  return parseInt(String((j&&j.count)||"0").replace(/[^0-9]/g,""),10)||0;
+}
+function gcDay(offset){ const d=new Date(); d.setDate(d.getDate()-offset); return d.toISOString().slice(0,10); }
+async function loadVisitors(){
+  const days=[]; for(let i=13;i>=0;i--)days.push(gcDay(i));
+  const daily=[];
+  for(let i=0;i<days.length;i+=4){
+    const batch=days.slice(i,i+4);
+    const vals=await Promise.all(batch.map(d=>gcCount(d,d).catch(()=>0)));
+    vals.forEach((v,k)=>daily.push({date:batch[k],v}));
+  }
+  const [total,d30,d7]=await Promise.all([gcCount(),gcCount("month"),gcCount("week")]);
+  return {total,d30,d7,today:(daily[daily.length-1]||{}).v||0,daily,at:Date.now()};
+}
+window.refreshVisitors=()=>{ VIS_CACHE=null; router(); };
+function viewVisitors(v){
+  const head=`<div class="page-head"><div><div class="eyebrow">Overview</div><h2>Visitors</h2><p>How many people opened the Stats Hub — updated from our privacy-friendly counter (no cookies, no personal data). Counts can lag by up to a few hours.</p></div><button class="btn ghost" onclick="refreshVisitors()">↻ Refresh</button></div>`;
+  const paint=(d)=>{
+    const kpi=(c,ks,ic,lab,val,sub)=>`<div class="kpi" style="--kc:${c};--ks:${ks}"><div class="ic">${ic}</div><div class="lab">${lab}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+    const bars=d.daily.map(x=>({v:x.v,label:new Date(x.date+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"})}));
+    const busiest=d.daily.slice().sort((a,b)=>b.v-a.v)[0];
+    v.innerHTML=head+`
+    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+      ${kpi("var(--gold)","var(--gold-soft)","👤","Today",d.today,"visitors so far")}
+      ${kpi("var(--sky)","rgba(90,150,210,.15)","📅","Last 7 days",d.d7,"unique visitors")}
+      ${kpi("var(--pitch)","rgba(63,166,106,.15)","📈","Last 30 days",d.d30,"unique visitors")}
+      ${kpi("var(--ball)","rgba(190,60,60,.14)","🏟️","All time",d.total,"since we started counting")}
+    </div>
+    <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Visitors — last 14 days</div>${monthBars(bars,{color:"var(--gold)",h:170})}</div>
+    <div class="insights"><div class="ins"><div class="ins-ic">🔥</div><div><div class="ins-t">Busiest day</div><div class="ins-s">${busiest&&busiest.v?fmtDateW(busiest.date)+" — "+busiest.v+" visitor"+(busiest.v>1?"s":""):"No visits recorded yet"}</div></div></div>
+    <div class="ins"><div class="ins-ic">🔒</div><div><div class="ins-t">Private by design</div><div class="ins-s">No cookies and no personal data are collected. For pages, referrers and more, open the <a href="${GC_SITE}" target="_blank" rel="noopener" style="color:var(--gold)">full dashboard</a>.</div></div></div></div>`;
+  };
+  if(VIS_CACHE){ paint(VIS_CACHE); return; }
+  v.innerHTML=head+`<div class="notice">Loading visitor counts…</div>`;
+  const token=++VIS_TOKEN;
+  loadVisitors().then(d=>{ if(token!==VIS_TOKEN)return; VIS_CACHE=d; paint(d); })
+    .catch(()=>{ if(token!==VIS_TOKEN)return; v.innerHTML=head+`<div class="notice"><b>Couldn't load visitor counts.</b><br>Open <a href="${GC_SITE}/settings" target="_blank" rel="noopener" style="color:var(--gold)">GoatCounter settings</a> and tick <b>“Allow adding visitor counts on your website”</b> — that permission is off by default, which is what lets this page read the totals. Then tap ↻ Refresh.</div>`; });
+}
 /* ---------- Boot ---------- */
 $("#menuBtn").addEventListener("click",()=>$("#drawer").classList.toggle("open"));
 $("#drawer").addEventListener("click",e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("open");});
