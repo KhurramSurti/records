@@ -2841,7 +2841,7 @@ async function gcCount(start,end){
   const j=await res.json();
   return parseInt(String((j&&j.count)||"0").replace(/[^0-9]/g,""),10)||0;
 }
-function gcDay(offset){ const d=new Date(); d.setDate(d.getDate()-offset); return d.toISOString().slice(0,10); }
+function gcDay(offset){ const d=new Date(); d.setDate(d.getDate()-offset); const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
 async function loadVisitors(){
   const days=[]; for(let i=13;i>=0;i--)days.push(gcDay(i));
   const daily=[];
