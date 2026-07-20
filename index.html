@@ -976,19 +976,22 @@ function battingByPosition(ms){
   Object.keys(pos).forEach(p=>{ out[p]=Object.values(pos[p]).map(e=>{e.avg=e.inns?e.runs/e.inns:0; e.sr=e.balls?e.runs/e.balls*100:0; return e;}).sort((a,b)=>(b.runs-a.runs)||(b.hs-a.hs)); });
   return out;
 }
-function overWorm(m){
-  const rows=(m.bowling||[]);
+function overWorm(m,inn){
+  inn=inn||1;
+  const rows=(inn===2?(m.bowling2||[]):(m.bowling||[]));
+  const orows=(inn===2?(m.oppBowling2||[]):(m.oppBowling||[]));
+  const ourTotIn=int(inn===2?m.ourTotal2:m.ourTotal);
+  const ourOversIn=(inn===2?m.ourOvers2:m.ourOvers);
   // opponent innings — actual over-by-over from our bowling
   let ob=0,orn=0; const opp=[{x:0,y:0,w:0}];
   rows.forEach(r=>{ ob+=oversToBalls(r.overs); orn+=int(r.runs); opp.push({x:ob/6,y:orn,w:int(r.wickets)}); });
   const oppOv=ob/6, oppTot=orn, hasOpp=rows.length>0&&oppOv>0;
   // our innings — actual over-by-over from opponent bowling (if entered)
-  const orows=(m.oppBowling||[]);
   let ub=0,urn=0; const our=[{x:0,y:0,w:0}];
   orows.forEach(r=>{ ub+=oversToBalls(r.overs); urn+=int(r.runs); our.push({x:ub/6,y:urn,w:int(r.wickets)}); });
   const ourWormOv=ub/6, hasOurWorm=orows.length>0&&ourWormOv>0;
   // fallback: even run-rate from total+overs
-  const ourOv=oversToBalls(m.ourOvers)/6, ourTot=int(m.ourTotal), hasOurRate=ourTot>0&&ourOv>0;
+  const ourOv=oversToBalls(ourOversIn)/6, ourTot=ourTotIn, hasOurRate=ourTot>0&&ourOv>0;
   if(!hasOpp&&!hasOurWorm&&!hasOurRate) return "";
   const maxX=Math.max(oppOv,ourWormOv,ourOv,1), maxY=Math.max(oppTot,ourTot,hasOurWorm?urn:0,10);
   const W=700,H=300,padL=42,padR=16,padT=18,padB=36, iw=W-padL-padR, ih=H-padT-padB;
@@ -1384,7 +1387,16 @@ function viewScorecard(v,id){
   ${inningsOrder}
   ${bowlSummaryBlock}
 
-  ${(m.bowling&&m.bowling.length)?(()=>{const realOur=(m.oppBowling&&m.oppBowling.length);return `<div class="chart-card" style="margin:16px 0"><div class="cc-h">Scoring comparison — over by over</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:4px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>${esc(m.opponent||"Opponent")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>wicket</span><span><i style="display:inline-block;width:16px;border-top:2px ${realOur?"solid":"dashed"} var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat${realOur?"":" (even rate)"}</span></div><p class="dim" style="font-size:10.5px;margin:0 0 8px">${realOur?"Both lines are actual over-by-over, with dots where each side's wickets fell.":"The opponent line is our actual over-by-over bowling; Gold Hayat's is an even run-rate line. Add \u201cOpponent bowling\u201d when editing the match to draw our real over-by-over line and fall of wickets."}</p>${overWorm(m)}</div>`;})():""}
+  ${(()=>{
+    const wormCard=(inn)=>{
+      const bowlRows=(inn===2?(m.bowling2||[]):(m.bowling||[]));
+      if(!bowlRows.length) return "";
+      const realOur=(inn===2?(m.oppBowling2&&m.oppBowling2.length):(m.oppBowling&&m.oppBowling.length));
+      const label=twoInn?(inn===2?" — 2nd innings":" — 1st innings"):"";
+      return `<div class="chart-card" style="margin:16px 0"><div class="cc-h">Scoring comparison — over by over${label}</div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:4px"><span><i style="display:inline-block;width:16px;height:2px;background:var(--sky);vertical-align:middle;margin-right:5px"></i>${esc(m.opponent||"Opponent")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ball);vertical-align:middle;margin-right:5px"></i>wicket</span><span><i style="display:inline-block;width:16px;border-top:2px ${realOur?"solid":"dashed"} var(--gold);vertical-align:middle;margin-right:5px"></i>Gold Hayat${realOur?"":" (even rate)"}</span></div><p class="dim" style="font-size:10.5px;margin:0 0 8px">${realOur?"Both lines are actual over-by-over, with dots where each side's wickets fell.":"The opponent line is our actual over-by-over bowling; Gold Hayat's is an even run-rate line. Add \u201cOpponent bowling\u201d when editing the match to draw our real over-by-over line and fall of wickets."}</p>${overWorm(m,inn)}</div>`;
+    };
+    return wormCard(1)+(twoInn?wormCard(2):"");
+  })()}
 
   ${(m.fielding&&m.fielding.length)?`<div class="sc-section-title">Gold Hayat — Fielding</div>
   <div class="table-wrap table-scroll"><table>
@@ -1987,26 +1999,40 @@ function viewAdd(v){
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow()">+ Add fielder</button></div>
-  <div class="form-section" id="sec-inn2" style="display:none;border:1px solid var(--gold);order:4">
+  <div class="form-section" id="sec-inn2" style="display:none;border:1px solid var(--gold);order:5;flex-direction:column">
     <h3 style="color:var(--gold)">Second innings — Test / T10</h3>
-    <p class="dim" style="font-size:12px;margin:-4px 0 16px">Shown only for Test Match & T10. Fill the second-innings batting, bowling and fielding exactly like the first innings. Target and result are then worked out on the two-innings aggregate. If the match was decided inside one innings, just leave this blank.</p>
-    <h4 style="margin:6px 0 8px;color:var(--cream)">Batting card — 2nd innings</h4>
-    <div class="table-scroll"><table class="entry-table">
-      <thead><tr><th class="l">Batsman</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th class="l">How out</th><th class="l">Bowler/Fielder</th><th>R (B) SR</th><th></th></tr></thead>
-      <tbody id="bat-rows-2"></tbody></table></div>
-    <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow(null,2)">+ Add batsman</button>
-    <div class="total-line">Batting runs <span id="bat-total-2" class="diff">0</span> <span style="color:var(--muted)">+ Extras</span> <input type="number" id="f-extras2" class="num extras-in" placeholder="0" oninput="recalcSummary()"> <span style="color:var(--muted)">=</span> Total <span id="bat-grand-2" style="color:var(--gold);font-weight:700">0</span></div>
-    <h4 style="margin:22px 0 8px;color:var(--cream)">Bowling card — 2nd innings</h4>
-    <div class="table-scroll"><table class="entry-table">
-      <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th>Econ</th><th></th></tr></thead>
-      <tbody id="bowl-rows-2"></tbody></table></div>
-    <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow(null,2)">+ Add bowler</button>
-    <div class="total-line"><span style="color:var(--muted)">Extras conceded (byes/leg-byes)</span> <input type="number" id="f-oppextras2" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div>
-    <h4 style="margin:22px 0 8px;color:var(--cream)">Fielding — 2nd innings</h4>
-    <div class="table-scroll"><table class="entry-table">
-      <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
-      <tbody id="field-rows-2"></tbody></table></div>
-    <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow(null,2)">+ Add fielder</button>
+    <p class="dim" style="font-size:12px;margin:-4px 0 16px">Shown only for Test Match & T10. Fill the second-innings cards the same way as the first innings — they appear in the same order (based on who bowled/batted first). Target and result use the two-innings aggregate. If the match ended inside one innings, leave this blank.</p>
+    <div id="sec-bat2">
+      <h4 style="margin:6px 0 8px;color:var(--cream)">Batting card — 2nd innings</h4>
+      <div class="table-scroll"><table class="entry-table">
+        <thead><tr><th class="l">Batsman</th><th>0s</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th class="l">How out</th><th class="l">Bowler/Fielder</th><th>R (B) SR</th><th></th></tr></thead>
+        <tbody id="bat-rows-2"></tbody></table></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow(null,2)">+ Add batsman</button>
+      <div class="total-line">Batting runs <span id="bat-total-2" class="diff">0</span> <span style="color:var(--muted)">+ Extras</span> <input type="number" id="f-extras2" class="num extras-in" placeholder="0" oninput="recalcSummary()"> <span style="color:var(--muted)">=</span> Total <span id="bat-grand-2" style="color:var(--gold);font-weight:700">0</span></div>
+    </div>
+    <div id="sec-bowl2">
+      <h4 style="margin:22px 0 8px;color:var(--cream)">Bowling card — 2nd innings</h4>
+      <div class="table-scroll"><table class="entry-table">
+        <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th>Econ</th><th></th></tr></thead>
+        <tbody id="bowl-rows-2"></tbody></table></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow(null,2)">+ Add bowler</button>
+      <div class="total-line"><span style="color:var(--muted)">Extras conceded (byes/leg-byes)</span> <input type="number" id="f-oppextras2" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div>
+    </div>
+    <div id="sec-oppbowl2">
+      <h4 style="margin:22px 0 8px;color:var(--cream)">Opponent bowling — 2nd innings <span style="font-weight:400;font-size:12px;color:var(--muted)">— optional · only feeds the worm graph</span></h4>
+      <div class="table-scroll"><table class="entry-table">
+        <thead><tr><th class="l">Opp. bowler (optional)</th><th>Overs</th><th>Runs</th><th>Wkts</th><th></th></tr></thead>
+        <tbody id="oppbowl-rows-2"></tbody></table></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addOppBowlRow(null,2)">+ Add over/spell</button>
+      <p class="dim" style="font-size:11px;margin-top:8px">Each over (or spell) the opposition bowled at us in our 2nd innings, in order. <b>Runs</b> = runs we scored that over. <b>Wkts</b> = <u>our</u> wickets that fell (include run-outs).</p>
+    </div>
+    <div id="sec-field2">
+      <h4 style="margin:22px 0 8px;color:var(--cream)">Fielding — 2nd innings</h4>
+      <div class="table-scroll"><table class="entry-table">
+        <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
+        <tbody id="field-rows-2"></tbody></table></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow(null,2)">+ Add fielder</button>
+    </div>
   </div>
   <div class="form-section" id="sec-oppbowl"><h3>Opponent bowling <span style="font-weight:400;font-size:12px;color:var(--muted)">— optional · only feeds the worm graph (kept out of all stats & reports)</span></h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Opp. bowler (optional)</th><th>Overs</th><th>Runs</th><th>Wkts</th><th></th></tr></thead>
@@ -2026,6 +2052,7 @@ function viewAdd(v){
   if(P&&P.batting2&&P.batting2.length){ P.batting2.forEach(b=>addBatRow(b,2)); } else { for(let i=0;i<5;i++)addBatRow(null,2); }
   if(P&&P.bowling2&&P.bowling2.length){ P.bowling2.forEach(b=>addBowlRow(b,2)); } else { for(let i=0;i<5;i++)addBowlRow(null,2); }
   if(P&&P.fielding2&&P.fielding2.length){ P.fielding2.forEach(b=>addFieldRow(b,2)); } else { for(let i=0;i<3;i++)addFieldRow(null,2); }
+  if(P&&P.oppBowling2&&P.oppBowling2.length){ P.oppBowling2.forEach(b=>addOppBowlRow(b,2)); } else { for(let i=0;i<3;i++)addOppBowlRow(null,2); }
   if(P){
     const setv=(id,val)=>{const el=$("#"+id); if(el&&val!=null&&val!=="")el.value=val;};
     setv("f-date",P.date);setv("f-opp",P.opponent);setv("f-captain",P.captain);setv("f-ground",P.ground);setv("f-venuetype",P.venueType);setv("f-format",P.format);
@@ -2067,14 +2094,14 @@ function addBatRow(d,inn){
     set("name",d.name);set("dots",d.dots);set("ones",d.ones);set("twos",d.twos);set("threes",d.threes);set("fours",d.fours);set("sixes",d.sixes);
     set("dismissal",d.dismissal); set("who",d.fielder||d.bowler||""); recalcBat(id); }
 }
-function addOppBowlRow(d){
+function addOppBowlRow(d,inn){
   const id="ow"+(rowSeq++),tr=document.createElement("tr");tr.id=id;
   tr.innerHTML=`<td><input class="name" data-k="name" placeholder="e.g. Bowler 1 (optional)"></td>
     <td><input class="num" data-k="overs" placeholder="1"></td>
     <td><input class="num" type="number" data-k="runs" placeholder="0"></td>
     <td><input class="num" type="number" data-k="wickets" placeholder="0"></td>
     <td><button class="row-del" onclick="this.closest('tr').remove()">\u00d7</button></td>`;
-  $("#oppbowl-rows").appendChild(tr);
+  $(inn===2?"#oppbowl-rows-2":"#oppbowl-rows").appendChild(tr);
   if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;}; set("name",d.name);set("overs",d.overs);set("runs",d.runs);set("wickets",d.wickets); }
 }
 function addBowlRow(d,inn){
@@ -2193,14 +2220,22 @@ function recalcSummary(){
 }
 function onFormatChange(){
   const twoInn=TWO_INN_FORMATS.includes(((($("#f-format")||{}).value)||"").trim());
-  const sec=$("#sec-inn2"); if(sec) sec.style.display=twoInn?"block":"none";
+  const sec=$("#sec-inn2"); if(sec) sec.style.display=twoInn?"flex":"none";
   ["tag-bat1","tag-bowl1","tag-field1"].forEach(id=>{ const el=$("#"+id); if(el) el.textContent=twoInn?" · 1st innings":""; });
+  onDecisionOrder();
   recalcSummary();
 }
 function onDecisionOrder(){
   const dec=(($("#f-decision")||{}).value)||"bat";
-  const bat=$("#sec-bat"), bowl=$("#sec-bowl"), fld=$("#sec-field");
-  if(bat&&bowl&&fld){ if(dec==="bowl"){ bowl.style.order="1"; bat.style.order="2"; } else { bat.style.order="1"; bowl.style.order="2"; } fld.style.order="3"; }
+  const bowled=(dec==="bowl");
+  const set=(id,o)=>{ const el=$("#"+id); if(el) el.style.order=o; };
+  // Per innings the cards read: (bowling/batting by who went first) -> opponent bowling (worm of our batting) -> fielding
+  // ---- 1st innings (top-level cards in #cards-order) ----
+  if(bowled){ set("sec-bowl",1); set("sec-bat",2); } else { set("sec-bat",1); set("sec-bowl",2); }
+  set("sec-oppbowl",3); set("sec-field",4); set("sec-inn2",5);
+  // ---- 2nd innings (cards inside #sec-inn2) ----
+  if(bowled){ set("sec-bowl2",1); set("sec-bat2",2); } else { set("sec-bat2",1); set("sec-bowl2",2); }
+  set("sec-oppbowl2",3); set("sec-field2",4);
 }
 function saveMatch(){
   recalcSummary();
@@ -2236,6 +2271,7 @@ function saveMatch(){
     document.querySelectorAll("#field-rows-2 tr").forEach(tr=>{ const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||""; const name=gk("name").trim(); if(!name)return; const c=int(gk("catches")),r=int(gk("runouts")),s=int(gk("stumpings")); if(c+r+s===0)return; field2.push({name,catches:c,runouts:r,stumpings:s}); });
   }
   const oppBowling=[];document.querySelectorAll("#oppbowl-rows tr").forEach(tr=>{ const gv=k=>((tr.querySelector("[data-k='"+k+"']")||{}).value||""); const ov=gv("overs").trim(),rn=gv("runs").trim(),wk=gv("wickets").trim(); if(ov!==""||rn!==""||wk!==""){ oppBowling.push({name:gv("name").trim(),overs:ov||"0",runs:int(rn),wickets:int(wk)}); } });
+  const oppBowling2=[];if(twoInn){document.querySelectorAll("#oppbowl-rows-2 tr").forEach(tr=>{ const gv=k=>((tr.querySelector("[data-k='"+k+"']")||{}).value||""); const ov=gv("overs").trim(),rn=gv("runs").trim(),wk=gv("wickets").trim(); if(ov!==""||rn!==""||wk!==""){ oppBowling2.push({name:gv("name").trim(),overs:ov||"0",runs:int(rn),wickets:int(wk)}); } });}
   const match={id:"m"+Date.now(),date:g("f-date")||new Date().toISOString().slice(0,10),
     opponent:g("f-opp").trim(),captain:g("f-captain").trim(),ground:g("f-ground").trim(),venueType:g("f-venuetype"),format:g("f-format").trim(),
     toss:g("f-toss"),decision:g("f-decision"),
@@ -2245,7 +2281,7 @@ function saveMatch(){
     oppTotal2:(twoInn?int(g("f-opptotal2")):undefined),oppWickets2:(twoInn?int(g("f-oppwkts2")):undefined),oppOvers2:(twoInn?g("f-oppovers2").trim():undefined),
     result:g("f-result"),motm:g("f-motm").trim(),xi:(xi&&xi.length?xi:undefined),batting:bat,bowling:bowl,fielding:field,
     batting2:(bat2.length?bat2:undefined),bowling2:(bowl2.length?bowl2:undefined),fielding2:(field2.length?field2:undefined),
-    oppBowling:(oppBowling.length?oppBowling:undefined)};
+    oppBowling:(oppBowling.length?oppBowling:undefined),oppBowling2:(oppBowling2.length?oppBowling2:undefined)};
   const _ex=EDIT_ID?DATA.matches.find(m=>m.id===EDIT_ID):null;
   match.seq=(_ex&&_ex.seq!=null)?_ex.seq:(DATA.matches.reduce((a,m)=>Math.max(a,m.seq||0),0)+1);
   if(EDIT_ID){ const i=DATA.matches.findIndex(m=>m.id===EDIT_ID); match.id=EDIT_ID; if(i>=0)DATA.matches[i]=match; else DATA.matches.push(match); EDIT_ID=null; }
@@ -2946,7 +2982,7 @@ function editMatch(id){
     xi:(m.xi&&m.xi.length?m.xi.slice():undefined),
     batting:(m.batting||[]).map(b=>({...b})), bowling:(m.bowling||[]).map(b=>({...b})), fielding:(m.fielding||[]).map(b=>({...b})),
     batting2:(m.batting2&&m.batting2.length?m.batting2.map(b=>({...b})):undefined), bowling2:(m.bowling2&&m.bowling2.length?m.bowling2.map(b=>({...b})):undefined), fielding2:(m.fielding2&&m.fielding2.length?m.fielding2.map(b=>({...b})):undefined),
-    oppBowling:(m.oppBowling&&m.oppBowling.length?m.oppBowling.map(b=>({...b})):undefined) };
+    oppBowling:(m.oppBowling&&m.oppBowling.length?m.oppBowling.map(b=>({...b})):undefined), oppBowling2:(m.oppBowling2&&m.oppBowling2.length?m.oppBowling2.map(b=>({...b})):undefined) };
   location.hash="#/add";
 }
 function deleteMatch(id){
