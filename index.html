@@ -792,21 +792,23 @@ function battingAgg(ms){
 function bowlingAgg(ms){
   ms=ms||DATA.matches; const map={};
   ms.forEach(m=>{
-    // combine each bowler's spells WITHIN this match first (one innings per match)
-    const perMatch={};
-    mBowl(m).forEach(raw=>{
-      const k=raw.name; if(!k)return;
-      const pm=perMatch[k]||(perMatch[k]={balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0});
-      pm.balls+=oversToBalls(raw.overs);pm.runs+=int(raw.runs);pm.wkts+=int(raw.wickets);pm.wides+=int(raw.wides);pm.noballs+=int(raw.noballs);pm.dots+=int(raw.dots);pm.fours+=int(raw.fours);pm.sixes+=int(raw.sixes);pm.bowled+=int(raw.bowled);pm.caught+=int(raw.caught);pm.stumped+=int(raw.stumped);
-    });
-    Object.keys(perMatch).forEach(k=>{
-      const pm=perMatch[k];
-      if(pm.balls<=0&&pm.runs<=0&&pm.wkts<=0&&pm.wides<=0&&pm.noballs<=0)return; // gave no over this match -> no innings
-      const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
-      p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
-      const w=pm.wkts,r=pm.runs;
-      if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
-      if(w>=3)p.threeFer++;if(w>=5)p.fiveFer++;
+    // each innings is its own bowling innings (Test/T10 = up to 2); combine a bowler's spells WITHIN one innings
+    [(m.bowling||[]),(m.bowling2||[])].forEach(arr=>{
+      const perInn={};
+      arr.forEach(raw=>{
+        const k=raw.name; if(!k)return;
+        const pm=perInn[k]||(perInn[k]={balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0});
+        pm.balls+=oversToBalls(raw.overs);pm.runs+=int(raw.runs);pm.wkts+=int(raw.wickets);pm.wides+=int(raw.wides);pm.noballs+=int(raw.noballs);pm.dots+=int(raw.dots);pm.fours+=int(raw.fours);pm.sixes+=int(raw.sixes);pm.bowled+=int(raw.bowled);pm.caught+=int(raw.caught);pm.stumped+=int(raw.stumped);
+      });
+      Object.keys(perInn).forEach(k=>{
+        const pm=perInn[k];
+        if(pm.balls<=0&&pm.runs<=0&&pm.wkts<=0&&pm.wides<=0&&pm.noballs<=0)return; // bowled nothing this innings
+        const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
+        p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
+        const w=pm.wkts,r=pm.runs;
+        if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
+        if(w>=3)p.threeFer++;if(w>=5)p.fiveFer++;
+      });
     });
   });
   return Object.values(map).map(p=>{
@@ -958,11 +960,13 @@ function xiCount(name,ms){ return (ms||DATA.matches).reduce((n,m)=>{ const on=(m
 function captainPlayerAudit(ms){
   const map={}; const get=k=>map[k]||(map[k]={name:k,mat:0,batInns:0,bowlInns:0,balls:0,runs:0,conc:0,wkts:0});
   (ms||[]).forEach(m=>{
-    const xi=(m.xi&&m.xi.length)?m.xi.slice():[...new Set([...(m.batting||[]).map(b=>b.name),...(m.bowling||[]).map(b=>b.name),...(m.fielding||[]).map(f=>f.name)])];
+    const xi=(m.xi&&m.xi.length)?m.xi.slice():[...new Set([...mBat(m).map(b=>b.name),...mBowl(m).map(b=>b.name),...mField(m).map(f=>f.name)])];
     xi.forEach(nm=>{ if(nm)get(nm).mat++; });
-    (m.batting||[]).forEach(b=>{ if(!b.name)return; const p=get(b.name); p.batInns++; p.runs+=inn(b).runs; });
-    const bm={}; (m.bowling||[]).forEach(x=>{ if(!x.name)return; const q=bm[x.name]||(bm[x.name]={balls:0,runs:0,wkts:0}); q.balls+=oversToBalls(x.overs); q.runs+=int(x.runs); q.wkts+=int(x.wickets); });
-    Object.keys(bm).forEach(nm=>{ const p=get(nm); p.bowlInns++; p.balls+=bm[nm].balls; p.conc+=bm[nm].runs; p.wkts+=bm[nm].wkts; });
+    mBat(m).forEach(b=>{ if(!b.name)return; const p=get(b.name); p.batInns++; p.runs+=inn(b).runs; });
+    [(m.bowling||[]),(m.bowling2||[])].forEach(arr=>{
+      const bm={}; arr.forEach(x=>{ if(!x.name)return; const q=bm[x.name]||(bm[x.name]={balls:0,runs:0,wkts:0}); q.balls+=oversToBalls(x.overs); q.runs+=int(x.runs); q.wkts+=int(x.wickets); });
+      Object.keys(bm).forEach(nm=>{ const p=get(nm); p.bowlInns++; p.balls+=bm[nm].balls; p.conc+=bm[nm].runs; p.wkts+=bm[nm].wkts; });
+    });
   });
   return Object.values(map).map(p=>{ p.overs=ballsToOvers(p.balls); p.chances=p.batInns+p.bowlInns; return p; })
     .sort((a,b)=>(b.mat-a.mat)||(a.chances-b.chances)||a.name.localeCompare(b.name));
