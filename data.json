@@ -1659,7 +1659,7 @@
       "oppWickets": 4,
       "oppOvers": "8.0",
       "ourTotal2": 72,
-      "ourWickets2": 3,
+      "ourWickets2": 2,
       "ourOvers2": "6.0",
       "oppTotal2": 80,
       "oppWickets2": 5,
@@ -1947,17 +1947,6 @@
         },
         {
           "name": "Sami Khan",
-          "dots": 0,
-          "ones": 0,
-          "twos": 0,
-          "threes": 0,
-          "fours": 0,
-          "sixes": 0,
-          "dismissal": "caught",
-          "position": 3
-        },
-        {
-          "name": "Sami Khan",
           "dots": 1,
           "ones": 1,
           "twos": 0,
@@ -1965,7 +1954,7 @@
           "fours": 0,
           "sixes": 1,
           "dismissal": "runout",
-          "position": 4
+          "position": 3
         },
         {
           "name": "Rameez Altaf",
@@ -1976,7 +1965,7 @@
           "fours": 0,
           "sixes": 0,
           "dismissal": "notout",
-          "position": 5
+          "position": 4
         }
       ],
       "bowling2": [
