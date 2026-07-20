@@ -1662,7 +1662,7 @@
       "ourWickets2": 2,
       "ourOvers2": "6.0",
       "oppTotal2": 80,
-      "oppWickets2": 5,
+      "oppWickets2": 6,
       "oppOvers2": "8.0",
       "result": "won",
       "motm": "",
@@ -1774,7 +1774,8 @@
           "sixes": 0,
           "dots": 2,
           "wides": 4,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Syed Zaheer",
@@ -1791,7 +1792,8 @@
           "sixes": 1,
           "dots": 0,
           "wides": 1,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Umair Suzuki",
@@ -1808,7 +1810,8 @@
           "sixes": 1,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Fayyaz Muhammad",
@@ -1825,7 +1828,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 2,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Mudassir Hamdani",
@@ -1842,7 +1846,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Muhammad Anas",
@@ -1859,7 +1864,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Fayyaz Muhammad",
@@ -1876,7 +1882,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Mudassir Hamdani",
@@ -1893,7 +1900,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 1,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         }
       ],
       "fielding": [
@@ -1973,9 +1981,9 @@
           "name": "Abdul Raziq",
           "overs": "1",
           "runs": 5,
-          "wickets": 1,
+          "wickets": 2,
           "bowled": 0,
-          "caught": 1,
+          "caught": 2,
           "stumped": 0,
           "ones": 3,
           "twos": 0,
@@ -1984,7 +1992,8 @@
           "sixes": 0,
           "dots": 3,
           "wides": 2,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Mehboob Yasin",
@@ -2001,7 +2010,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 3,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Abdul Raziq",
@@ -2018,7 +2028,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Mudassir Hamdani",
@@ -2035,7 +2046,8 @@
           "sixes": 1,
           "dots": 0,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Muhammad Anas",
@@ -2052,7 +2064,8 @@
           "sixes": 1,
           "dots": 1,
           "wides": 3,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Fayyaz Muhammad",
@@ -2069,7 +2082,8 @@
           "sixes": 0,
           "dots": 1,
           "wides": 3,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Syed Zaheer",
@@ -2086,7 +2100,8 @@
           "sixes": 0,
           "dots": 1,
           "wides": 0,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         },
         {
           "name": "Mudassir Hamdani",
@@ -2103,7 +2118,8 @@
           "sixes": 0,
           "dots": 0,
           "wides": 1,
-          "noballs": 0
+          "noballs": 0,
+          "runouts": 0
         }
       ],
       "fielding2": [
