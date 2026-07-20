@@ -668,8 +668,13 @@ function matchMargin(m){
 function testMargin(m){
   const ourT=ourAgg(m), oppT=oppAgg(m);
   if(ourT===oppT) return {label:"Match tied",cls:"tie"};
-  const weChased=(m.decision==="bowl"); // bowled first => we batted last
+  const weBattedTwice=(int(m.ourTotal2)>0||int(m.ourWickets2)>0);
+  const oppBattedTwice=(int(m.oppTotal2)>0||int(m.oppWickets2)>0);
   const weWon=ourT>oppT;
+  // innings victory: winner batted once, loser batted twice and still fell short
+  if(weWon && !weBattedTwice && oppBattedTwice){ const r=ourT-oppT; return {label:"Won by an innings and "+r+" run"+(r===1?"":"s"),cls:"win"}; }
+  if(!weWon && weBattedTwice && !oppBattedTwice){ const r=oppT-ourT; return {label:"Lost by an innings and "+r+" run"+(r===1?"":"s"),cls:"loss"}; }
+  const weChased=(m.decision==="bowl"); // bowled first => we batted last
   if(weChased){
     if(weWon){ const w=Math.max(0,10-int(m.ourWickets2!=null?m.ourWickets2:m.ourWickets)); return {label:"Won by "+w+" wicket"+(w===1?"":"s"),cls:"win"}; }
     const r=oppT-ourT; return {label:"Lost by "+r+" run"+(r===1?"":"s"),cls:"loss"};
@@ -1975,7 +1980,7 @@ function viewAdd(v){
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addFieldRow()">+ Add fielder</button></div>
-  <div class="form-section" id="sec-inn2" style="display:none;border:1px solid var(--gold)">
+  <div class="form-section" id="sec-inn2" style="display:none;border:1px solid var(--gold);order:4">
     <h3 style="color:var(--gold)">Second innings — Test / T10</h3>
     <p class="dim" style="font-size:12px;margin:-4px 0 16px">Shown only for Test Match & T10. Fill the second-innings batting, bowling and fielding exactly like the first innings. Target and result are then worked out on the two-innings aggregate. If the match was decided inside one innings, just leave this blank.</p>
     <h4 style="margin:6px 0 8px;color:var(--cream)">Batting card — 2nd innings</h4>
