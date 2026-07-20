@@ -432,3 +432,28 @@ Records are never mixed across formats. Each format's stats stay on their own:
 
 Note: for Test/T10 the "per format" total for a player naturally includes **both innings**
 of each Test/T10 match (as it should) — but it never crosses into any other format.
+
+## Test/T10 card order + opponent bowling per innings (NEW)
+For a Test/T10 match the Add-match cards now follow the real chronological order **per innings**,
+based on who went first:
+- **We bowled first:** our Bowling → our Batting → Opponent bowling (worm) → Fielding — and the
+  same four cards again for the **2nd innings**.
+- **We batted first:** our Batting → our Bowling → Opponent bowling (worm) → Fielding, then the
+  2nd innings the same way.
+
+There are now **two Opponent-bowling cards** (one per innings), so the over-by-over **worm graph
+draws correctly for both innings** on the scorecard. (Opponent bowling stays optional and, as before,
+only feeds the graph — it never enters any stat or leaderboard.)
+
+## Batting order & Bowling order — both innings now counted (fix)
+The "Runs by batting position" and "Bowling by order" leaderboards now handle Test/T10
+correctly: each innings is counted on its own, so batting positions and the over-number
+for bowling both **reset at the start of the 2nd innings** (they no longer run on from the
+first innings). Both innings are included; nothing is merged incorrectly.
+
+## Opponent run-outs on the worm graph (NEW)
+The bowling card has a new optional **RO** column = opponent run-outs that fell in that over.
+It only draws the fall-of-wickets on the worm graph — so an over where 2 wickets fell
+(e.g. one caught + one run-out) now shows a **“2”** on the opponent line. RO is never counted
+as a bowling wicket and doesn't touch any stat or leaderboard. Enter bowling over-by-over for
+the wickets to land on the correct over; leave RO at 0 when there was no run-out.
