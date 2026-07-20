@@ -419,3 +419,16 @@ they stay single-innings and behave exactly as before.
 **One small note:** a bowler who bowls in *both* innings of the same match is currently counted
 as **one** bowling innings in the leaderboard's "Inns"/economy-per-innings column (his total
 runs and wickets are still fully correct). Everything else reflects both innings.
+
+## Per-format records — every format kept separate (NEW)
+Records are never mixed across formats. Each format's stats stay on their own:
+- The **Batting**, **Bowling** and **Fielding** leaderboards now each have a **Format**
+  dropdown (All formats / T20 / OD / Test / T10) next to the Opponent and Period filters.
+  Pick a format and the whole leaderboard — best batsman, best bowler, best fielder —
+  recalculates for that format only. A player's T20 runs never merge into his Test runs.
+- **Player profiles**, **Captains** and the **Records** page already had format tabs/filters,
+  so best captain, high scores and best bowling can all be viewed per format too.
+- **Top-10 PDF exports** respect the chosen format, and the PDF header names it.
+
+Note: for Test/T10 the "per format" total for a player naturally includes **both innings**
+of each Test/T10 match (as it should) — but it never crosses into any other format.

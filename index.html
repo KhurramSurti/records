@@ -744,10 +744,11 @@ function inPeriod(date,period){
   return true;
 }
 function getMatches(opts={}){
-  const {opp="all",period="all",captain=null}=opts;
+  const {opp="all",period="all",captain=null,format="all"}=opts;
   return DATA.matches.filter(m=>{
     if(opp&&opp!=="all"&&m.opponent!==opp)return false;
     if(captain&&(m.captain||"—")!==captain)return false;
+    if(format&&format!=="all"&&m.format!==format)return false;
     if(!inPeriod(m.date,period))return false;
     return true;
   });
@@ -1130,6 +1131,7 @@ function updateBanner(){
 const sortState={batting:{key:"runs",dir:-1},bowling:{key:"wkts",dir:-1},fielding:{key:"total",dir:-1},captains:{key:"winPct",dir:-1},venues:{key:"played",dir:-1}};
 let filterOpp={batting:"all",bowling:"all",fielding:"all",captains:"all",venues:"all",matches:"all"};
 let filterPeriod={batting:"all",bowling:"all",fielding:"all",matches:"all"};
+let filterFmt={batting:"all",bowling:"all",fielding:"all"};
 let matchDateFilter="";
 window.onMatchDate=(val)=>{matchDateFilter=val;router();};
 let teamFmt="all"; window.onTeamFmt=(f)=>{teamFmt=f;router();};
@@ -1138,10 +1140,12 @@ function fmtLabel(x){ return x==="all"?"All formats":(x==="Test Match"?"Test":x)
 function fmtTabs(cur,handler){ return '<div class="tabs">'+["all"].concat(FORMATS).map(x=>'<button class="tab'+(x===cur?" on":"")+'" onclick="'+handler+'(\''+x+'\')">'+fmtLabel(x)+'</button>').join("")+'</div>'; }
 window.onFilter=(id,val)=>{filterOpp[id]=val;router();};
 window.onPeriod=(id,val)=>{filterPeriod[id]=val;router();};
+window.onFmt=(id,val)=>{filterFmt[id]=val;router();};
 window.onSort=(tbl,key)=>{const s=sortState[tbl];if(s.key===key)s.dir*=-1;else{s.key=key;s.dir=((key==="name"||key==="venue")?1:-1);}router();};
 function th(tbl,key,label,cls=""){const s=sortState[tbl];const active=s.key===key;const arr=active?(s.dir<0?"▼":"▲"):"↕";return `<th class="sortable ${cls}${active?" active":""}" onclick="onSort('${tbl}','${key}')">${label}<span class="arr">${arr}</span></th>`;}
 function opt(val,label,cur){return `<option value="${esc(val)}"${val===cur?" selected":""}>${label}</option>`;}
 function oppSelect(id,cur){return `<select onchange="onFilter('${id}',this.value)">${opt("all","All opponents",cur)}${opponents().map(o=>opt(o,"vs "+o,cur)).join("")}</select>`;}
+function fmtSelect(id,cur){return `<select onchange="onFmt('${id}',this.value)">${opt("all","All formats",cur)}${FORMATS.map(f=>opt(f,fmtLabel(f),cur)).join("")}</select>`;}
 function periodSelect(id,cur){
   const months=monthsPresent();
   let html=opt("all","All time",cur)+opt("month","This month",cur)+opt("year","This year",cur);
@@ -1391,10 +1395,11 @@ function viewScorecard(v,id){
 /* ============================================================ BATTING / BOWLING / FIELDING ============================================================ */
 function viewBatting(v){
   const minI=window._minBatInn||1;
-  let rows=battingAgg(getMatches({opp:filterOpp.batting,period:filterPeriod.batting})).filter(p=>p.inns>=minI);
+  let rows=battingAgg(getMatches({opp:filterOpp.batting,period:filterPeriod.batting,format:filterFmt.batting})).filter(p=>p.inns>=minI);
   const s=sortState.batting; rows=sortRows(rows,s.key,s.dir);
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Batting</h2><p>Career batting — filter by opponent or month, click a column to sort</p></div><button class="btn primary" onclick="pdfBatting()">⬇ Top 10 PDF</button></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Batting</h2><p>Career batting — filter by format, opponent or month, click a column to sort</p></div><button class="btn primary" onclick="pdfBatting()">⬇ Top 10 PDF</button></div>
   <div class="controls">
+    <div class="field"><label>Format</label>${fmtSelect("batting",filterFmt.batting)}</div>
     <div class="field"><label>Opponent</label>${oppSelect("batting",filterOpp.batting)}</div>
     <div class="field"><label>Period</label>${periodSelect("batting",filterPeriod.batting)}</div>
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBatInn=Math.max(1,parseInt(this.value)||1);router()"></div>
@@ -1410,10 +1415,11 @@ function viewBatting(v){
 }
 function viewBowling(v){
   const minI=window._minBowlInn||1;
-  let rows=bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling})).filter(p=>p.inns>=minI);
+  let rows=bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling,format:filterFmt.bowling})).filter(p=>p.inns>=minI);
   const s=sortState.bowling; rows=sortRows(rows,s.key,s.dir);
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Bowling</h2><p>Career bowling — filter by opponent or month, click a column to sort</p></div><button class="btn primary" onclick="pdfBowling()">⬇ Top 10 PDF</button></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Bowling</h2><p>Career bowling — filter by format, opponent or month, click a column to sort</p></div><button class="btn primary" onclick="pdfBowling()">⬇ Top 10 PDF</button></div>
   <div class="controls">
+    <div class="field"><label>Format</label>${fmtSelect("bowling",filterFmt.bowling)}</div>
     <div class="field"><label>Opponent</label>${oppSelect("bowling",filterOpp.bowling)}</div>
     <div class="field"><label>Period</label>${periodSelect("bowling",filterPeriod.bowling)}</div>
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
@@ -1427,10 +1433,11 @@ function viewBowling(v){
   </table></div>`;
 }
 function viewFielding(v){
-  let rows=fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding}));
+  let rows=fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding,format:filterFmt.fielding}));
   const s=sortState.fielding; rows=sortRows(rows,s.key,s.dir);
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Leaderboard</div><h2>Fielding</h2><p>Catches, run-outs and stumpings by Gold Hayat fielders</p></div><button class="btn primary" onclick="pdfFielding()">⬇ PDF</button></div>
   <div class="controls">
+    <div class="field"><label>Format</label>${fmtSelect("fielding",filterFmt.fielding)}</div>
     <div class="field"><label>Opponent</label>${oppSelect("fielding",filterOpp.fielding)}</div>
     <div class="field"><label>Period</label>${periodSelect("fielding",filterPeriod.fielding)}</div>
   </div>
@@ -2424,10 +2431,11 @@ function openPrint(title,subtitle,bodyHTML){
   w.document.close(); w.focus();
 }
 function filterLabelPDF(id){
-  const opp=filterOpp[id],per=filterPeriod[id];let parts=[];
+  const opp=filterOpp[id],per=filterPeriod[id],fmt=(filterFmt[id]||"all");let parts=[];
+  if(fmt&&fmt!=="all")parts.push(fmtLabel(fmt));
   if(opp&&opp!=="all")parts.push("vs "+opp);
   if(per&&per!=="all"){ if(per==="month")parts.push("This month"); else if(per==="year")parts.push("This year"); else if(/^\d{4}-\d{2}$/.test(per))parts.push(new Date(per+"-01T00:00").toLocaleDateString("en-GB",{month:"short",year:"numeric"})); else parts.push(per); }
-  return parts.length?parts.join(" • "):"All time • all opponents";
+  return parts.length?parts.join(" • "):"All formats • all time • all opponents";
 }
 function pdfMatch(id){
   const m=DATA.matches.find(x=>x.id===id); if(!m)return;
@@ -2533,7 +2541,7 @@ function pdfVenues(){
   openPrint("Venue report", "All venues", body);
 }
 function pdfFielding(){
-  const rows=sortRows(fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding})),"total",-1);
+  const rows=sortRows(fieldingAgg(getMatches({opp:filterOpp.fielding,period:filterPeriod.fielding,format:filterFmt.fielding})),"total",-1);
   const body=pdfHead("Fielding")+pdfTbl(["#","Fielder","Inns","Catches","Run-outs","Stumpings","Total"],rows.map((p,i)=>[i+1,esc(p.name),p.inns,p.catches,p.runouts,p.stumpings,p.total]),2);
   openPrint("Fielding leaderboard", filterLabelPDF("fielding"), body);
 }
