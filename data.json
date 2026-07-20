@@ -2149,6 +2149,94 @@
           "stumpings": 0
         }
       ],
+      "oppBowling": [
+        {
+          "name": "Bowler 1",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 2",
+          "overs": "1",
+          "runs": 17,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 3",
+          "overs": "1",
+          "runs": 11,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 4",
+          "overs": "1",
+          "runs": 6,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 5",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 6",
+          "overs": "1",
+          "runs": 13,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 7",
+          "overs": "1",
+          "runs": 6,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 8",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1
+        }
+      ],
+      "oppBowling2": [
+        {
+          "name": "Bowler 1",
+          "overs": "1",
+          "runs": 20,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 2",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 3",
+          "overs": "1",
+          "runs": 11,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 4",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 5",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 6",
+          "overs": "1",
+          "runs": 9,
+          "wickets": 1
+        }
+      ],
       "seq": 7
     }
   ],
