@@ -2544,6 +2544,297 @@
         }
       ],
       "seq": 8
+    },
+    {
+      "id": "m1785316852334",
+      "date": "2026-07-26",
+      "opponent": "Fareed Team",
+      "captain": "Rameez Altaf",
+      "ground": "Sasi Arcade",
+      "venueType": "away",
+      "format": "OD",
+      "toss": "won",
+      "decision": "bat",
+      "ourTotal": 67,
+      "ourWickets": 7,
+      "ourOvers": "8.0",
+      "oppTotal": 68,
+      "oppWickets": 3,
+      "oppOvers": "5.0",
+      "result": "lost",
+      "motm": "",
+      "xi": [
+        "Sami Khan",
+        "Sher Muhammad",
+        "Syed Zaheer",
+        "Mudassir Hamdani",
+        "Syed Mudassir",
+        "Umer Sohail",
+        "Umair Suzuki",
+        "Yousuf Nini",
+        "Rameez Altaf",
+        "Khurram Surti",
+        "Muhammad Anas",
+        "Saad Ahmed"
+      ],
+      "batting": [
+        {
+          "name": "Sami Khan",
+          "dots": 1,
+          "ones": 1,
+          "twos": 1,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 1
+        },
+        {
+          "name": "Syed Zaheer",
+          "dots": 11,
+          "ones": 4,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "hitwicket",
+          "position": 2
+        },
+        {
+          "name": "Sher Muhammad",
+          "dots": 5,
+          "ones": 3,
+          "twos": 2,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 3,
+          "dismissal": "bowled",
+          "position": 3
+        },
+        {
+          "name": "Rameez Altaf",
+          "dots": 1,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "bowled",
+          "position": 4
+        },
+        {
+          "name": "Umer Sohail",
+          "dots": 2,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 5
+        },
+        {
+          "name": "Muhammad Anas",
+          "dots": 1,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "runout",
+          "position": 6
+        },
+        {
+          "name": "Syed Mudassir",
+          "dots": 1,
+          "ones": 0,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 7
+        },
+        {
+          "name": "Yousuf Nini",
+          "dots": 0,
+          "ones": 1,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 8
+        },
+        {
+          "name": "Saad Ahmed",
+          "dots": 1,
+          "ones": 1,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 9
+        }
+      ],
+      "bowling": [
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 2,
+          "bowled": 1,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 5,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Saad Ahmed",
+          "overs": "1",
+          "runs": 15,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 3,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 18,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 0,
+          "twos": 3,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Rameez Altaf",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Yousuf Nini",
+          "overs": "1",
+          "runs": 20,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 1,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        }
+      ],
+      "fielding": [
+        {
+          "name": "Saad Ahmed",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Sher Muhammad",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        }
+      ],
+      "oppBowling": [
+        {
+          "name": "Bowler 1",
+          "overs": "1",
+          "runs": 20,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 2",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1
+        },
+        {
+          "name": "Bowler 3",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 4",
+          "overs": "1",
+          "runs": 16,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 5",
+          "overs": "1",
+          "runs": 3,
+          "wickets": 0
+        },
+        {
+          "name": "Bowler 6",
+          "overs": "1",
+          "runs": 2,
+          "wickets": 2
+        },
+        {
+          "name": "Bowler 7",
+          "overs": "1",
+          "runs": 2,
+          "wickets": 3
+        },
+        {
+          "name": "Bowler 8",
+          "overs": "1",
+          "runs": 6,
+          "wickets": 1
+        }
+      ],
+      "seq": 9
     }
   ],
   "fixtures": [
