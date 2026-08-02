@@ -3135,6 +3135,341 @@
         }
       ],
       "seq": 10
+    },
+    {
+      "id": "m1785670015394",
+      "date": "2026-08-02",
+      "opponent": "Bulls Strikers",
+      "captain": "Muhammad Anas",
+      "ground": "Sasi Arcade",
+      "venueType": "away",
+      "format": "OD",
+      "toss": "lost",
+      "decision": "bowl",
+      "ourTotal": 91,
+      "ourWickets": 4,
+      "ourOvers": "7.5",
+      "oppTotal": 90,
+      "oppWickets": 9,
+      "oppOvers": "8.0",
+      "result": "won",
+      "motm": "",
+      "xi": [
+        "Mehboob Yasin",
+        "Fayyaz Muhammad",
+        "Sami Khan",
+        "Sher Muhammad",
+        "Syed Zaheer",
+        "Mudassir Hamdani",
+        "Umair Suzuki",
+        "Yousuf Nini",
+        "Rameez Altaf",
+        "Abdul Raziq",
+        "Muhammad Anas"
+      ],
+      "batting": [
+        {
+          "name": "Abdul Raziq",
+          "dots": 7,
+          "ones": 3,
+          "twos": 7,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 1
+        },
+        {
+          "name": "Rameez Altaf",
+          "dots": 1,
+          "ones": 3,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 2
+        },
+        {
+          "name": "Sher Muhammad",
+          "dots": 2,
+          "ones": 0,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 3
+        },
+        {
+          "name": "Sami Khan",
+          "dots": 2,
+          "ones": 2,
+          "twos": 4,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 5,
+          "dismissal": "runout",
+          "position": 4
+        },
+        {
+          "name": "Mehboob Yasin",
+          "dots": 3,
+          "ones": 0,
+          "twos": 4,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 5
+        },
+        {
+          "name": "Syed Zaheer",
+          "dots": 0,
+          "ones": 0,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 6
+        }
+      ],
+      "bowling": [
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 13,
+          "wickets": 2,
+          "bowled": 0,
+          "caught": 2,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 3,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 22,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 3,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Rameez Altaf",
+          "overs": "1",
+          "runs": 13,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 3,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Abdul Raziq",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 2,
+          "bowled": 0,
+          "caught": 2,
+          "stumped": 0,
+          "ones": 5,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Mehboob Yasin",
+          "overs": "1",
+          "runs": 9,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 3,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Rameez Altaf",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 2,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 1,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Abdul Raziq",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 3,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0
+        },
+        {
+          "name": "Muhammad Anas",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 3,
+          "bowled": 1,
+          "caught": 2,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 4,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0
+        }
+      ],
+      "fielding": [
+        {
+          "name": "Mudassir Hamdani",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Mehboob Yasin",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Abdul Raziq",
+          "catches": 2,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Sami Khan",
+          "catches": 2,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        }
+      ],
+      "oppBowling": [
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 6,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 9,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 14,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 22,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 15,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 1
+        }
+      ],
+      "seq": 11
     }
   ],
   "fixtures": [
