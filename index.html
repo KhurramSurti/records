@@ -543,6 +543,9 @@ tr.lb-top td{animation:lbTop 1.8s ease-in-out infinite}
 tr.lb-top td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
 tr.lb-top .pname{color:var(--gold)}
 @media(prefers-reduced-motion:reduce){tr.lb-top td{animation:none;background:var(--gold-soft)}}
+@keyframes htPulse{0%,100%{background:transparent;box-shadow:inset 0 0 0 1.5px rgba(198,160,74,.35)}50%{background:var(--gold-soft);box-shadow:inset 0 0 0 1.5px var(--gold),0 0 9px rgba(198,160,74,.45)}}
+td.ht-hit{animation:htPulse 1.5s ease-in-out infinite;border-radius:6px}
+@media(prefers-reduced-motion:reduce){td.ht-hit{animation:none;background:var(--gold-soft);box-shadow:inset 0 0 0 1.5px var(--gold)}}
 
 /* ---- bat-first-vs-chase split tables (premium) ---- */
 .split-tbl thead tr:first-child th[colspan]{font-size:9.5px;letter-spacing:.1em;color:var(--gold);font-weight:700;padding:10px 8px 6px}
@@ -1447,7 +1450,7 @@ function viewBowling(v){
     <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum">${p.hattricks?`<span style="color:var(--gold);font-weight:800">${p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(18)}</tbody>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum${p.hattricks?' ht-hit':''}">${p.hattricks?`<span style="color:var(--gold);font-weight:800">${p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(18)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
@@ -1703,7 +1706,7 @@ function viewPlayer(v,name){
       <tbody>${batByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="hi tnum">${r.p.runs}</td><td class="tnum">${r.p.hs}${r.p.hsNo?"*":""}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.sr.toFixed(0)}</td><td class="tnum dim">${r.p.fifties}</td><td class="tnum dim">${r.p.hundreds}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
     <div><div class="eyebrow">Bowling</div><div class="table-wrap table-scroll"><table>
       <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th><th title="Hat-tricks">HT</th><th>4s</th><th>6s</th></tr></thead>
-      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td><td class="tnum">${r.p.hattricks?`<span style="color:var(--gold);font-weight:800">${r.p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${r.p.fours}</td><td class="tnum">${r.p.sixes}</td></tr>`).join("")||emptyRow(10)}</tbody></table></div></div>
+      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td><td class="tnum${r.p.hattricks?' ht-hit':''}">${r.p.hattricks?`<span style="color:var(--gold);font-weight:800">${r.p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${r.p.fours}</td><td class="tnum">${r.p.sixes}</td></tr>`).join("")||emptyRow(10)}</tbody></table></div></div>
   </div>`:""}
 
   <div class="split-title">Match by match <span class="pill">${esc(ctx)}</span></div>
