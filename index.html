@@ -797,14 +797,14 @@ function bowlingAgg(ms){
       const perInn={};
       arr.forEach(raw=>{
         const k=raw.name; if(!k)return;
-        const pm=perInn[k]||(perInn[k]={balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0});
-        pm.balls+=oversToBalls(raw.overs);pm.runs+=int(raw.runs);pm.wkts+=int(raw.wickets);pm.wides+=int(raw.wides);pm.noballs+=int(raw.noballs);pm.dots+=int(raw.dots);pm.fours+=int(raw.fours);pm.sixes+=int(raw.sixes);pm.bowled+=int(raw.bowled);pm.caught+=int(raw.caught);pm.stumped+=int(raw.stumped);
+        const pm=perInn[k]||(perInn[k]={balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,hattricks:0});
+        pm.balls+=oversToBalls(raw.overs);pm.runs+=int(raw.runs);pm.wkts+=int(raw.wickets);pm.wides+=int(raw.wides);pm.noballs+=int(raw.noballs);pm.dots+=int(raw.dots);pm.fours+=int(raw.fours);pm.sixes+=int(raw.sixes);pm.bowled+=int(raw.bowled);pm.caught+=int(raw.caught);pm.stumped+=int(raw.stumped);pm.hattricks+=int(raw.hattricks);
       });
       Object.keys(perInn).forEach(k=>{
         const pm=perInn[k];
         if(pm.balls<=0&&pm.runs<=0&&pm.wkts<=0&&pm.wides<=0&&pm.noballs<=0)return; // bowled nothing this innings
-        const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
-        p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;
+        const p=map[k]||(map[k]={name:k,inns:0,balls:0,runs:0,wkts:0,wides:0,noballs:0,dots:0,fours:0,sixes:0,bowled:0,caught:0,stumped:0,hattricks:0,best:{w:-1,r:0},threeFer:0,fiveFer:0});
+        p.inns++;p.balls+=pm.balls;p.runs+=pm.runs;p.wkts+=pm.wkts;p.wides+=pm.wides;p.noballs+=pm.noballs;p.dots+=pm.dots;p.fours+=pm.fours;p.sixes+=pm.sixes;p.bowled+=pm.bowled;p.caught+=pm.caught;p.stumped+=pm.stumped;p.hattricks+=pm.hattricks;
         const w=pm.wkts,r=pm.runs;
         if(w>p.best.w||(w===p.best.w&&r<p.best.r))p.best={w,r};
         if(w>=3)p.threeFer++;if(w>=5)p.fiveFer++;
@@ -1342,7 +1342,7 @@ function viewScorecard(v,id){
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Econ</th><th>Dots</th><th>Wd</th><th>Nb</th></tr></thead>
     <tbody>${rows.map(b=>{const balls=oversToBalls(b.overs);const e=balls?int(b.runs)/(balls/6):0;return `<tr>
-      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}</td>
+      <td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(b.name)}'">${esc(b.name)}${int(b.hattricks)>0?` <span class="chip" style="background:var(--gold);color:#1a1206;font-weight:800">★ HAT-TRICK${int(b.hattricks)>1?" ×"+int(b.hattricks):""}</span>`:""}</td>
       <td class="tnum">${esc(b.overs)}</td><td class="tnum">${b.runs}</td><td class="hi tnum">${b.wickets}</td><td class="tnum">${int(b.fours)}</td><td class="tnum">${int(b.sixes)}</td><td class="tnum">${e.toFixed(1)}</td><td class="tnum dim">${b.dots}</td><td class="tnum dim">${b.wides}</td><td class="tnum dim">${b.noballs}</td></tr>`;}).join("")}</tbody>
   </table></div>`;
   };
@@ -1359,7 +1359,7 @@ function viewScorecard(v,id){
   <div class="sc-section-title" style="font-size:14px;margin-top:18px">Bowling summary (per bowler${twoInn?", both innings":""})</div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">Bowler</th><th>O</th><th>R</th><th>W</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Extras</th><th>Dots</th><th>Econ</th></tr></thead>
-    <tbody>${(()=>{const map={};_allBowl.forEach(b=>{const p=map[b.name]||(map[b.name]={name:b.name,balls:0,runs:0,wkts:0,fours:0,sixes:0,wides:0,noballs:0,dots:0});p.balls+=oversToBalls(b.overs);p.runs+=int(b.runs);p.wkts+=int(b.wickets);p.fours+=int(b.fours);p.sixes+=int(b.sixes);p.wides+=int(b.wides);p.noballs+=int(b.noballs);p.dots+=int(b.dots);});return Object.values(map).map(p=>{const e=p.balls?(p.runs/(p.balls/6)):0;return `<tr><td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">${esc(p.name)}</td><td class="tnum">${ballsToOvers(p.balls)}</td><td class="hi tnum">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.wides}</td><td class="tnum dim">${p.noballs}</td><td class="tnum dim">${p.wides+p.noballs}</td><td class="tnum dim">${p.dots}</td><td class="tnum">${e.toFixed(1)}</td></tr>`;}).join("");})()}</tbody>
+    <tbody>${(()=>{const map={};_allBowl.forEach(b=>{const p=map[b.name]||(map[b.name]={name:b.name,balls:0,runs:0,wkts:0,fours:0,sixes:0,wides:0,noballs:0,dots:0,hattricks:0});p.balls+=oversToBalls(b.overs);p.runs+=int(b.runs);p.wkts+=int(b.wickets);p.fours+=int(b.fours);p.sixes+=int(b.sixes);p.wides+=int(b.wides);p.noballs+=int(b.noballs);p.dots+=int(b.dots);p.hattricks+=int(b.hattricks);});return Object.values(map).map(p=>{const e=p.balls?(p.runs/(p.balls/6)):0;return `<tr><td class="l pname clickable" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">${esc(p.name)}${p.hattricks>0?` <span class="chip" style="background:var(--gold);color:#1a1206;font-weight:800">★ HAT-TRICK${p.hattricks>1?" ×"+p.hattricks:""}</span>`:""}</td><td class="tnum">${ballsToOvers(p.balls)}</td><td class="hi tnum">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.wides}</td><td class="tnum dim">${p.noballs}</td><td class="tnum dim">${p.wides+p.noballs}</td><td class="tnum dim">${p.dots}</td><td class="tnum">${e.toFixed(1)}</td></tr>`;}).join("");})()}</tbody>
   </table></div>`:"";
   v.innerHTML=`
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -1443,11 +1443,11 @@ function viewBowling(v){
     <div class="field"><label>Min innings</label><input type="number" min="1" value="${minI}" style="width:90px" onchange="window._minBowlInn=Math.max(1,parseInt(this.value)||1);router()"></div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","matches","Mat")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fiveFer","5W")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
+    <thead><tr><th class="l">#</th>${th("bowling","name","Bowler","l")}${th("bowling","matches","Mat")}${th("bowling","inns","Inns")}${th("bowling","overs","Overs")}${th("bowling","runs","Runs")}${th("bowling","wkts","Wkts")}${th("bowling","econ","Econ")}${th("bowling","avg","Avg")}${th("bowling","sr","SR")}<th>BBI</th>${th("bowling","threeFer","3W")}${th("bowling","fiveFer","5W")}${th("bowling","hattricks","HT")}${th("bowling","fours","4s")}${th("bowling","sixes","6s")}${th("bowling","dots","Dots")}${th("bowling","wides","Wd")}</tr></thead>
     <tbody>${rows.map((p,i)=>`<tr class="clickable${i===0?" lb-top":""}" onclick="location.hash='#/player/${encodeURIComponent(p.name)}'">
       <td class="l rank ${i<3?"top":""}">${i+1}</td><td class="l pname">${esc(p.name)}</td>
       <td class="tnum dim">${p.matches}</td><td class="tnum dim">${p.inns}</td><td class="tnum">${p.overs}</td><td class="tnum dim">${p.runs}</td><td class="hi tnum">${p.wkts}</td><td class="tnum">${p.econ.toFixed(2)}</td>
-      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(17)}</tbody>
+      <td class="tnum">${p.avg==null?"—":p.avg.toFixed(1)}</td><td class="tnum">${p.sr==null?"—":p.sr.toFixed(1)}</td><td class="tnum">${p.bbi}</td><td class="tnum dim">${p.threeFer}</td><td class="tnum dim">${p.fiveFer}</td><td class="tnum">${p.hattricks?`<span style="color:var(--gold);font-weight:800">${p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${p.fours}</td><td class="tnum">${p.sixes}</td><td class="tnum dim">${p.dots}</td><td class="tnum dim">${p.wides}</td></tr>`).join("")||emptyRow(18)}</tbody>
   </table></div>`;
 }
 function viewFielding(v){
@@ -1662,7 +1662,7 @@ function viewPlayer(v,name){
   v.innerHTML=`
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px"><a href="#/players" class="btn ghost sm">← All players</a><button class="btn primary sm" onclick="pdfPlayer('${encodeURIComponent(name)}')">⬇ Download profile PDF</button></div>
   <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)}</h2>
-    <div class="role">${b?b.inns+" batting inns":"No batting"}${w?" · "+w.inns+" bowling inns":""}${f?" · "+f.total+" fielding":""}</div></div></div>
+    <div class="role">${b?b.inns+" batting inns":"No batting"}${w?" · "+w.inns+" bowling inns":""}${f?" · "+f.total+" fielding":""}${w&&w.hattricks?` · <span style="color:var(--gold);font-weight:800">★ ${w.hattricks} hat-trick${w.hattricks>1?"s":""}</span>`:""}</div></div></div>
   <div class="tabs">${tabs}</div>
 
   <div class="split-title">Batting <span class="pill">${esc(ctx)}</span></div>
@@ -1683,11 +1683,12 @@ function viewPlayer(v,name){
   <div class="split-title">Bowling <span class="pill">${esc(ctx)}</span></div>
   ${w?`
   <div class="grid c4" style="margin-bottom:16px">
-    <div class="card stat-card"><div class="k">Wickets</div><div class="v tnum">${w.wkts}</div><div class="sub">${w.inns} inns · BBI ${w.bbi}</div></div>
+    <div class="card stat-card"><div class="k">Wickets</div><div class="v tnum">${w.wkts}</div><div class="sub">${w.inns} inns · BBI ${w.bbi}${w.hattricks?` · ${w.hattricks} HT`:""}</div></div>
     <div class="card stat-card"><div class="k">Economy</div><div class="v tnum">${w.econ.toFixed(2)}</div><div class="sub">${w.overs} overs</div></div>
     <div class="card stat-card"><div class="k">Average</div><div class="v tnum">${w.avg==null?"—":w.avg.toFixed(1)}</div><div class="sub">SR ${w.sr==null?"—":w.sr.toFixed(1)}</div></div>
     <div class="card stat-card"><div class="k">Runs conceded</div><div class="v tnum">${w.runs}</div><div class="sub">${w.dots} dots · ${w.fours} fours · ${w.sixes} sixes conceded</div></div>
   </div>
+  ${w.hattricks?`<div style="margin:-6px 0 16px"><span class="pill" style="background:var(--gold);color:#1a1206;font-weight:800">★ Hat-trick${w.hattricks>1?"s":""}: ${w.hattricks}</span></div>`:""}
   ${(w.bowled+w.caught+w.stumped>0)?`<div class="dim" style="margin:-6px 0 16px;font-size:13px"><b style="color:var(--gold)">How wickets fell:</b> Bowled ${w.bowled} · Caught ${w.caught} · Stumped ${w.stumped}</div>`:""}
   <div class="grid c2" style="margin-bottom:8px">
     ${playerChartBlock("bowl",pmatches,name)}
@@ -1701,8 +1702,8 @@ function viewPlayer(v,name){
       <thead><tr><th class="l">Format</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th></tr></thead>
       <tbody>${batByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="hi tnum">${r.p.runs}</td><td class="tnum">${r.p.hs}${r.p.hsNo?"*":""}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.sr.toFixed(0)}</td><td class="tnum dim">${r.p.fifties}</td><td class="tnum dim">${r.p.hundreds}</td></tr>`).join("")||emptyRow(8)}</tbody></table></div></div>
     <div><div class="eyebrow">Bowling</div><div class="table-wrap table-scroll"><table>
-      <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th><th>4s</th><th>6s</th></tr></thead>
-      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td><td class="tnum">${r.p.fours}</td><td class="tnum">${r.p.sixes}</td></tr>`).join("")||emptyRow(9)}</tbody></table></div></div>
+      <thead><tr><th class="l">Format</th><th>Inns</th><th>Overs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>BBI</th><th title="Hat-tricks">HT</th><th>4s</th><th>6s</th></tr></thead>
+      <tbody>${bowlByFmt.map(r=>`<tr><td class="l pname">${esc(r.ff)}</td><td class="tnum dim">${r.p.inns}</td><td class="tnum">${r.p.overs}</td><td class="hi tnum">${r.p.wkts}</td><td class="tnum">${r.p.econ.toFixed(2)}</td><td class="tnum">${r.p.avg==null?"—":r.p.avg.toFixed(1)}</td><td class="tnum">${r.p.bbi}</td><td class="tnum">${r.p.hattricks?`<span style="color:var(--gold);font-weight:800">${r.p.hattricks}</span>`:'<span class="dim">0</span>'}</td><td class="tnum">${r.p.fours}</td><td class="tnum">${r.p.sixes}</td></tr>`).join("")||emptyRow(10)}</tbody></table></div></div>
   </div>`:""}
 
   <div class="split-title">Match by match <span class="pill">${esc(ctx)}</span></div>
@@ -1804,6 +1805,8 @@ function viewRecords(v){
   const bestEcon=sortRows(bowlingAgg().filter(p=>p.balls>=24),"econ",1)[0];
   const mostCt=sortRows(fieldingAgg(),"total",-1)[0];
   const bestCap=sortRows(captainAgg().filter(c=>c.played>=2),"winPct",-1)[0];
+  const htList=bowlingAgg().filter(p=>p.hattricks>0).sort((a,b)=>b.hattricks-a.hattricks);
+  const totalHT=htList.reduce((a,p)=>a+p.hattricks,0);
   const rec=(l,m,s)=>`<div class="card gold stat-card"><div class="k">${l}</div><div class="v" style="font-size:22px">${m}</div><div class="sub">${s}</div></div>`;
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Hall of records</div><h2>Records</h2><p>Club bests across all recorded matches</p></div><button class="btn primary" onclick="pdfRecords()">⬇ PDF</button></div>
   <div class="grid c3">
@@ -1816,6 +1819,7 @@ function viewRecords(v){
     ${bestEcon?rec("Best economy",esc(bestEcon.name)+" — "+bestEcon.econ.toFixed(2),"min 4 overs"):""}
     ${mostCt&&mostCt.total>0?rec("Most dismissals (field)",esc(mostCt.name)+" — "+mostCt.total,mostCt.catches+" ct · "+mostCt.runouts+" ro"):""}
     ${bestCap?rec("Best captain (win%)",esc(bestCap.name)+" — "+bestCap.winPct.toFixed(0)+"%",bestCap.w+"W-"+bestCap.l+"L · min 2 games"):""}
+    ${totalHT>0?rec("Hat-tricks","★ "+totalHT,htList.map(p=>esc(p.name)+(p.hattricks>1?" ×"+p.hattricks:"")).join(", ")):""}
   </div>
   <div class="eyebrow" style="margin-top:26px">Head to head</div>
   <div class="table-wrap table-scroll"><table>
@@ -1997,11 +2001,11 @@ function viewAdd(v){
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBatRow()">+ Add batsman</button>
     <div class="total-line">Batting runs <span id="bat-total" class="diff">0</span> <span style="color:var(--muted)">+ Extras (wides/no-balls/byes to us)</span> <input type="number" id="f-extras" class="num extras-in" placeholder="0" oninput="recalcSummary()"> <span style="color:var(--muted)">=</span> Total <span id="bat-grand" style="color:var(--gold);font-weight:700">0</span></div></div>
   <div class="form-section" id="sec-bowl"><h3>Bowling card — Gold Hayat<span class="inn-tag" id="tag-bowl1" style="color:var(--muted);font-weight:400;font-size:13px"></span></h3><div class="table-scroll"><table class="entry-table">
-    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th title="Opponent run-outs this over — worm graph only">RO</th><th>Econ</th><th></th></tr></thead>
+    <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th title="Opponent run-outs this over — worm graph only">RO</th><th title="Hat-tricks (3 wickets in 3 balls)">HT</th><th>Econ</th><th></th></tr></thead>
     <tbody id="bowl-rows"></tbody></table></div>
     <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow()">+ Add bowler</button>
     <div class="total-line"><span style="color:var(--muted)">Extras conceded not on a bowler (byes/leg-byes)</span> <input type="number" id="f-oppextras" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div>
-    <p class="dim" style="font-size:11px;margin-top:8px"><b>RO</b> column = opponent <b>run-outs</b> that fell in that over. It only draws the fall-of-wickets on the worm graph (so a 2-wicket over shows a “2”); it's not counted as a bowling wicket. Leave 0 if none. To place wickets on the right over, enter bowling over-by-over.</p></div>
+    <p class="dim" style="font-size:11px;margin-top:8px"><b>RO</b> column = opponent <b>run-outs</b> that fell in that over. It only draws the fall-of-wickets on the worm graph (so a 2-wicket over shows a “2”); it's not counted as a bowling wicket. Leave 0 if none. To place wickets on the right over, enter bowling over-by-over. &nbsp;<b>HT</b> = <b>hat-tricks</b> in that spell (3 wickets on 3 consecutive balls) — usually 1; shows a badge on the scorecard and counts on the bowling leaderboard.</p></div>
   <div class="form-section" id="sec-field"><h3>Fielding — Gold Hayat<span class="inn-tag" id="tag-field1" style="color:var(--muted);font-weight:400;font-size:13px"></span></h3><div class="table-scroll"><table class="entry-table">
     <thead><tr><th class="l">Fielder</th><th>Catches</th><th>Run-outs</th><th>Stumpings</th><th></th></tr></thead>
     <tbody id="field-rows"></tbody></table></div>
@@ -2020,7 +2024,7 @@ function viewAdd(v){
     <div id="sec-bowl2">
       <h4 style="margin:22px 0 8px;color:var(--cream)">Bowling card — 2nd innings</h4>
       <div class="table-scroll"><table class="entry-table">
-        <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th title="Opponent run-outs this over — worm graph only">RO</th><th>Econ</th><th></th></tr></thead>
+        <thead><tr><th class="l">Bowler</th><th>Overs</th><th>1s</th><th>2s</th><th>3s</th><th>4s</th><th>6s</th><th>Wd</th><th>Nb</th><th>Bwd</th><th>Ct</th><th>St</th><th>Runs</th><th>Dots</th><th>Wkts</th><th title="Opponent run-outs this over — worm graph only">RO</th><th title="Hat-tricks (3 wickets in 3 balls)">HT</th><th>Econ</th><th></th></tr></thead>
         <tbody id="bowl-rows-2"></tbody></table></div>
       <button class="btn ghost sm" style="margin-top:10px" onclick="addBowlRow(null,2)">+ Add bowler</button>
       <div class="total-line"><span style="color:var(--muted)">Extras conceded (byes/leg-byes)</span> <input type="number" id="f-oppextras2" class="num extras-in" placeholder="0" oninput="recalcSummary()"></div>
@@ -2122,12 +2126,13 @@ function addBowlRow(d,inn){
     <td><input class="num" type="number" data-k="dots" readonly placeholder="0" style="opacity:.7"></td>
     <td><input class="num" type="number" data-k="wickets" readonly placeholder="0" style="opacity:.7"></td>
     <td><input class="num" type="number" data-k="runouts" placeholder="0" style="opacity:.9" title="Opponent run-outs this over — draws on the worm graph only, not counted as a bowling wicket"></td>
+    <td><input class="num" type="number" data-k="hattricks" placeholder="0" style="opacity:.9" title="Hat-tricks in this spell — 3 wickets on 3 consecutive balls. Usually 1."></td>
     <td class="calc" id="calc-${id}">—</td>
     <td><button class="row-del" onclick="this.closest('tr').remove();recalcSummary()">×</button></td>`;
   $(inn===2?"#bowl-rows-2":"#bowl-rows").appendChild(tr);ensureDatalist();
   if(d){ const set=(k,val)=>{const el=tr.querySelector("[data-k='"+k+"']"); if(el&&val!=null&&val!=="")el.value=val;};
     set("name",d.name);set("overs",d.overs);set("ones",d.ones);set("twos",d.twos);set("threes",d.threes);set("fours",d.fours);set("sixes",d.sixes);set("wides",d.wides);set("noballs",d.noballs);
-    set("bowled",d.bowled);set("caught",d.caught);set("stumped",d.stumped);set("runs",d.runs);set("dots",d.dots);set("wickets",d.wickets);set("runouts",d.runouts);
+    set("bowled",d.bowled);set("caught",d.caught);set("stumped",d.stumped);set("runs",d.runs);set("dots",d.dots);set("wickets",d.wickets);set("runouts",d.runouts);set("hattricks",d.hattricks);
     const bd=int(d.ones)+2*int(d.twos)+3*int(d.threes)+4*int(d.fours)+6*int(d.sixes)+int(d.wides)+int(d.noballs);
     tr.dataset.legacy=(d.runs!=null && bd!==int(d.runs))?"1":"";
     recalcBowl(id); }
@@ -2261,7 +2266,7 @@ function saveMatch(){
   const bowl=[];document.querySelectorAll("#bowl-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
     const name=gk("name").trim();if(!name)return;
-    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs")),runouts:int(gk("runouts"))});
+    bowl.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs")),runouts:int(gk("runouts")),hattricks:int(gk("hattricks"))});
   });
   const field=[];document.querySelectorAll("#field-rows tr").forEach(tr=>{
     const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||"";
@@ -2276,7 +2281,7 @@ function saveMatch(){
   const bat2=[],bowl2=[],field2=[];
   if(twoInn){
     document.querySelectorAll("#bat-rows-2 tr").forEach((tr,i)=>{ const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||""; const name=gk("name").trim(); if(!name)return; const dis=gk("dismissal"),who=gk("who").trim(); const rec={name,dots:int(gk("dots")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dismissal:dis,position:i+1}; if(who){if(dis==="caught"||dis==="stumped"||dis==="runout")rec.fielder=who;else rec.bowler=who;} bat2.push(rec); });
-    document.querySelectorAll("#bowl-rows-2 tr").forEach(tr=>{ const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||""; const name=gk("name").trim(); if(!name)return; bowl2.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs")),runouts:int(gk("runouts"))}); });
+    document.querySelectorAll("#bowl-rows-2 tr").forEach(tr=>{ const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||""; const name=gk("name").trim(); if(!name)return; bowl2.push({name,overs:gk("overs").trim()||"0",runs:int(gk("runs")),wickets:int(gk("wickets")),bowled:int(gk("bowled")),caught:int(gk("caught")),stumped:int(gk("stumped")),ones:int(gk("ones")),twos:int(gk("twos")),threes:int(gk("threes")),fours:int(gk("fours")),sixes:int(gk("sixes")),dots:int(gk("dots")),wides:int(gk("wides")),noballs:int(gk("noballs")),runouts:int(gk("runouts")),hattricks:int(gk("hattricks"))}); });
     document.querySelectorAll("#field-rows-2 tr").forEach(tr=>{ const gk=k=>(tr.querySelector("[data-k='"+k+"']")||{}).value||""; const name=gk("name").trim(); if(!name)return; const c=int(gk("catches")),r=int(gk("runouts")),s=int(gk("stumpings")); if(c+r+s===0)return; field2.push({name,catches:c,runouts:r,stumpings:s}); });
   }
   const oppBowling=[];document.querySelectorAll("#oppbowl-rows tr").forEach(tr=>{ const gv=k=>((tr.querySelector("[data-k='"+k+"']")||{}).value||""); const ov=gv("overs").trim(),rn=gv("runs").trim(),wk=gv("wickets").trim(); if(ov!==""||rn!==""||wk!==""){ oppBowling.push({name:gv("name").trim(),overs:ov||"0",runs:int(rn),wickets:int(wk)}); } });
@@ -2514,17 +2519,17 @@ function pdfMatch(id){
   openPrint("Scorecard — Gold Hayat vs "+esc(m.opponent), fmtDate(m.date)+" • "+esc(m.ground||"")+(m.format?" • "+esc(m.format):""), body);
 }
 function pdfBatting(){
-  const rows=sortRows(battingAgg(getMatches({opp:filterOpp.batting,period:filterPeriod.batting})),"runs",-1).slice(0,10);
+  const rows=sortRows(battingAgg(getMatches({opp:filterOpp.batting,period:filterPeriod.batting,format:filterFmt.batting})),"runs",-1).slice(0,10);
   if(!rows.length){alert("No batting data to export for this filter yet.");return;}
   const body='<table><thead><tr><th class="l">#</th><th class="l">Batsman</th><th>Mat</th><th>Inns</th><th>NO</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th><th>50</th><th>100</th><th>4s</th><th>6s</th><th>0s</th></tr></thead><tbody>'+
     rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.matches+'</td><td>'+p.inns+'</td><td>'+p.no+'</td><td>'+p.runs+'</td><td>'+p.hs+(p.hsNo?"*":"")+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+p.sr.toFixed(1)+'</td><td>'+p.fifties+'</td><td>'+p.hundreds+'</td><td>'+p.fours+'</td><td>'+p.sixes+'</td><td>'+p.ducks+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Batsmen", filterLabelPDF("batting"), body);
 }
 function pdfBowling(){
-  const rows=sortRows(bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling})),"wkts",-1).slice(0,10);
+  const rows=sortRows(bowlingAgg(getMatches({opp:filterOpp.bowling,period:filterPeriod.bowling,format:filterFmt.bowling})),"wkts",-1).slice(0,10);
   if(!rows.length){alert("No bowling data to export for this filter yet.");return;}
-  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Mat</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>5W</th><th>Dots</th></tr></thead><tbody>'+
-    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.matches+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.fiveFer+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
+  const body='<table><thead><tr><th class="l">#</th><th class="l">Bowler</th><th>Mat</th><th>Inns</th><th>Overs</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Avg</th><th>SR</th><th>BBI</th><th>3W</th><th>5W</th><th>HT</th><th>Dots</th></tr></thead><tbody>'+
+    rows.map((p,i)=>'<tr><td class="l">'+(i+1)+'</td><td class="l">'+esc(p.name)+'</td><td>'+p.matches+'</td><td>'+p.inns+'</td><td>'+p.overs+'</td><td>'+p.runs+'</td><td>'+p.wkts+'</td><td>'+p.econ.toFixed(2)+'</td><td>'+(p.avg==null?"-":p.avg.toFixed(1))+'</td><td>'+(p.sr==null?"-":p.sr.toFixed(1))+'</td><td>'+p.bbi+'</td><td>'+p.threeFer+'</td><td>'+p.fiveFer+'</td><td>'+(p.hattricks||0)+'</td><td>'+p.dots+'</td></tr>').join("")+'</tbody></table>';
   openPrint("Top 10 Bowlers", filterLabelPDF("bowling"), body);
 }
 /* ---- shared PDF table helper ---- */
