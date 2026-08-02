@@ -3252,7 +3252,8 @@
           "dots": 3,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Mudassir Hamdani",
@@ -3270,7 +3271,8 @@
           "dots": 0,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Rameez Altaf",
@@ -3288,7 +3290,8 @@
           "dots": 3,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Abdul Raziq",
@@ -3306,7 +3309,8 @@
           "dots": 1,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Mehboob Yasin",
@@ -3324,7 +3328,8 @@
           "dots": 1,
           "wides": 1,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Rameez Altaf",
@@ -3342,7 +3347,8 @@
           "dots": 1,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Abdul Raziq",
@@ -3360,7 +3366,8 @@
           "dots": 3,
           "wides": 0,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 0
         },
         {
           "name": "Muhammad Anas",
@@ -3378,7 +3385,8 @@
           "dots": 4,
           "wides": 1,
           "noballs": 0,
-          "runouts": 0
+          "runouts": 0,
+          "hattricks": 1
         }
       ],
       "fielding": [
