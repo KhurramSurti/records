@@ -3763,6 +3763,56 @@
           "stumpings": 0
         }
       ],
+      "oppBowling": [
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 4,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 2
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 7,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 3,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 17,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 0,
+          "wickets": 0
+        }
+      ],
       "seq": 12
     },
     {
