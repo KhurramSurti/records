@@ -2385,8 +2385,8 @@ function saveGHSettings(){
 function forgetGH(){ if(!confirm("Remove the saved GitHub token and publish settings from this browser?"))return; localStorage.removeItem(LS_GH); router(); }
 function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
 async function ghFetchSha(url,branch,headers){
-  // cache-bust so GitHub's CDN doesn't hand back a stale sha after a recent commit
-  const res=await fetch(url+"?ref="+encodeURIComponent(branch)+"&_="+Date.now(),{headers:Object.assign({},headers,{"Cache-Control":"no-cache"}),cache:"no-store"});
+  // cache-bust via a unique query param (a Cache-Control header would trip GitHub's CORS -> "Failed to fetch")
+  const res=await fetch(url+"?ref="+encodeURIComponent(branch)+"&_="+Date.now(),{headers,cache:"no-store"});
   if(res.status===200){ const j=await res.json(); return j.sha; }
   if(res.status===404) return null; // file doesn't exist yet -> first publish
   if(res.status===401||res.status===403) throw new Error("Token rejected — check it has Contents: Read & write for this repo.");
