@@ -4769,7 +4769,7 @@
       "ourOvers": "7.4",
       "oppTotal": 82,
       "oppWickets": 2,
-      "oppOvers": "7.0",
+      "oppOvers": "8.0",
       "result": "won",
       "motm": "",
       "xi": [
@@ -4932,7 +4932,7 @@
         },
         {
           "name": "Syed Zaheer",
-          "overs": "0",
+          "overs": "1",
           "runs": 7,
           "wickets": 1,
           "bowled": 0,
@@ -4943,7 +4943,7 @@
           "threes": 0,
           "fours": 0,
           "sixes": 1,
-          "dots": 0,
+          "dots": 4,
           "wides": 0,
           "noballs": 0,
           "runouts": 0,
