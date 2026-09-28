@@ -1586,7 +1586,7 @@ function viewPlayers(v){
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Squad</div><h2>Players</h2><p>${names.length} players • tap any card for a full profile</p></div></div>
   <div class="grid c3">${names.map(n=>{const b=bat[n],w=bowl[n];return `<div class="card gold" style="cursor:pointer" onclick="location.hash='#/player/${encodeURIComponent(n)}'">
     <div class="profile-head" style="margin:0"><div class="avatar" style="width:52px;height:52px;font-size:20px">${initials(n)}</div>
-    <div><h2 style="font-size:19px;margin:0">${esc(n)}</h2><div class="role">${b?b.runs+" runs":""}${b&&w?" · ":""}${w?w.wkts+" wkts":""}${!b&&!w?"—":""}</div></div></div></div>`;}).join("")||emptyBlock("No players yet")}</div>`;
+    <div><h2 style="font-size:19px;margin:0">${esc(n)}</h2>${playerMetaLine(n)?`<div class="role" style="color:var(--gold);font-weight:600;font-size:12px">${esc(playerMetaLine(n))}</div>`:""}<div class="role">${b?b.runs+" runs":""}${b&&w?" · ":""}${w?w.wkts+" wkts":""}${!b&&!w?"—":""}</div></div></div></div>`;}).join("")||emptyBlock("No players yet")}</div>`;
 }
 let playerFmt="all", playerFmtFor=null;
 let playerBatMode="month", playerBowlMode="month", playerBatMonth="", playerBowlMonth="";
@@ -1665,6 +1665,7 @@ function viewPlayer(v,name){
   v.innerHTML=`
   <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px"><a href="#/players" class="btn ghost sm">← All players</a><button class="btn primary sm" onclick="pdfPlayer('${encodeURIComponent(name)}')">⬇ Download profile PDF</button></div>
   <div class="profile-head"><div class="avatar">${initials(name)}</div><div><h2>${esc(name)}</h2>
+    ${playerMetaLine(name)?`<div class="role" style="color:var(--gold);font-weight:600">${esc(playerMetaLine(name))}</div>`:""}
     <div class="role">${b?b.inns+" batting inns":"No batting"}${w?" · "+w.inns+" bowling inns":""}${f?" · "+f.total+" fielding":""}${w&&w.hattricks?` · <span style="color:var(--gold);font-weight:800">★ ${w.hattricks} hat-trick${w.hattricks>1?"s":""}</span>`:""}</div></div></div>
   <div class="tabs">${tabs}</div>
 
@@ -1937,16 +1938,19 @@ function viewSquad(v){
     </div>
   </div>
   <div class="table-wrap table-scroll"><table>
-    <thead><tr><th class="l">#</th><th class="l">Player</th><th class="l">Type</th><th>Matches</th><th class="l">Actions</th></tr></thead>
-    <tbody>${players.length?players.map((p,i)=>`<tr>
+    <thead><tr><th class="l">#</th><th class="l">Player</th><th class="l">Type</th><th class="l">Role</th><th class="l">Bats</th><th class="l">Bowling</th><th>Matches</th><th class="l">Actions</th></tr></thead>
+    <tbody>${players.length?players.map((p,i)=>{const enc=encodeURIComponent(p.name);const sel=(field,cur,opts)=>`<select onchange="setPlayerMeta('${enc}','${field}',this.value)" style="min-width:118px"><option value="">—</option>${opts.map(o=>`<option${o===cur?" selected":""}>${esc(o)}</option>`).join("")}</select>`;return `<tr>
       <td class="l rank">${i+1}</td>
       <td class="l pname">${esc(p.name)}</td>
       <td class="l">${p.sub?'<span class="chip cap">Substitute</span>':'<span class="chip">Regular</span>'}</td>
+      <td class="l">${sel("role",p.role||"",PLAYER_ROLES)}</td>
+      <td class="l">${sel("batHand",p.batHand||"",BAT_HANDS)}</td>
+      <td class="l">${sel("bowlStyle",p.bowlStyle||"",BOWL_STYLES)}</td>
       <td class="tnum dim">${playedCount(p.name)}</td>
-      <td class="l" style="white-space:nowrap"><button class="btn ghost sm" onclick="toggleSub('${encodeURIComponent(p.name)}')">${p.sub?'Make regular':'Mark sub'}</button>
-        <button class="btn danger sm" onclick="removeSquadPlayer('${encodeURIComponent(p.name)}')">Remove</button></td></tr>`).join(''):`<tr><td class="l dim" colspan="5">No players yet — add your squad above.</td></tr>`}</tbody>
+      <td class="l" style="white-space:nowrap"><button class="btn ghost sm" onclick="toggleSub('${enc}')">${p.sub?'Make regular':'Mark sub'}</button>
+        <button class="btn danger sm" onclick="removeSquadPlayer('${enc}')">Remove</button></td></tr>`;}).join(''):`<tr><td class="l dim" colspan="8">No players yet — add your squad above.</td></tr>`}</tbody>
   </table></div>
-  <div class="notice" style="margin-top:16px">Removing a player from this list only removes the name from suggestions — <b>past match stats are never deleted</b>. A one-off substitute can also just be typed straight into a scorecard without adding them here first.</div>`;
+  <div class="notice" style="margin-top:16px">Role, batting hand and bowling style are optional — set them from the dropdowns and they show on each player's profile. Removing a player only removes the name from suggestions — <b>past match stats are never deleted</b>. A one-off substitute can also just be typed straight into a scorecard without adding them here first.</div>`;
 }
 function addSquadPlayer(){
   const el=$("#sq-name"); if(!el)return; const name=(el.value||"").trim(); if(!name)return;
@@ -1963,6 +1967,17 @@ function removeSquadPlayer(enc){
 function toggleSub(enc){
   const name=decodeURIComponent(enc);
   ((DATA.team&&DATA.team.players)||[]).forEach(p=>{if(p.name===name)p.sub=!p.sub;}); saveLocal(); setDirty(true); router();
+}
+/* ---- player attributes (role / batting hand / bowling style) ---- */
+const PLAYER_ROLES=["Batsman","Bowler","All-rounder","Wicket-keeper"];
+const BAT_HANDS=["Right-hand","Left-hand"];
+const BOWL_STYLES=["Right-arm fast","Right-arm fast-medium","Right-arm medium","Right-arm off-spin","Right-arm leg-spin","Left-arm fast","Left-arm medium","Left-arm orthodox spin","Left-arm wrist-spin"];
+function playerMeta(name){ return ((DATA.team&&DATA.team.players)||[]).find(p=>p.name===name)||{}; }
+function playerMetaLine(name){ const m=playerMeta(name); const parts=[]; if(m.role)parts.push(m.role); if(m.batHand)parts.push(m.batHand+" bat"); if(m.bowlStyle)parts.push(m.bowlStyle); return parts.join(" · "); }
+function setPlayerMeta(enc,field,value){
+  const name=decodeURIComponent(enc);
+  ((DATA.team&&DATA.team.players)||[]).forEach(p=>{ if(p.name===name){ if(value)p[field]=value; else delete p[field]; } });
+  saveLocal(); setDirty(true);
 }
 
 /* ============================================================ ADD MATCH ============================================================ */
@@ -2435,7 +2450,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addOppBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,onFormatChange,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
+Object.assign(window,{addBatRow,addBowlRow,addOppBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,onFormatChange,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,setPlayerMeta,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
