@@ -8512,6 +8512,337 @@
         }
       ],
       "seq": 27
+    },
+    {
+      "id": "m1792345236564",
+      "date": "2026-10-18",
+      "opponent": "Jawad Team",
+      "captain": "Rameez Altaf",
+      "ground": "Tanki Ground",
+      "venueType": "away",
+      "format": "OD",
+      "toss": "won",
+      "decision": "bowl",
+      "ourTotal": 98,
+      "ourWickets": 5,
+      "ourOvers": "8.0",
+      "oppTotal": 123,
+      "oppWickets": 3,
+      "oppOvers": "8.0",
+      "result": "lost",
+      "motm": "",
+      "xi": [
+        "Fayyaz Muhammad",
+        "Sher Muhammad",
+        "Syed Zaheer",
+        "Mudassir Hamdani",
+        "Syed Mudassir",
+        "Umer Sohail",
+        "Umair Suzuki",
+        "Yousuf Nini",
+        "Rameez Altaf",
+        "Ashwaq c/o Syed Zaheeer",
+        "Awais c/o Umer Sohail",
+        "Raza Cheetah"
+      ],
+      "batting": [
+        {
+          "name": "Syed Zaheer",
+          "dots": 2,
+          "ones": 0,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "bowled",
+          "position": 1
+        },
+        {
+          "name": "Sher Muhammad",
+          "dots": 3,
+          "ones": 6,
+          "twos": 1,
+          "threes": 0,
+          "fours": 2,
+          "sixes": 3,
+          "dismissal": "caught",
+          "position": 2
+        },
+        {
+          "name": "Umer Sohail",
+          "dots": 3,
+          "ones": 3,
+          "twos": 0,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 3
+        },
+        {
+          "name": "Rameez Altaf",
+          "dots": 1,
+          "ones": 6,
+          "twos": 1,
+          "threes": 0,
+          "fours": 2,
+          "sixes": 3,
+          "dismissal": "notout",
+          "position": 4
+        },
+        {
+          "name": "Raza Cheetah",
+          "dots": 2,
+          "ones": 0,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 5
+        },
+        {
+          "name": "Ashwaq c/o Syed Zaheeer",
+          "dots": 2,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dismissal": "bowled",
+          "position": 6
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "dots": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 7
+        }
+      ],
+      "bowling": [
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 13,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 3,
+          "twos": 1,
+          "threes": 0,
+          "fours": 2,
+          "sixes": 0,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 16,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 2,
+          "sixes": 1,
+          "dots": 2,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 2,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Raza Cheetah",
+          "overs": "1",
+          "runs": 14,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 0,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 1,
+          "dots": 2,
+          "wides": 2,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 21,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 2,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 16,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Raza Cheetah",
+          "overs": "1",
+          "runs": 27,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 0,
+          "twos": 1,
+          "threes": 1,
+          "fours": 1,
+          "sixes": 3,
+          "dots": 0,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 6,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 5,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        }
+      ],
+      "fielding": [
+        {
+          "name": "Sher Muhammad",
+          "catches": 1,
+          "runouts": 1,
+          "stumpings": 0
+        },
+        {
+          "name": "Rameez Altaf",
+          "catches": 1,
+          "runouts": 0,
+          "stumpings": 0
+        }
+      ],
+      "oppBowling": [
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 7,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 16,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 16,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 14,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 2
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 11,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 17,
+          "wickets": 1
+        }
+      ],
+      "seq": 28
     }
   ],
   "fixtures": [
