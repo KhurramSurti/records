@@ -7923,6 +7923,303 @@
         }
       ],
       "seq": 25
+    },
+    {
+      "id": "m1792343554155",
+      "date": "2026-10-11",
+      "opponent": "Victoria XI",
+      "captain": "Rameez Altaf",
+      "ground": "Paradise Market, Saddar",
+      "venueType": "away",
+      "format": "OD",
+      "toss": "won",
+      "decision": "bowl",
+      "ourTotal": 70,
+      "ourWickets": 2,
+      "ourOvers": "7.0",
+      "oppTotal": 69,
+      "oppWickets": 7,
+      "oppOvers": "8.0",
+      "result": "won",
+      "motm": "",
+      "xi": [
+        "Mehboob Yasin",
+        "Fayyaz Muhammad",
+        "Syed Zaheer",
+        "Mudassir Hamdani",
+        "Syed Mudassir",
+        "Umer Sohail",
+        "Umair Suzuki",
+        "Yousuf Nini",
+        "Rameez Altaf",
+        "Shahzib Lefty",
+        "Awais c/o Umer Sohail"
+      ],
+      "batting": [
+        {
+          "name": "Mehboob Yasin",
+          "dots": 11,
+          "ones": 9,
+          "twos": 4,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 0,
+          "dismissal": "caught",
+          "position": 1
+        },
+        {
+          "name": "Syed Zaheer",
+          "dots": 3,
+          "ones": 1,
+          "twos": 1,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 1,
+          "dismissal": "caught",
+          "position": 2
+        },
+        {
+          "name": "Syed Mudassir",
+          "dots": 2,
+          "ones": 4,
+          "twos": 1,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 3
+        },
+        {
+          "name": "Rameez Altaf",
+          "dots": 1,
+          "ones": 0,
+          "twos": 1,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 0,
+          "dismissal": "notout",
+          "position": 4
+        }
+      ],
+      "bowling": [
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 7,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 5,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 1,
+          "wides": 2,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 1,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 4,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Shahzib Lefty",
+          "overs": "1",
+          "runs": 7,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 0,
+          "threes": 0,
+          "fours": 1,
+          "sixes": 0,
+          "dots": 3,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 12,
+          "wickets": 1,
+          "bowled": 0,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 1,
+          "wides": 2,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Mudassir Hamdani",
+          "overs": "1",
+          "runs": 17,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 2,
+          "dots": 0,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Shahzib Lefty",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 1,
+          "bowled": 1,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 2,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "overs": "1",
+          "runs": 9,
+          "wickets": 2,
+          "bowled": 1,
+          "caught": 1,
+          "stumped": 0,
+          "ones": 2,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 1,
+          "dots": 3,
+          "wides": 1,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        },
+        {
+          "name": "Umair Suzuki",
+          "overs": "1",
+          "runs": 4,
+          "wickets": 0,
+          "bowled": 0,
+          "caught": 0,
+          "stumped": 0,
+          "ones": 4,
+          "twos": 0,
+          "threes": 0,
+          "fours": 0,
+          "sixes": 0,
+          "dots": 2,
+          "wides": 0,
+          "noballs": 0,
+          "runouts": 0,
+          "hattricks": 0
+        }
+      ],
+      "fielding": [
+        {
+          "name": "Umer Sohail",
+          "catches": 3,
+          "runouts": 0,
+          "stumpings": 0
+        },
+        {
+          "name": "Mehboob Yasin",
+          "catches": 0,
+          "runouts": 1,
+          "stumpings": 0
+        },
+        {
+          "name": "Fayyaz Muhammad",
+          "catches": 0,
+          "runouts": 1,
+          "stumpings": 0
+        }
+      ],
+      "oppBowling": [
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 4,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 23,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 1
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 5,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 10,
+          "wickets": 0
+        },
+        {
+          "name": "",
+          "overs": "1",
+          "runs": 8,
+          "wickets": 1
+        }
+      ],
+      "seq": 26
     }
   ],
   "fixtures": [
