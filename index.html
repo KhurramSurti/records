@@ -1857,6 +1857,14 @@ function viewSquad(v){
       <button class="btn primary" onclick="addSquadPlayer()">+ Add player</button>
     </div>
   </div>
+  <div class="form-section"><h3>Rename / fix a player's name</h3>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Guest told you his real name, or a name was mistyped? Rename it here and it updates <b>everywhere at once</b> — every scorecard, leaderboard and profile — so all of that player's stats stay under one name. If the new name already exists in the records, the two are <b>merged</b> into one player.</p>
+    <div class="controls" style="margin:0">
+      <div class="field" style="flex:1;min-width:200px"><label>Current name</label><input id="rn-old" list="all-players-list-sq" autocomplete="off" placeholder="Pick the name to change"><datalist id="all-players-list-sq">${addSubOptions()}</datalist></div>
+      <div class="field" style="flex:1;min-width:200px"><label>New (correct) name</label><input id="rn-new" autocomplete="off" placeholder="Correct name" onkeydown="if(event.key==='Enter'){onRenamePlayer();}"></div>
+      <button class="btn primary" onclick="onRenamePlayer()">Rename everywhere</button>
+    </div>
+  </div>
   <div class="table-wrap table-scroll"><table>
     <thead><tr><th class="l">#</th><th class="l">Player</th><th class="l">Type</th><th>Matches</th><th class="l">Actions</th></tr></thead>
     <tbody>${players.length?players.map((p,i)=>`<tr>
@@ -1864,7 +1872,8 @@ function viewSquad(v){
       <td class="l pname">${esc(p.name)}</td>
       <td class="l">${p.sub?'<span class="chip cap">Substitute</span>':'<span class="chip">Regular</span>'}</td>
       <td class="tnum dim">${playedCount(p.name)}</td>
-      <td class="l" style="white-space:nowrap"><button class="btn ghost sm" onclick="toggleSub('${encodeURIComponent(p.name)}')">${p.sub?'Make regular':'Mark sub'}</button>
+      <td class="l" style="white-space:nowrap"><button class="btn ghost sm" onclick="renameSquadPrompt('${encodeURIComponent(p.name)}')">Rename</button>
+        <button class="btn ghost sm" onclick="toggleSub('${encodeURIComponent(p.name)}')">${p.sub?'Make regular':'Mark sub'}</button>
         <button class="btn danger sm" onclick="removeSquadPlayer('${encodeURIComponent(p.name)}')">Remove</button></td></tr>`).join(''):`<tr><td class="l dim" colspan="5">No players yet — add your squad above.</td></tr>`}</tbody>
   </table></div>
   <div class="notice" style="margin-top:16px">Removing a player from this list only removes the name from suggestions — <b>past match stats are never deleted</b>. A one-off substitute can also just be typed straight into a scorecard without adding them here first.</div>`;
@@ -1884,6 +1893,59 @@ function removeSquadPlayer(enc){
 function toggleSub(enc){
   const name=decodeURIComponent(enc);
   ((DATA.team&&DATA.team.players)||[]).forEach(p=>{if(p.name===name)p.sub=!p.sub;}); saveLocal(); setDirty(true); router();
+}
+/* Rename a player everywhere their name is stored (our own team only):
+   roster + every match's batting, bowling, fielding, captain, MOTM and XI.
+   Dismissal bowler/fielder are the OPPONENT, so they are left untouched.
+   If newName already exists this is a MERGE — because every leaderboard
+   groups by name, the two sets of stats combine automatically. */
+function renamePlayer(oldName,newName){
+  oldName=(oldName||"").trim(); newName=(newName||"").trim();
+  if(!oldName||!newName) return {ok:false,msg:"Enter both the current name and the new name."};
+  if(oldName===newName) return {ok:false,msg:"The two names are the same."};
+  if(!new Set(allPlayers()).has(oldName)) return {ok:false,msg:'"'+oldName+'" was not found in the squad or any match.'};
+  let hits=0;
+  if(DATA.team&&Array.isArray(DATA.team.players)){
+    DATA.team.players.forEach(p=>{ if(p.name===oldName){ p.name=newName; hits++; } });
+    const seen=new Set(); DATA.team.players=DATA.team.players.filter(p=>{ if(seen.has(p.name))return false; seen.add(p.name); return true; });
+  }
+  (DATA.matches||[]).forEach(m=>{
+    (m.batting||[]).forEach(b=>{ if(b.name===oldName){ b.name=newName; hits++; } });
+    (m.bowling||[]).forEach(b=>{ if(b.name===oldName){ b.name=newName; hits++; } });
+    (m.fielding||[]).forEach(f=>{ if(f.name===oldName){ f.name=newName; hits++; } });
+    if(m.captain===oldName){ m.captain=newName; hits++; }
+    if(m.motm===oldName){ m.motm=newName; hits++; }
+    if(Array.isArray(m.xi)){ m.xi=[...new Set(m.xi.map(n=>n===oldName?newName:n))]; }
+  });
+  saveLocal(); setDirty(true); renderNav(); router();
+  return {ok:true,merged:false,hits,msg:"Renamed “"+oldName+"” to “"+newName+"” — "+hits+" record"+(hits===1?"":"s")+" updated."};
+}
+function onRenamePlayer(){
+  const o=$("#rn-old"), n=$("#rn-new"); if(!o||!n)return;
+  const oldN=(o.value||"").trim(), newN=(n.value||"").trim();
+  if(!oldN||!newN){ alert("Enter both the current name and the new (correct) name."); return; }
+  if(oldN===newN){ alert("The two names are the same."); return; }
+  if(!new Set(allPlayers()).has(oldN)){ alert('"'+oldN+'" was not found in the squad or any match. Pick an existing name from the list.'); return; }
+  const merging=new Set(allPlayers()).has(newN);
+  const msg=merging
+    ? ('"'+newN+'" already has records.\n\nRenaming "'+oldN+'" to "'+newN+'" will MERGE them into one player and combine their stats everywhere. Continue?')
+    : ('Rename "'+oldN+'" to "'+newN+'" everywhere in the records?');
+  if(!confirm(msg))return;
+  const r=renamePlayer(oldN,newN);
+  if(!r.ok){ alert(r.msg); return; }
+  toast(merging?("Merged into “"+newN+"” — stats combined."):r.msg);
+}
+function renameSquadPrompt(enc){
+  const cur=decodeURIComponent(enc);
+  const nn=prompt('New name for "'+cur+'":',cur);
+  if(nn===null)return;
+  const newN=nn.trim();
+  if(!newN||newN===cur)return;
+  const merging=new Set(allPlayers()).has(newN);
+  if(merging&&!confirm('"'+newN+'" already has records. Merge "'+cur+'" into "'+newN+'" and combine their stats? Continue?'))return;
+  const r=renamePlayer(cur,newN);
+  if(!r.ok){ alert(r.msg); return; }
+  toast(merging?("Merged into “"+newN+"” — stats combined."):r.msg);
 }
 
 /* ============================================================ ADD MATCH ============================================================ */
@@ -2253,7 +2315,7 @@ function applyJson(){try{const j=JSON.parse($("#json-box").value);if(!j.matches)
 function resetData(){if(confirm("Replace everything with the built-in sample data?")){DATA=JSON.parse(JSON.stringify(SAMPLE_DATA));saveLocal();setDirty(true);renderNav();router();}}
 function clearAll(){if(confirm("Delete ALL matches? Make sure you have a backup first.")){DATA={team:DATA.team||{name:"Gold Hayat Cricket Team"},matches:[]};saveLocal();setDirty(true);renderNav();router();}}
 
-Object.assign(window,{addBatRow,addBowlRow,addOppBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
+Object.assign(window,{addBatRow,addBowlRow,addOppBowlRow,addFieldRow,recalcBat,recalcBowl,recalcBowlWkts,recalcBatTotal,recalcSummary,onDecisionOrder,setVal,onAddToggleXI,onAddSub,refreshXiList,saveMatch,downloadData,downloadBackup,copyData,importFile,applyJson,resetData,clearAll,router,viewSquad,addSquadPlayer,removeSquadPlayer,toggleSub,renamePlayer,onRenamePlayer,renameSquadPrompt,applyTheme,renderThemeSwitch,paintBrand,pdfMatch,pdfBatting,pdfBowling,viewSchedule,addFixture,removeFixture,playFixture,viewVenues,editMatch,deleteMatch,saveGHSettings,forgetGH,publishToGitHub,getGH,ghConfigured,pdfPlayer,pdfCaptain,pdfCaptains,pdfTeam,pdfVenues,pdfFielding,pdfRecords,promptUnlock,lockEditing,setEditPassword,removeEditPassword,printSummary,viewSummary,refreshData,toast,toggleSound,playClick,viewReports});
 
 
 /* ============================================================ BRAND / THEME / PDF ============================================================ */
