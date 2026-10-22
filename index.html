@@ -1508,10 +1508,11 @@ function viewPlayers(v){
   const names=allPlayers();
   const bat=Object.fromEntries(battingAgg().map(p=>[p.name,p]));
   const bowl=Object.fromEntries(bowlingAgg().map(p=>[p.name,p]));
-  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Squad</div><h2>Players</h2><p>${names.length} players • tap any card for a full profile</p></div></div>
+  v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Squad</div><h2>Players</h2><p>${names.length} players • tap any card for a full profile • use <b>Rename</b> to fix a spelling or merge two cards of the same player</p></div></div>
   <div class="grid c3">${names.map(n=>{const b=bat[n],w=bowl[n];return `<div class="card gold" style="cursor:pointer" onclick="location.hash='#/player/${encodeURIComponent(n)}'">
     <div class="profile-head" style="margin:0"><div class="avatar" style="width:52px;height:52px;font-size:20px">${initials(n)}</div>
-    <div><h2 style="font-size:19px;margin:0">${esc(n)}</h2><div class="role">${b?b.runs+" runs":""}${b&&w?" · ":""}${w?w.wkts+" wkts":""}${!b&&!w?"—":""}</div></div></div></div>`;}).join("")||emptyBlock("No players yet")}</div>`;
+    <div style="flex:1;min-width:0"><h2 style="font-size:19px;margin:0">${esc(n)}</h2><div class="role">${b?b.runs+" runs":""}${b&&w?" · ":""}${w?w.wkts+" wkts":""}${!b&&!w?"—":""}</div></div>
+    <button class="btn ghost sm" style="flex:none;align-self:flex-start" title="Rename this player everywhere / merge into another name" onclick="event.stopPropagation();renameSquadPrompt('${encodeURIComponent(n)}')">Rename</button></div></div>`;}).join("")||emptyBlock("No players yet")}</div>`;
 }
 let playerFmt="all", playerFmtFor=null;
 let playerBatMode="month", playerBowlMode="month", playerBatMonth="", playerBowlMonth="";
