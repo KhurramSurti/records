@@ -1866,7 +1866,20 @@ function viewSplits(v){
   const chase=all.filter(m=>m.decision==="bowl");
   const sBF=teamSummary(batFirst), sCH=teamSummary(chase);
   const seg=s0=>[{label:"Won",value:s0.w,color:"var(--pitch)"},{label:"Lost",value:s0.l,color:"var(--ball)"},{label:"Tied",value:s0.t,color:"var(--gold)"},{label:"No result",value:s0.nr,color:"var(--muted-2)"}];
-  const donutCard=(title,sub,s0)=> s0.played?`<div class="chart-card"><div class="cc-h">${title}</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">${sub}</div><div class="donut-wrap">${donut(seg(s0),150,"PLAYED")}${legendTable(seg(s0))}</div><div style="margin-top:8px;font-size:13px;color:var(--cream)">Win rate <b style="color:var(--gold);font-family:var(--mono)">${s0.winPct.toFixed(0)}%</b> · ${s0.w} of ${s0.played} won</div></div>`:`<div class="chart-card"><div class="cc-h">${title}</div>${emptyBlock("No matches yet")}</div>`;
+  const donutCard=(title,sub,s0,extra)=> s0.played?`<div class="chart-card"><div class="cc-h">${title}</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">${sub}</div><div class="donut-wrap">${donut(seg(s0),150,"PLAYED")}${legendTable(seg(s0))}</div><div style="margin-top:8px;font-size:13px;color:var(--cream)">Win rate <b style="color:var(--gold);font-family:var(--mono)">${s0.winPct.toFixed(0)}%</b> · ${s0.w} of ${s0.played} won</div>${extra||""}</div>`:`<div class="chart-card"><div class="cc-h">${title}</div>${emptyBlock("No matches yet")}</div>`;
+  const resChip=m=>{ const map={won:["Won","var(--pitch)"],lost:["Lost","#e37a70"],tie:["Tied","var(--gold)"]}; const x=map[m.result]; return x?`<span class="chip" style="font-size:10px;color:${x[1]};border-color:${x[1]}">${x[0]}</span>`:`<span class="chip" style="font-size:10px">NR</span>`; };
+  const recBlock=(ms,mode)=>{
+    const valOf=m=> mode==="set"?int(m.ourTotal):int(m.oppTotal);
+    const valid=ms.filter(m=>valOf(m)>0);
+    if(!valid.length) return "";
+    let hi=valid[0],lo=valid[0];
+    valid.forEach(m=>{ const vv=valOf(m); if(vv>valOf(hi))hi=m; if(vv<valOf(lo))lo=m; });
+    const wkOf=m=>{ const raw=mode==="set"?m.ourWickets:m.oppWickets; return (raw===undefined||raw===null||raw==="")?"":("/"+int(raw)); };
+    const hiLabel=mode==="set"?"Highest total made":"Biggest target chased";
+    const loLabel=mode==="set"?"Lowest total made":"Smallest target chased";
+    const line=(lab,m)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:7px"><span class="dim" style="font-size:12px">${lab}</span><span style="font-size:13px;text-align:right"><b class="tnum" style="color:var(--gold)">${valOf(m)}${wkOf(m)}</b> <span class="dim">vs ${esc(m.opponent||"—")}</span> ${resChip(m)}</span></div>`;
+    return `<div style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:6px">${line(hiLabel,hi)}${line(loLabel,lo)}</div>`;
+  };
   const hl=(a,b)=>(a>b)?' style="color:var(--gold);font-weight:700"':'';
   const gv=(r,col)=>{ if(col==="name")return (r.name||"").toLowerCase(); if(col==="tot")return r.tot||0; const parts=col.split("."),g=parts[0],k=parts[1]; const o=r[g]; if(!o)return -1; if(k==="overs")return parseFloat(o.overs)||0; return o[k]!=null?o[k]:-1; };
   const sortBy=(rows,st)=>rows.sort((a,b)=>{ const av=gv(a,st.col),bv=gv(b,st.col); if(st.col==="name")return st.dir<0?String(bv).localeCompare(String(av)):String(av).localeCompare(String(bv)); return st.dir<0?(bv-av):(av-bv); });
@@ -1901,8 +1914,8 @@ function viewSplits(v){
     <tbody>${capRows.map(r=>`<tr class="clickable" onclick="location.hash='#/captain/${encodeURIComponent(r.name)}'"><td class="l pname">${esc(r.name)}</td><td class="tnum dim g1">${r.ch.played}</td><td class="tnum g1">${r.ch.w}-${r.ch.l}</td><td class="tnum g1"${hl(r.ch.winPct,r.df.winPct)}>${r.ch.played?r.ch.winPct.toFixed(0)+"%":"—"}</td><td class="tnum dim g2">${r.df.played}</td><td class="tnum g2">${r.df.w}-${r.df.l}</td><td class="tnum g2"${hl(r.df.winPct,r.ch.winPct)}>${r.df.played?r.df.winPct.toFixed(0)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>`:emptyBlock("No captain data yet");
   v.innerHTML=`<div class="page-head"><div><div class="eyebrow">Team</div><h2>Bat first vs Chase</h2><p>How everyone performs when we <b>set a target</b> (bat first, then defend) versus when we <b>chase</b> a target. Tap any column heading to sort.</p></div></div>${fmtTabs(fmt,"onSplitFmt")}
   <div class="dash-grid">
-    ${donutCard("When we bat first","We set a target, then defend it",sBF)}
-    ${donutCard("When we chase","Opponent sets a target, we chase it",sCH)}
+    ${donutCard("When we bat first","We set a target, then defend it",sBF,recBlock(batFirst,"set"))}
+    ${donutCard("When we chase","Opponent sets a target, we chase it",sCH,recBlock(chase,"chase"))}
   </div>
   <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Batsmen — batting first vs chasing</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Runs, average and strike rate in each situation. The higher run tally is highlighted in gold. Tap a column to sort; tap a name for the profile.</div>${batTable}</div>
   <div class="chart-card" style="margin-bottom:16px"><div class="cc-h">Bowlers — bowling first vs defending</div><div class="dim" style="font-size:11.5px;margin:-4px 0 10px">Overs, runs conceded, wickets and economy in each situation. The higher wicket tally is highlighted in gold.</div>${bowlTable}</div>
