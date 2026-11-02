@@ -1565,6 +1565,17 @@ function viewPlayer(v,name){
   pmatches.forEach(m=>(m.batting||[]).forEach(x=>{ if(x.name!==name)return; const d=x.dismissal||"caught"; dis[d]=(dis[d]||0)+1; }));
   const disSegs=Object.keys(dis).map(k=>({label:(DIS_META[k]||{l:k}).l,value:dis[k],color:(DIS_META[k]||{c:"var(--muted-2)"}).c}));
 
+  // runs by batting position for THIS player (selected format)
+  const posMap={};
+  pmatches.forEach(m=>(m.batting||[]).forEach((raw,i)=>{ const x=inn(raw); if(x.name!==name)return; const p=raw.position||(i+1);
+    const e=posMap[p]||(posMap[p]={pos:p,inns:0,runs:0,hs:0,hsNo:false,balls:0,no:0});
+    e.inns++; e.runs+=x.runs; e.balls+=x.balls;
+    const notOut=(x.dismissal==="notout"||x.dismissal==="retired");
+    if(x.runs>e.hs){ e.hs=x.runs; e.hsNo=notOut; }
+    if(notOut)e.no++; }));
+  const posRows=Object.values(posMap).sort((a,b)=>a.pos-b.pos);
+  const posBest=posRows.slice().sort((a,b)=>(b.runs-a.runs)||(b.inns-a.inns))[0];
+
   // per-innings series (combine a bowler's spells within each match)
   const combineBowl=(m,nm)=>{ const rows=(m.bowling||[]).filter(x=>x.name===nm); if(!rows.length)return null; let balls=0,runs=0,wkts=0; rows.forEach(x=>{balls+=oversToBalls(x.overs);runs+=int(x.runs);wkts+=int(x.wickets);}); return {wickets:wkts,runs:runs,overs:ballsToOvers(balls)}; };
   const runsSeries=[]; const wktSeries=[];
@@ -1607,6 +1618,12 @@ function viewPlayer(v,name){
     <div class="chart-card"><div class="eyebrow" style="margin-bottom:12px">How out</div>${disSegs.length?`<div class="donut-wrap">${donut(disSegs,150)}${legend(disSegs.map(x=>({label:x.label,value:x.value,color:x.color})))}</div>`:emptyBlock("No dismissals recorded")}</div>
   </div>
   ${runsSeries.length>1?`<div class="chart-card" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:10px">Runs per innings</div>${sparkBars(runsSeries)}</div>`:""}
+  ${posRows.length?`<div class="chart-card" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:10px">Runs by batting position</div>
+    <div class="table-wrap table-scroll"><table>
+      <thead><tr><th class="l">Batting position</th><th>Inns</th><th>Runs</th><th>HS</th><th>Avg</th><th>SR</th></tr></thead>
+      <tbody>${posRows.map(r=>{const d=r.inns-r.no;const avg=d>0?(r.runs/d):null;const sr=r.balls?r.runs/r.balls*100:0;return `<tr><td class="l">No. ${r.pos}</td><td class="tnum dim">${r.inns}</td><td class="hi tnum">${r.runs}</td><td class="tnum">${r.hs}${r.hsNo?"*":""}</td><td class="tnum">${avg==null?"—":avg.toFixed(1)}</td><td class="tnum dim">${sr.toFixed(0)}</td></tr>`;}).join("")}</tbody>
+    </table></div>
+    ${posBest?`<p class="dim" style="font-size:12px;margin-top:8px">Most runs at <b style="color:var(--gold)">No. ${posBest.pos}</b> — ${posBest.runs} runs in ${posBest.inns} inns${posBest.inns-posBest.no>0?" (avg "+(posBest.runs/(posBest.inns-posBest.no)).toFixed(1)+")":""}.</p>`:""}</div>`:""}
   `:`<div class="notice">No batting record in ${esc(ctx)} yet.</div>`}
 
   <div class="split-title">Bowling <span class="pill">${esc(ctx)}</span></div>
